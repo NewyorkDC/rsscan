@@ -227,8 +227,12 @@ tbody tr {
 }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
 tbody tr:hover { background: var(--bg3); }
-tbody td { padding: 6px 10px; }
-
+tbody td { 
+  padding: 6px 10px; 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .td-star {
   cursor: pointer;
   color: var(--text3);
