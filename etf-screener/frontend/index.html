@@ -11,24 +11,21 @@
 <body>
 <div id="app">
 
-  <!-- HEADER -->
   <header class="header">
     <div class="header-left">
       <span class="logo">RS<span class="logo-accent">SCAN</span></span>
-      <!-- 모드 탭 -->
       <div class="mode-tabs">
         <button class="mode-tab active" id="tabETF" onclick="switchMode('etf')">ETF</button>
         <button class="mode-tab" id="tabStock" onclick="switchMode('stock')">주식</button>
+        <button class="mode-tab" id="tabMy" onclick="switchMode('my')">⭐ 내 종목</button>
       </div>
     </div>
     <div class="header-right">
-      <span class="market-status" id="marketStatus">
-        <span class="dot dot-green"></span> 장 마감
-      </span>
+      <span class="market-status"><span class="dot dot-green"></span> 장 마감</span>
       <span class="last-update" id="lastUpdate">업데이트: —</span>
       <button class="btn-icon" id="alertSettingsBtn" title="알림 설정">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span class="alert-badge" id="alertBadge" style="display:none">0</span>
+        <span class="alert-badge" id="alertBadge" style="display:none">✓</span>
       </button>
       <button class="btn-refresh" id="refreshBtn">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
@@ -37,7 +34,7 @@
     </div>
   </header>
 
-  <!-- ETF 필터 바 -->
+  <!-- ETF 필터 -->
   <div class="filter-bar" id="etfFilterBar">
     <div class="filter-row">
       <span class="filter-label">Stage</span>
@@ -81,7 +78,7 @@
     </div>
   </div>
 
-  <!-- 주식 필터 바 -->
+  <!-- 주식 필터 -->
   <div class="filter-bar" id="stockFilterBar" style="display:none">
     <div class="filter-row">
       <span class="filter-label">섹터</span>
@@ -95,9 +92,6 @@
         <button class="filter-btn" data-group="sector" data-value="사이버보안">사이버보안</button>
         <button class="filter-btn" data-group="sector" data-value="클라우드">클라우드</button>
       </div>
-      <div class="filter-divider"></div>
-      <!-- 내 종목 추가 -->
-      <button class="filter-btn" id="addStockBtn" style="border-color:#f59e0b;color:#f59e0b">+ 내 종목</button>
     </div>
     <div class="filter-row" style="margin-top:6px;">
       <span class="filter-label">정렬</span>
@@ -111,6 +105,29 @@
       <span class="result-count">Results: <strong id="stockResultCount">—</strong>개</span>
       <div style="flex:1"></div>
       <input class="search-input" type="text" id="stockSearchInput" placeholder="티커 검색..." />
+    </div>
+  </div>
+
+  <!-- 내 종목 필터 -->
+  <div class="filter-bar" id="myFilterBar" style="display:none">
+    <div class="filter-row">
+      <span class="filter-label" style="color:var(--amber)">⭐ 내 종목</span>
+      <div class="filter-divider"></div>
+      <button class="filter-btn" id="openAddModal" style="border-color:var(--amber);color:var(--amber)">+ 종목 추가</button>
+      <div id="myTickerTags" style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;"></div>
+    </div>
+    <div class="filter-row" style="margin-top:6px;">
+      <span class="filter-label">정렬</span>
+      <div class="filter-group">
+        <button class="sort-btn active" data-sort="rsLineScore">RS점수↓</button>
+        <button class="sort-btn" data-sort="ibdRS">IBD RS↓</button>
+        <button class="sort-btn" data-sort="w1">최근1주↓</button>
+        <button class="sort-btn" data-sort="w3">1~3주↓</button>
+      </div>
+      <div class="filter-divider"></div>
+      <span class="result-count">Results: <strong id="myResultCount">—</strong>개</span>
+      <div style="flex:1"></div>
+      <input class="search-input" type="text" id="mySearchInput" placeholder="티커 검색..." />
     </div>
   </div>
 
@@ -143,20 +160,26 @@
   </div>
 
   <!-- 내 종목 추가 모달 -->
-  <div class="modal-overlay" id="addStockModal" style="display:none">
+  <div class="modal-overlay" id="addTickerModal" style="display:none">
     <div class="modal">
       <div class="modal-header">
-        <span class="modal-title">+ 내 종목 추가</span>
-        <button class="modal-close" id="addStockClose">✕</button>
+        <span class="modal-title">⭐ 내 종목 추가</span>
+        <button class="modal-close" id="addTickerClose">✕</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label>티커 입력 (쉼표로 구분)</label>
-          <input type="text" id="customTickers" placeholder="예: NVDA, TSLA, AAPL" class="form-input" />
-          <span class="form-hint">야후 파이낸스 기준 티커명</span>
+          <label>티커 입력</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="newTickerInput" placeholder="예: PL, RKLB, LUNR" class="form-input" style="flex:1" />
+            <button class="btn-save" id="addTickerBtn" style="width:auto;padding:0 16px;">추가</button>
+          </div>
+          <span class="form-hint">쉼표로 여러 개 입력 가능 (예: PL, RKLB, IONQ)</span>
         </div>
-        <div id="savedTickers" style="margin-bottom:12px;"></div>
-        <button class="btn-save" id="saveTickersBtn">추가</button>
+        <div class="form-section-title">현재 내 종목</div>
+        <div id="currentTickerList" style="display:flex;flex-wrap:wrap;gap:6px;min-height:40px;"></div>
+        <div style="margin-top:16px;">
+          <button class="btn-test" id="loadMyBtn">🔄 데이터 불러오기</button>
+        </div>
       </div>
     </div>
   </div>
