@@ -200,7 +200,7 @@ body {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1000px;
+  min-width: 1200px;
 }
 thead th {
   background: var(--bg2);
