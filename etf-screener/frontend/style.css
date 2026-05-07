@@ -200,8 +200,7 @@ body {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1200px;
-  table-layout: fixed;
+  min-width: 1000px;
 }
 thead th {
   background: var(--bg2);
@@ -214,7 +213,7 @@ thead th {
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
   position: sticky;
-  top: 0px;
+  top: 52px;
 }
 thead th.num { text-align: right; }
 thead th.th-sort { cursor: pointer; user-select: none; }
@@ -228,12 +227,8 @@ tbody tr {
 }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
 tbody tr:hover { background: var(--bg3); }
-tbody td { 
-  padding: 6px 10px; 
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+tbody td { padding: 6px 10px; }
+
 .td-star {
   cursor: pointer;
   color: var(--text3);
@@ -448,3 +443,30 @@ input[type=range] {
 .toast.show { opacity: 1; transform: none; }
 .toast.ok { border-color: var(--green); }
 .toast.err { border-color: var(--red); }
+
+/* 모드 탭 */
+.mode-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 3px;
+}
+.mode-tab {
+  background: none;
+  border: none;
+  color: var(--text3);
+  padding: 4px 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--mono);
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.mode-tab:hover { color: var(--text2); }
+.mode-tab.active {
+  background: var(--accent2);
+  color: #fff;
+}
