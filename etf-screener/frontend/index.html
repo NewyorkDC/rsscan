@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RS Screener — ETF 기술적 분석</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Pretendard:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <span class="logo">RS<span class="logo-accent">SCAN</span></span>
+      <span class="header-tag">ETF 스크리너</span>
+    </div>
+    <div class="header-right">
+      <span class="market-status" id="marketStatus">
+        <span class="dot dot-green"></span> 장 마감
+      </span>
+      <span class="last-update" id="lastUpdate">업데이트: —</span>
+      <button class="btn-icon" id="alertSettingsBtn" title="알림 설정">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="alert-badge" id="alertBadge" style="display:none">0</span>
+      </button>
+      <button class="btn-refresh" id="refreshBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        새로고침
+      </button>
+    </div>
+  </header>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <div class="filter-row">
+      <span class="filter-label">Stage</span>
+      <div class="filter-group" id="stageFilters">
+        <button class="filter-btn active" data-group="stage" data-value="all">전체</button>
+        <button class="filter-btn" data-group="stage" data-value="S2">Stage 2</button>
+        <button class="filter-btn" data-group="stage" data-value="S2초">S2초</button>
+        <button class="filter-btn" data-group="stage" data-value="S1→S2">S1→S2</button>
+      </div>
+      <div class="filter-divider"></div>
+      <span class="filter-label">Phase</span>
+      <div class="filter-group" id="phaseFilters">
+        <button class="filter-btn active" data-group="phase" data-value="all">전체</button>
+        <button class="filter-btn phase-btn" data-group="phase" data-value="5" style="--phc:#22c55e">● 5</button>
+        <button class="filter-btn phase-btn" data-group="phase" data-value="4" style="--phc:#84cc16">● 4</button>
+        <button class="filter-btn phase-btn" data-group="phase" data-value="3" style="--phc:#eab308">● 3</button>
+        <button class="filter-btn phase-btn" data-group="phase" data-value="2" style="--phc:#f97316">● 2</button>
+        <button class="filter-btn phase-btn" data-group="phase" data-value="1" style="--phc:#ef4444">△ 1</button>
+        <button class="filter-btn phase-btn" data-group="phase" data-value="0" style="--phc:#ef4444">● 0</button>
+      </div>
+      <div class="filter-divider"></div>
+      <span class="filter-label">신호</span>
+      <div class="filter-group">
+        <button class="filter-btn signal-btn" data-signal="acceleration" id="sig-accel">⚡ 가속</button>
+        <button class="filter-btn signal-btn" data-signal="priceHigh" id="sig-ph">📈 주가신고</button>
+        <button class="filter-btn signal-btn" data-signal="rsHigh" id="sig-rsh">🔺 RS신고</button>
+      </div>
+    </div>
+    <div class="filter-row" style="margin-top:6px;">
+      <span class="filter-label">정렬</span>
+      <div class="filter-group">
+        <button class="sort-btn active" data-sort="rsLineScore">RS점수↓</button>
+        <button class="sort-btn" data-sort="ibdRS">IBD RS↓</button>
+        <button class="sort-btn" data-sort="w1">최근1주↓</button>
+        <button class="sort-btn" data-sort="w3">1~3주↓</button>
+      </div>
+      <div class="filter-divider"></div>
+      <span class="result-count">Results: <strong id="resultCount">—</strong>개</span>
+      <div style="flex:1"></div>
+      <input class="search-input" type="text" id="searchInput" placeholder="티커 검색..." />
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <table id="mainTable">
+      <thead>
+        <tr>
+          <th style="width:32px"></th>
+          <th class="th-sort" data-col="ticker">티커</th>
+          <th>종목명</th>
+          <th>자산군</th>
+          <th>패턴</th>
+          <th class="th-sort num" data-col="ibdRS">IBD RS</th>
+          <th class="th-sort num" data-col="rsNow">RS Now</th>
+          <th>Stage</th>
+          <th>Phase</th>
+          <th class="th-sort num" data-col="w1">1주%</th>
+          <th class="th-sort num" data-col="w3">1~3주%</th>
+          <th class="th-sort num" data-col="w6">3~6주%</th>
+          <th class="th-sort num" data-col="w10">6~10주%</th>
+          <th style="text-align:center">신호</th>
+          <th class="th-sort num" data-col="rsLineScore">RS점수</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="15" class="loading-row">
+          <div class="spinner"></div> 데이터 로딩 중...
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ALERT MODAL -->
+  <div class="modal-overlay" id="alertModal" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">📡 텔레그램 알림 설정</span>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>텔레그램 Bot Token</label>
+          <input type="text" id="tgToken" placeholder="1234567890:ABCdef..." class="form-input" />
+          <span class="form-hint">@BotFather에서 발급받은 토큰</span>
+        </div>
+        <div class="form-group">
+          <label>Chat ID</label>
+          <input type="text" id="tgChatId" placeholder="-100123456789" class="form-input" />
+          <span class="form-hint">@userinfobot으로 확인</span>
+        </div>
+        <div class="form-section-title">알림 조건</div>
+        <div class="condition-grid">
+          <label class="condition-item">
+            <input type="checkbox" id="cond-phase-change" checked />
+            <span>Phase 전환 감지</span>
+          </label>
+          <label class="condition-item">
+            <input type="checkbox" id="cond-rs-high" checked />
+            <span>RS Line 신고가</span>
+          </label>
+          <label class="condition-item">
+            <input type="checkbox" id="cond-accel" checked />
+            <span>가속 신호 발생</span>
+          </label>
+          <label class="condition-item">
+            <input type="checkbox" id="cond-price-high" />
+            <span>주가 신고가</span>
+          </label>
+        </div>
+        <div class="form-group">
+          <label>RS 점수 임계값 (이상일 때)</label>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="range" min="50" max="100" value="80" id="rsThreshold" style="flex:1" />
+            <span id="rsThresholdVal" style="font-family:'IBM Plex Mono';font-size:13px;min-width:28px">80</span>
+          </div>
+        </div>
+        <button class="btn-test" id="testAlertBtn">🔔 테스트 알림 전송</button>
+        <div class="test-result" id="testResult"></div>
+        <button class="btn-save" id="saveAlertBtn">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
