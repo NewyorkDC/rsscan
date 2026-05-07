@@ -32,13 +32,21 @@ function formatChg(v){
 // ── 모드 전환 ──
 window.switchMode=function(mode){
   state.mode=mode;
-  ['etf','stock','my'].forEach(m=>{
-    $(`tab${m.charAt(0).toUpperCase()+m.slice(1)}`).classList.toggle('active',m===mode);
-    const bar=$(`${m}FilterBar`); if(bar) bar.style.display=m===mode?'block':'none';
+  const tabs={etf:'tabETF',stock:'tabStock',my:'tabMy'};
+  const bars={etf:'etfFilterBar',stock:'stockFilterBar',my:'myFilterBar'};
+  Object.keys(tabs).forEach(m=>{
+    const tab=$(tabs[m]);
+    const bar=$(bars[m]);
+    if(tab) tab.classList.toggle('active',m===mode);
+    if(bar) bar.style.display=m===mode?'block':'none';
   });
   $('thCat').textContent=mode==='etf'?'자산군':'섹터';
   if(mode==='stock'&&!state.stockData.length) loadStocks();
-  else if(mode==='my') { renderMyTickers(); if(state.myTickers.length&&!state.myData.length) loadMyStocks(); else applyFilters(); }
+  else if(mode==='my'){
+    renderMyTickers();
+    if(state.myTickers.length&&!state.myData.length) loadMyStocks();
+    else applyFilters();
+  }
   else applyFilters();
 };
 
@@ -136,9 +144,13 @@ function renderTable(){
   tbody.innerHTML=state.filtered.map(r=>{
     const starred=state.starred.has(r.ticker);
     const pats=(r.patterns||[]).map(p=>`<span class="td-pattern">${p}</span>`).join('')||'—';
-    const sigs=[r.acceleration?'<span class="sig sig-accel">⚡가속</span>':'',r.priceHigh?'<span class="sig sig-ph">📈신고</span>':'',r.rsHigh?'<span class="sig sig-rsh">🔺RS</span>':''].filter(Boolean).join('');
+    const sigs=[
+      r.acceleration?'<span class="sig sig-accel">⚡가속</span>':'',
+      r.priceHigh?'<span class="sig sig-ph">📈신고</span>':'',
+      r.rsHigh?'<span class="sig sig-rsh">🔺RS</span>':''
+    ].filter(Boolean).join('');
     const priceStr=r.price?`<span style="font-family:var(--mono);font-size:11px;color:var(--text3)">$${r.price.toFixed(2)}</span>`:'';
-    const catLabel=state.mode==='stock'||(state.mode==='my')?(r.sector||r.cat):r.cat;
+    const catLabel=(state.mode==='stock'||state.mode==='my')?(r.sector||r.cat):r.cat;
     return `<tr>
       <td><span class="td-star ${starred?'starred':''}" data-ticker="${r.ticker}">${starred?'★':'☆'}</span></td>
       <td><span class="td-ticker">${r.ticker}</span> ${priceStr}</td>
@@ -164,10 +176,9 @@ function renderTable(){
   });
 }
 
-// ── 내 종목 태그 렌더 ──
+// ── 내 종목 ──
 function renderMyTickers(){
-  const el=$('myTickerTags');
-  if(!el)return;
+  const el=$('myTickerTags');if(!el)return;
   el.innerHTML=state.myTickers.map(t=>`
     <span style="background:var(--amber-dim);border:1px solid var(--amber);color:var(--amber);padding:2px 10px;border-radius:5px;font-family:var(--mono);font-size:12px;display:flex;align-items:center;gap:5px;">
       ${t} <span onclick="removeMy('${t}')" style="cursor:pointer;opacity:0.7">✕</span>
@@ -175,8 +186,7 @@ function renderMyTickers(){
 }
 
 function renderCurrentTickers(){
-  const el=$('currentTickerList');
-  if(!el)return;
+  const el=$('currentTickerList');if(!el)return;
   if(!state.myTickers.length){el.innerHTML='<span style="color:var(--text3);font-size:12px">아직 추가된 종목이 없어요</span>';return;}
   el.innerHTML=state.myTickers.map(t=>`
     <span style="background:var(--bg3);border:1px solid var(--border);padding:3px 10px;border-radius:5px;font-family:var(--mono);font-size:12px;display:flex;align-items:center;gap:6px;">
@@ -192,12 +202,10 @@ window.removeMy=function(ticker){
 };
 
 function addMyTickers(){
-  const input=$('newTickerInput').value.trim();
-  if(!input)return;
+  const input=$('newTickerInput').value.trim();if(!input)return;
   const newOnes=input.toUpperCase().split(',').map(t=>t.trim()).filter(Boolean);
-  const merged=[...new Set([...state.myTickers,...newOnes])];
-  state.myTickers=merged;
-  localStorage.setItem('myTickers',JSON.stringify(merged));
+  state.myTickers=[...new Set([...state.myTickers,...newOnes])];
+  localStorage.setItem('myTickers',JSON.stringify(state.myTickers));
   $('newTickerInput').value='';
   renderMyTickers();renderCurrentTickers();
   showToast(`✓ ${newOnes.length}개 종목 추가됨`);
@@ -209,10 +217,19 @@ function loadAlertSettings(){
   if(s.token)$('tgToken').value=s.token;
   if(s.chatId)$('tgChatId').value=s.chatId;
   if(s.threshold){$('rsThreshold').value=s.threshold;$('rsThresholdVal').textContent=s.threshold;}
-  if(s.conditions){$('cond-phase-change').checked=s.conditions.phaseChange??true;$('cond-rs-high').checked=s.conditions.rsHigh??true;$('cond-accel').checked=s.conditions.accel??true;$('cond-price-high').checked=s.conditions.priceHigh??false;}
+  if(s.conditions){
+    $('cond-phase-change').checked=s.conditions.phaseChange??true;
+    $('cond-rs-high').checked=s.conditions.rsHigh??true;
+    $('cond-accel').checked=s.conditions.accel??true;
+    $('cond-price-high').checked=s.conditions.priceHigh??false;
+  }
 }
 function saveAlertSettings(){
-  const settings={token:$('tgToken').value.trim(),chatId:$('tgChatId').value.trim(),threshold:parseInt($('rsThreshold').value),conditions:{phaseChange:$('cond-phase-change').checked,rsHigh:$('cond-rs-high').checked,accel:$('cond-accel').checked,priceHigh:$('cond-price-high').checked}};
+  const settings={
+    token:$('tgToken').value.trim(),chatId:$('tgChatId').value.trim(),
+    threshold:parseInt($('rsThreshold').value),
+    conditions:{phaseChange:$('cond-phase-change').checked,rsHigh:$('cond-rs-high').checked,accel:$('cond-accel').checked,priceHigh:$('cond-price-high').checked}
+  };
   state.alerts=settings;localStorage.setItem('alertSettings',JSON.stringify(settings));
   fetch(`${API}/api/alerts/config`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(settings)}).catch(()=>{});
   $('alertModal').style.display='none';$('alertBadge').style.display='flex';
@@ -251,11 +268,13 @@ function bindEvents(){
   }));
   document.querySelectorAll('.sort-btn').forEach(btn=>btn.addEventListener('click',()=>{
     const key=btn.dataset.sort;state.sortAsc=state.sortKey===key?!state.sortAsc:false;state.sortKey=key;
-    document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');applyFilters();
+    document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');applyFilters();
   }));
   document.querySelectorAll('.th-sort').forEach(th=>th.addEventListener('click',()=>{
     const col=th.dataset.col;state.sortAsc=state.sortKey===col?!state.sortAsc:false;state.sortKey=col;
-    document.querySelectorAll('.th-sort').forEach(t=>t.classList.remove('active'));th.classList.add('active');applyFilters();
+    document.querySelectorAll('.th-sort').forEach(t=>t.classList.remove('active'));
+    th.classList.add('active');applyFilters();
   }));
   ['searchInput','stockSearchInput','mySearchInput'].forEach(id=>{
     const el=$(id);if(el)el.addEventListener('input',e=>{state.search=e.target.value.trim();applyFilters();});
@@ -269,17 +288,21 @@ function bindEvents(){
   $('rsThreshold').addEventListener('input',e=>$('rsThresholdVal').textContent=e.target.value);
   $('testAlertBtn').addEventListener('click',sendTestAlert);
   $('saveAlertBtn').addEventListener('click',saveAlertSettings);
-  // 내 종목 모달
-  $('openAddModal').addEventListener('click',()=>{renderCurrentTickers();$('addTickerModal').style.display='flex';});
-  $('addTickerClose').addEventListener('click',()=>$('addTickerModal').style.display='none');
-  $('addTickerBtn').addEventListener('click',addMyTickers);
-  $('newTickerInput').addEventListener('keydown',e=>{if(e.key==='Enter')addMyTickers();});
-  $('loadMyBtn').addEventListener('click',()=>{$('addTickerModal').style.display='none';loadMyStocks();});
+  const openBtn=$('openAddModal');
+  if(openBtn)openBtn.addEventListener('click',()=>{renderCurrentTickers();$('addTickerModal').style.display='flex';});
+  const closeBtn=$('addTickerClose');
+  if(closeBtn)closeBtn.addEventListener('click',()=>$('addTickerModal').style.display='none');
+  const addBtn=$('addTickerBtn');
+  if(addBtn)addBtn.addEventListener('click',addMyTickers);
+  const inp=$('newTickerInput');
+  if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter')addMyTickers();});
+  const loadBtn=$('loadMyBtn');
+  if(loadBtn)loadBtn.addEventListener('click',()=>{$('addTickerModal').style.display='none';loadMyStocks();});
 }
 
 function init(){
   bindEvents();
-  if(state.alerts?.token){$('alertBadge').style.display='flex';}
+  if(state.alerts?.token)$('alertBadge').style.display='flex';
   if(state.myTickers.length)renderMyTickers();
   loadData();
   setInterval(()=>{if(state.mode==='etf')loadData();},30*60*1000);
