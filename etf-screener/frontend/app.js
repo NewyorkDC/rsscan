@@ -1,5 +1,5 @@
 // app.js — API 연동 버전
-const API = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
+const API = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://rsscan-production.up.railway.app';
 
 // ── 상태 ──
 const state = {
