@@ -1,6 +1,4 @@
 // backend/services/yahooFinance.js
-// 야후 파이낸스 API 연동 + RS 지표 계산 엔진
-
 const axios = require('axios');
 
 const HEADERS = {
@@ -41,246 +39,190 @@ const ETF_LIST = [
   { ticker: 'SKYY', name: 'First Trust Cloud Computing',cat: '클라우드' },
 ];
 
-// ── 야후 파이낸스에서 주간 가격 데이터 가져오기 ──
+const STOCK_LIST = [
+  // IBD50
+  { ticker: 'NVDA', name: 'NVIDIA',               cat: 'IBD50', sector: '반도체' },
+  { ticker: 'META', name: 'Meta Platforms',        cat: 'IBD50', sector: 'AI' },
+  { ticker: 'AAPL', name: 'Apple',                 cat: 'IBD50', sector: '기술' },
+  { ticker: 'MSFT', name: 'Microsoft',             cat: 'IBD50', sector: 'AI' },
+  { ticker: 'GOOGL',name: 'Alphabet',              cat: 'IBD50', sector: 'AI' },
+  { ticker: 'AMZN', name: 'Amazon',                cat: 'IBD50', sector: '기술' },
+  { ticker: 'TSLA', name: 'Tesla',                 cat: 'IBD50', sector: '자율주행/EV' },
+  { ticker: 'AVGO', name: 'Broadcom',              cat: 'IBD50', sector: '반도체' },
+  { ticker: 'AMD',  name: 'Advanced Micro Devices',cat: 'IBD50', sector: '반도체' },
+  { ticker: 'ARM',  name: 'Arm Holdings',          cat: 'IBD50', sector: '반도체' },
+  { ticker: 'MRVL', name: 'Marvell Technology',    cat: 'IBD50', sector: '반도체' },
+  { ticker: 'ANET', name: 'Arista Networks',       cat: 'IBD50', sector: '네트워크' },
+  { ticker: 'CRWD', name: 'CrowdStrike',           cat: 'IBD50', sector: '사이버보안' },
+  { ticker: 'PANW', name: 'Palo Alto Networks',    cat: 'IBD50', sector: '사이버보안' },
+  { ticker: 'FTNT', name: 'Fortinet',              cat: 'IBD50', sector: '사이버보안' },
+  { ticker: 'ZS',   name: 'Zscaler',               cat: 'IBD50', sector: '사이버보안' },
+  { ticker: 'DDOG', name: 'Datadog',               cat: 'IBD50', sector: '클라우드' },
+  { ticker: 'SNOW', name: 'Snowflake',             cat: 'IBD50', sector: '클라우드' },
+  { ticker: 'MDB',  name: 'MongoDB',               cat: 'IBD50', sector: '클라우드' },
+  { ticker: 'SHOP', name: 'Shopify',               cat: 'IBD50', sector: '이커머스' },
+  { ticker: 'AXON', name: 'Axon Enterprise',       cat: 'IBD50', sector: '기술' },
+  { ticker: 'PLTR', name: 'Palantir',              cat: 'IBD50', sector: 'AI' },
+  { ticker: 'NOW',  name: 'ServiceNow',            cat: 'IBD50', sector: 'AI' },
+  { ticker: 'UBER', name: 'Uber',                  cat: 'IBD50', sector: '기술' },
+  { ticker: 'COIN', name: 'Coinbase',              cat: 'IBD50', sector: '크립토' },
+  // 반도체
+  { ticker: 'QCOM', name: 'Qualcomm',              cat: '반도체', sector: '반도체' },
+  { ticker: 'TXN',  name: 'Texas Instruments',     cat: '반도체', sector: '반도체' },
+  { ticker: 'AMAT', name: 'Applied Materials',     cat: '반도체', sector: '반도체' },
+  { ticker: 'LRCX', name: 'Lam Research',          cat: '반도체', sector: '반도체' },
+  { ticker: 'KLAC', name: 'KLA Corp',              cat: '반도체', sector: '반도체' },
+  { ticker: 'ASML', name: 'ASML Holding',          cat: '반도체', sector: '반도체' },
+  { ticker: 'MU',   name: 'Micron Technology',     cat: '반도체', sector: '반도체' },
+  { ticker: 'TSM',  name: 'TSMC',                  cat: '반도체', sector: '반도체' },
+  { ticker: 'SMCI', name: 'Super Micro Computer',  cat: '반도체', sector: '반도체' },
+  // AI
+  { ticker: 'AI',   name: 'C3.ai',                 cat: 'AI',     sector: 'AI' },
+  { ticker: 'SOUN', name: 'SoundHound AI',         cat: 'AI',     sector: 'AI' },
+  { ticker: 'IONQ', name: 'IonQ',                  cat: 'AI',     sector: 'AI' },
+  { ticker: 'RGTI', name: 'Rigetti Computing',     cat: 'AI',     sector: 'AI' },
+  // 바이오
+  { ticker: 'NVO',  name: 'Novo Nordisk',          cat: '바이오', sector: '바이오' },
+  { ticker: 'LLY',  name: 'Eli Lilly',             cat: '바이오', sector: '바이오' },
+  { ticker: 'REGN', name: 'Regeneron',             cat: '바이오', sector: '바이오' },
+  { ticker: 'VRTX', name: 'Vertex Pharma',         cat: '바이오', sector: '바이오' },
+  { ticker: 'ISRG', name: 'Intuitive Surgical',    cat: '바이오', sector: '바이오' },
+  { ticker: 'MRNA', name: 'Moderna',               cat: '바이오', sector: '바이오' },
+  // 에너지
+  { ticker: 'XOM',  name: 'ExxonMobil',            cat: '에너지', sector: '에너지' },
+  { ticker: 'CVX',  name: 'Chevron',               cat: '에너지', sector: '에너지' },
+  { ticker: 'SLB',  name: 'SLB',                   cat: '에너지', sector: '에너지' },
+  { ticker: 'OXY',  name: 'Occidental Petroleum',  cat: '에너지', sector: '에너지' },
+  { ticker: 'CEG',  name: 'Constellation Energy',  cat: '에너지', sector: '에너지' },
+];
+
+const cache = {
+  etf:   { data: null, ts: 0 },
+  stock: { data: null, ts: 0 },
+};
+const CACHE_TTL = 60 * 60 * 1000;
+
 async function fetchWeeklyPrices(ticker, weeks = 15) {
-  // 15주치 + 여유분
   const range = `${Math.ceil(weeks * 1.5)}wk`;
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1wk&range=${range}`;
   const res = await axios.get(url, { headers: HEADERS, timeout: 8000 });
   const result = res.data?.chart?.result?.[0];
   if (!result) throw new Error(`${ticker}: 데이터 없음`);
-
-  const closes = result.indicators.quote[0].close;
-  const timestamps = result.timestamp;
-
-  // null 제거 후 최신순 정렬
-  const prices = closes
-    .map((c, i) => ({ price: c, ts: timestamps[i] }))
-    .filter(d => d.price != null)
-    .slice(-weeks); // 최근 N주
-
-  return prices.map(d => d.price);
+  return result.indicators.quote[0].close.filter(c => c != null).slice(-weeks);
 }
 
-// ── RS (상대강도) 계산: 종목 / SPY ──
-function calcRS(etfPrices, spyPrices) {
-  const len = Math.min(etfPrices.length, spyPrices.length);
-  if (len < 2) return Array(len).fill(1);
-  const rsLine = [];
-  for (let i = 0; i < len; i++) {
-    rsLine.push(etfPrices[i] / spyPrices[i]);
-  }
-  return rsLine;
+function calcRS(a, b) {
+  const len = Math.min(a.length, b.length);
+  return Array.from({length: len}, (_,i) => a[i] / b[i]);
 }
 
-// ── 변화율 계산 ──
-function pctChange(prices, weeksAgo) {
+function pctChange(prices, n) {
   const len = prices.length;
-  if (len < weeksAgo + 1) return null;
-  const cur = prices[len - 1];
-  const prev = prices[len - 1 - weeksAgo];
-  if (!prev) return null;
-  return ((cur - prev) / prev) * 100;
+  if (len < n+1) return null;
+  return ((prices[len-1] - prices[len-1-n]) / prices[len-1-n]) * 100;
 }
 
-// ── RS Line 점수 (0~100) ──
-// 1주, 3주, 6주, 10주 RS 변화를 가중 평균
 function calcRSLineScore(rsLine) {
   const len = rsLine.length;
   if (len < 11) return 50;
-
-  const rs1  = pctChange(rsLine, 1)  ?? 0;
-  const rs3  = pctChange(rsLine, 3)  ?? 0;
-  const rs6  = pctChange(rsLine, 6)  ?? 0;
-  const rs10 = pctChange(rsLine, 10) ?? 0;
-
-  // 가중합: 단기 > 중기
-  const weighted = rs1 * 0.40 + rs3 * 0.30 + rs6 * 0.20 + rs10 * 0.10;
-
-  // 전체 데이터에서 현재 RS 위치 (52주 퍼센타일 방식)
-  const recentRS = rsLine.slice(-52);
-  const minRS = Math.min(...recentRS);
-  const maxRS = Math.max(...recentRS);
-  const percentile = maxRS > minRS
-    ? ((rsLine[len - 1] - minRS) / (maxRS - minRS)) * 100
-    : 50;
-
-  // 종합 점수
-  const raw = percentile * 0.6 + (weighted + 10) * 2 * 0.4;
-  return Math.round(Math.min(100, Math.max(0, raw)));
+  const rs1=pctChange(rsLine,1)??0, rs3=pctChange(rsLine,3)??0;
+  const rs6=pctChange(rsLine,6)??0, rs10=pctChange(rsLine,10)??0;
+  const weighted = rs1*0.40 + rs3*0.30 + rs6*0.20 + rs10*0.10;
+  const recent = rsLine.slice(-52);
+  const mn=Math.min(...recent), mx=Math.max(...recent);
+  const pct = mx>mn ? ((rsLine[len-1]-mn)/(mx-mn))*100 : 50;
+  return Math.round(Math.min(100, Math.max(0, pct*0.6 + (weighted+10)*2*0.4)));
 }
 
-// ── Weinstein Stage 판별 (간소화) ──
-// 실제로는 MA50/MA150/MA200 필요. 여기서는 가격 추세로 근사
-function detectStage(prices) {
-  if (prices.length < 10) return 'S2';
-  const recent4  = prices.slice(-4);
-  const recent12 = prices.slice(-12);
-  const ma4  = recent4.reduce((a, b) => a + b, 0) / 4;
-  const ma12 = recent12.reduce((a, b) => a + b, 0) / 12;
-  const cur  = prices[prices.length - 1];
-
-  if (cur > ma4 && ma4 > ma12) return 'S2';       // 상승 추세
-  if (cur > ma4 && ma4 <= ma12) return 'S1→S2';   // 전환 초기
-  if (cur < ma4 && ma4 < ma12) return 'S4';        // 하락
-  return 'S3';                                      // 천장권
+function detectStage(p) {
+  if (p.length < 10) return 'S2';
+  const ma4=p.slice(-4).reduce((a,b)=>a+b,0)/4;
+  const ma12=p.slice(-12).reduce((a,b)=>a+b,0)/12;
+  const cur=p[p.length-1];
+  if (cur>ma4 && ma4>ma12) return 'S2';
+  if (cur>ma4 && ma4<=ma12) return 'S1→S2';
+  if (cur<ma4 && ma4<ma12) return 'S4';
+  return 'S3';
 }
 
-// ── Phase 판별 (1~5) ──
-function detectPhase(prices, rsLine) {
-  const len = prices.length;
-  if (len < 4) return { phase: 3, label: '—' };
-
-  const w1  = pctChange(prices, 1) ?? 0;
-  const w3  = pctChange(prices, 3) ?? 0;
-  const rsW1 = pctChange(rsLine, 1) ?? 0;
-
-  // 가속 여부 (최근 3주 연속 상승)
-  const rising3 = prices[len-1] > prices[len-2] &&
-                  prices[len-2] > prices[len-3] &&
-                  prices[len-3] > prices[len-4];
-
-  if (w1 > 5 && rsW1 > 2 && rising3) return { phase: 5, label: `최근 ${Math.floor(Math.random()*2)+1}d` };
-  if (w1 > 2 && rsW1 > 0) return { phase: 4, label: `최근 ${Math.floor(Math.random()*3)+1}d` };
-  if (w3 > 3) return { phase: 3, label: '진행중' };
-  if (w1 < -3 && rsW1 < -1) return { phase: 1, label: '역방향' };
-  if (w1 < -6) return { phase: 0, label: '돌진법' };
-  return { phase: 2, label: '관망' };
+function detectPhase(p, rs) {
+  const len=p.length;
+  if (len<4) return {phase:3,label:'—'};
+  const w1=pctChange(p,1)??0, w3=pctChange(p,3)??0, rsW1=pctChange(rs,1)??0;
+  const r3=p[len-1]>p[len-2]&&p[len-2]>p[len-3]&&p[len-3]>p[len-4];
+  if (w1>5&&rsW1>2&&r3) return {phase:5,label:`최근 ${Math.floor(Math.random()*2)+1}d`};
+  if (w1>2&&rsW1>0) return {phase:4,label:`최근 ${Math.floor(Math.random()*3)+1}d`};
+  if (w3>3) return {phase:3,label:'진행중'};
+  if (w1<-3&&rsW1<-1) return {phase:1,label:'역방향'};
+  if (w1<-6) return {phase:0,label:'돌진법'};
+  return {phase:2,label:'관망'};
 }
 
-// ── 신호 감지 ──
-function detectSignals(prices, rsLine) {
-  const len = prices.length;
-  const rsLen = rsLine.length;
-
-  // 52주 고가 대비 현재 가격
-  const high52 = Math.max(...prices.slice(-52));
-  const priceHigh = prices[len - 1] >= high52 * 0.98; // 2% 이내
-
-  // RS Line 신고가
-  const rsHigh52 = Math.max(...rsLine.slice(-52));
-  const rsHigh = rsLine[rsLen - 1] >= rsHigh52 * 0.98;
-
-  // 가속: 최근 1주 > 최근 3주 평균 모멘텀
-  const w1 = pctChange(prices, 1) ?? 0;
-  const w3 = pctChange(prices, 3) ?? 0;
-  const acceleration = w1 > 0 && w1 > (w3 / 3) * 1.5;
-
-  return { priceHigh, rsHigh, acceleration };
+function detectSignals(p, rs) {
+  const h52=Math.max(...p.slice(-52));
+  const rsh52=Math.max(...rs.slice(-52));
+  const w1=pctChange(p,1)??0, w3=pctChange(p,3)??0;
+  return {
+    priceHigh: p[p.length-1]>=h52*0.98,
+    rsHigh:    rs[rs.length-1]>=rsh52*0.98,
+    acceleration: w1>0 && w1>(w3/3)*1.5,
+  };
 }
 
-// ── 캐시 (1시간) ──
-const cache = { data: null, ts: 0 };
-const CACHE_TTL = 60 * 60 * 1000; // 1시간
-
-// ── 메인: 전체 ETF 데이터 조회 ──
-async function fetchAllETFs() {
-  const now = Date.now();
-  if (cache.data && now - cache.ts < CACHE_TTL) {
-    console.log('[캐시] 기존 데이터 반환');
-    return cache.data;
-  }
-
-  console.log('[야후 파이낸스] 데이터 수집 시작...');
-
-  // SPY 기준 데이터 먼저 가져오기
-  let spyPrices;
-  try {
-    spyPrices = await fetchWeeklyPrices('SPY', 60);
-    console.log(`[SPY] ${spyPrices.length}주 데이터 로드`);
-  } catch (err) {
-    console.error('[SPY] 오류:', err.message);
-    throw new Error('SPY 기준 데이터 로드 실패');
-  }
-
-  const results = [];
-
-  for (const etf of ETF_LIST) {
-    try {
-      await sleep(200); // 야후 API rate limit 방지
-      const prices = await fetchWeeklyPrices(etf.ticker, 60);
-      const len = Math.min(prices.length, spyPrices.length);
-      const alignedPrices = prices.slice(-len);
-      const alignedSpy   = spyPrices.slice(-len);
-
-      const rsLine = calcRS(alignedPrices, alignedSpy);
-      const w1     = pctChange(alignedPrices, 1);
-      const w3     = pctChange(alignedPrices, 3);
-      const w6     = pctChange(alignedPrices, 6);
-      const w10    = pctChange(alignedPrices, 10);
-      const stage  = detectStage(alignedPrices);
-      const { phase, label: phaseLabel } = detectPhase(alignedPrices, rsLine);
-      const { priceHigh, rsHigh, acceleration } = detectSignals(alignedPrices, rsLine);
-      const rsLineScore = calcRSLineScore(rsLine);
-
-      // RS Now: 현재 RS 퍼센타일 (1~99)
-      const rsNow = Math.round(Math.min(99, Math.max(1,
-        ((rsLine[rsLine.length-1] - Math.min(...rsLine)) /
-         (Math.max(...rsLine) - Math.min(...rsLine) + 0.0001)) * 98 + 1
-      )));
-
-      results.push({
-        ticker: etf.ticker,
-        name: etf.name,
-        cat: etf.cat,
-        patterns: detectPatterns(alignedPrices),
-        ibdRS: rsNow,
-        rsNow,
-        price: round2(alignedPrices[len - 1]),
-        stage,
-        phase,
-        phaseLabel,
-        w1: round2(w1),
-        w3: round2(w3),
-        w6: round2(w6),
-        w10: round2(w10),
-        acceleration,
-        priceHigh,
-        rsHigh,
-        rsLineScore,
-      });
-
-      console.log(`✓ ${etf.ticker} — RS ${rsLineScore}점`);
-    } catch (err) {
-      console.warn(`✗ ${etf.ticker}: ${err.message}`);
-    }
-  }
-
-  // RS 점수 기준 정렬
-  results.sort((a, b) => b.rsLineScore - a.rsLineScore);
-
-  cache.data = results;
-  cache.ts = now;
-  console.log(`[완료] ${results.length}개 ETF 처리됨`);
-  return results;
-}
-
-// ── 패턴 감지 (간소화) ──
-function detectPatterns(prices) {
-  const patterns = [];
-  const len = prices.length;
-  if (len < 10) return patterns;
-
-  // Cup Base: 6~8주 조정 후 회복
-  const min6 = Math.min(...prices.slice(-8, -1));
-  const cur  = prices[len - 1];
-  const high = Math.max(...prices.slice(-12));
-  if (cur >= high * 0.95 && min6 < high * 0.85) {
-    const depth = Math.round((1 - min6 / high) * 100);
-    patterns.push(`Cup Base ${depth}`);
-  }
-
-  // Ascending Base: 3단계 조정
-  const w3chg = pctChange(prices, 3) ?? 0;
-  const w6chg = pctChange(prices, 6) ?? 0;
-  if (w3chg > 2 && w6chg > 5 && w3chg < w6chg * 0.7) {
-    patterns.push('Ascending Base');
-  }
-
+function detectPatterns(p) {
+  const patterns=[], len=p.length;
+  if (len<10) return patterns;
+  const min6=Math.min(...p.slice(-8,-1)), cur=p[len-1], high=Math.max(...p.slice(-12));
+  if (cur>=high*0.95&&min6<high*0.85) patterns.push(`Cup Base ${Math.round((1-min6/high)*100)}`);
+  const w3=pctChange(p,3)??0, w6=pctChange(p,6)??0;
+  if (w3>2&&w6>5&&w3<w6*0.7) patterns.push('Ascending Base');
   return patterns;
 }
 
-function round2(v) { return v == null ? null : Math.round(v * 100) / 100; }
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function r2(v) { return v==null?null:Math.round(v*100)/100; }
+function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
 
-module.exports = { fetchAllETFs, ETF_LIST };
+async function fetchList(list, spyPrices, type) {
+  const results = [];
+  for (const item of list) {
+    try {
+      await sleep(200);
+      const prices = await fetchWeeklyPrices(item.ticker, 60);
+      const len = Math.min(prices.length, spyPrices.length);
+      const ap=prices.slice(-len), sp=spyPrices.slice(-len);
+      const rs=calcRS(ap,sp);
+      const {phase,label:phaseLabel}=detectPhase(ap,rs);
+      const {priceHigh,rsHigh,acceleration}=detectSignals(ap,rs);
+      const rsNow=Math.round(Math.min(99,Math.max(1,
+        ((rs[rs.length-1]-Math.min(...rs))/(Math.max(...rs)-Math.min(...rs)+0.0001))*98+1
+      )));
+      results.push({
+        ticker:item.ticker, name:item.name, cat:item.cat, sector:item.sector||item.cat, type,
+        patterns:detectPatterns(ap), ibdRS:rsNow, rsNow, price:r2(ap[len-1]),
+        stage:detectStage(ap), phase, phaseLabel,
+        w1:r2(pctChange(ap,1)), w3:r2(pctChange(ap,3)), w6:r2(pctChange(ap,6)), w10:r2(pctChange(ap,10)),
+        acceleration, priceHigh, rsHigh, rsLineScore:calcRSLineScore(rs),
+      });
+      console.log(`✓ ${item.ticker}`);
+    } catch(err) { console.warn(`✗ ${item.ticker}: ${err.message}`); }
+  }
+  return results.sort((a,b)=>b.rsLineScore-a.rsLineScore);
+}
+
+async function fetchAllETFs() {
+  const now=Date.now();
+  if (cache.etf.data&&now-cache.etf.ts<CACHE_TTL) return cache.etf.data;
+  const spy=await fetchWeeklyPrices('SPY',60);
+  const r=await fetchList(ETF_LIST,spy,'etf');
+  cache.etf={data:r,ts:now}; return r;
+}
+
+async function fetchAllStocks() {
+  const now=Date.now();
+  if (cache.stock.data&&now-cache.stock.ts<CACHE_TTL) return cache.stock.data;
+  const spy=await fetchWeeklyPrices('SPY',60);
+  const r=await fetchList(STOCK_LIST,spy,'stock');
+  cache.stock={data:r,ts:now}; return r;
+}
+
+module.exports = { fetchAllETFs, fetchAllStocks, ETF_LIST, STOCK_LIST };
