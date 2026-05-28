@@ -34,6 +34,33 @@
     </div>
   </header>
 
+
+  <!-- MARKET PULSE -->
+  <div class="pulse-panel" id="pulsePanel">
+    <div>
+      <div class="pulse-title">📈 가격 폭</div>
+      <div class="pulse-value health-neutral" id="priceBreadth">—</div>
+      <div class="pulse-sub" id="priceBreadthSub">50MA 상회 비율</div>
+      <div class="pulse-bar-wrap"><div class="pulse-bar-fill bar-neutral" id="priceBreadthBar" style="width:0%"></div></div>
+    </div>
+    <div>
+      <div class="pulse-title">🔺 RS 폭</div>
+      <div class="pulse-value health-neutral" id="rsBreadth">—</div>
+      <div class="pulse-sub" id="rsBreadthSub">RS 80+ 종목 비율</div>
+      <div class="pulse-bar-wrap"><div class="pulse-bar-fill bar-neutral" id="rsBreadthBar" style="width:0%"></div></div>
+    </div>
+    <div>
+      <div class="pulse-title">🏥 시장 건강도</div>
+      <div class="pulse-value health-neutral" id="healthScore">—</div>
+      <div class="pulse-sub" id="healthLabel">데이터 로딩 중...</div>
+      <div class="pulse-bar-wrap"><div class="pulse-bar-fill bar-neutral" id="healthBar" style="width:0%"></div></div>
+    </div>
+    <div class="pulse-signal">
+      <div class="pulse-signal-dot health-neutral" id="signalDot" style="border-color:var(--amber)">⏳</div>
+      <div class="pulse-signal-text health-neutral" id="signalText">대기중</div>
+    </div>
+  </div>
+
   <!-- ETF 필터 -->
   <div class="filter-bar" id="etfFilterBar">
     <div class="filter-row">
