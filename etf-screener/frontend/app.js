@@ -1,3 +1,74 @@
+// ── Market Pulse 계산 ──
+function updateMarketPulse(data) {
+  if (!data || !data.length) return;
+
+  // 1. 가격 폭: 50MA 상회 비율 (Stage S2 = 50MA 위라고 근사)
+  const above50ma = data.filter(r => r.stage === 'S2' || r.stage === 'S1→S2').length;
+  const pricePct = Math.round((above50ma / data.length) * 100);
+
+  // 2. RS 폭: RS 80+ 종목 비율
+  const rs80plus = data.filter(r => r.rsLineScore >= 80).length;
+  const rsPct = Math.round((rs80plus / data.length) * 100);
+
+  // 3. 종합 건강도
+  const health = Math.round((pricePct * 0.5) + (rsPct * 0.5));
+
+  // 색상 결정
+  function getClass(v) {
+    if (v >= 70) return 'strong';
+    if (v >= 55) return 'good';
+    if (v >= 40) return 'neutral';
+    if (v >= 25) return 'weak';
+    return 'danger';
+  }
+  function getLabel(v) {
+    if (v >= 70) return '강한 강세';
+    if (v >= 55) return '건강';
+    if (v >= 40) return '중립';
+    if (v >= 25) return '약세';
+    return '위험';
+  }
+  function getSignal(v) {
+    if (v >= 70) return { icon: '🚀', text: '강세 진입', color: '#22c55e' };
+    if (v >= 55) return { icon: '✅', text: '건강', color: '#84cc16' };
+    if (v >= 40) return { icon: '⚠️', text: '중립', color: '#f59e0b' };
+    if (v >= 25) return { icon: '📉', text: '약세', color: '#f97316' };
+    return { icon: '🚨', text: '위험', color: '#ef4444' };
+  }
+
+  const pc = getClass(pricePct);
+  const rc = getClass(rsPct);
+  const hc = getClass(health);
+  const sig = getSignal(health);
+
+  // 업데이트
+  const el = id => document.getElementById(id);
+  if (!el('priceBreadth')) return;
+
+  el('priceBreadth').textContent = pricePct + '%';
+  el('priceBreadth').className = `pulse-value health-${pc}`;
+  el('priceBreadthSub').textContent = `${above50ma}/${data.length}개 · 50MA 상회`;
+  el('priceBreadthBar').style.width = pricePct + '%';
+  el('priceBreadthBar').className = `pulse-bar-fill bar-${pc}`;
+
+  el('rsBreadth').textContent = rsPct + '%';
+  el('rsBreadth').className = `pulse-value health-${rc}`;
+  el('rsBreadthSub').textContent = `${rs80plus}/${data.length}개 · RS ≥ 80`;
+  el('rsBreadthBar').style.width = rsPct + '%';
+  el('rsBreadthBar').className = `pulse-bar-fill bar-${rc}`;
+
+  el('healthScore').textContent = health + '%';
+  el('healthScore').className = `pulse-value health-${hc}`;
+  el('healthLabel').textContent = getLabel(health);
+  el('healthBar').style.width = health + '%';
+  el('healthBar').className = `pulse-bar-fill bar-${hc}`;
+
+  el('signalDot').textContent = sig.icon;
+  el('signalDot').style.borderColor = sig.color;
+  el('signalText').textContent = sig.text;
+  el('signalText').className = `pulse-signal-text health-${hc}`;
+}
+
 const API = window.location.hostname==='localhost'?'http://localhost:3000':'https://rsscan-production.up.railway.app';
 
 const state = {
@@ -64,6 +135,7 @@ async function loadData(){
     const d=new Date(json.updatedAt);
     $('lastUpdate').textContent=`업데이트: ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
     applyFilters();
+    updateMarketPulse(json.data);
     showToast(`✓ ETF ${json.count}개 로드 완료`);
   }catch(err){
     $('tableBody').innerHTML=`<tr><td colspan="15" class="loading-row" style="color:var(--red)">⚠ ${err.message}</td></tr>`;
@@ -81,6 +153,7 @@ async function loadStocks(){
     if(!json.ok)throw new Error(json.error);
     state.stockData=json.data;
     applyFilters();
+    updateMarketPulse(json.data);
     showToast(`✓ 주식 ${json.count}개 로드 완료`);
   }catch(err){
     $('tableBody').innerHTML=`<tr><td colspan="15" class="loading-row" style="color:var(--red)">⚠ ${err.message}</td></tr>`;
