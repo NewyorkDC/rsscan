@@ -8,9 +8,7 @@ const { fetchAllETFs, fetchAllStocks } = require('./services/yahooFinance');
 const myStocksRouter = require('./routes/myStocks');
 
 const app = express();
-app.use(cors({
-  origin: ['https://rsscan.vercel.app','https://rsscan-git-main-newyorkdcs-projects.vercel.app','http://localhost:3000']
-}));
+app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend')));
 
