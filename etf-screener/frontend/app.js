@@ -1,3 +1,155 @@
+// ── Market Pulse 데이터 저장 ──
+let pulseData = { data: [], pricePct: 0, rsPct: 0, health: 0, above50: [], rs80: [], rs50: [], below50: [] };
+
+// ── Market Pulse 상세 모달 ──
+window.openPulseDetail = function(type) {
+  const modal = document.getElementById('pulseModal');
+  const title = document.getElementById('pulseModalTitle');
+  const body  = document.getElementById('pulseModalBody');
+  if (!modal) return;
+
+  const d = pulseData;
+  const pricePct = d.pricePct, rsPct = d.rsPct, health = d.health;
+
+  function healthBar(v, color) {
+    return `<div style="background:var(--bg3);border-radius:4px;height:8px;margin:6px 0 10px;">
+      <div style="width:${v}%;height:100%;background:${color};border-radius:4px;transition:width 0.5s;"></div>
+    </div>`;
+  }
+  function tickerList(items, limit=10) {
+    if (!items.length) return '<span style="color:var(--text3);font-size:12px">해당 없음</span>';
+    return items.slice(0,limit).map(r =>
+      `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);padding:3px 9px;border-radius:5px;margin:2px;font-family:var(--mono);font-size:12px;">
+        <span style="color:var(--accent);font-weight:600;">${r.ticker}</span>
+        <span style="color:var(--text3);">${r.rsLineScore}점</span>
+      </span>`
+    ).join('') + (items.length > limit ? `<div style="color:var(--text3);font-size:11px;margin-top:6px;">+${items.length-limit}개 더</div>` : '');
+  }
+
+  if (type === 'price') {
+    title.textContent = '📈 가격 폭 — 상세 분석';
+    body.innerHTML = `
+      <div style="margin-bottom:16px;">
+        <div style="font-size:13px;color:var(--text2);margin-bottom:8px;">
+          <b style="color:var(--text)">가격 폭(Price Breadth)</b>이란?<br>
+          전체 종목 중 <b>50일 이동평균선(50MA) 위</b>에 있는 종목 비율이에요.<br>
+          단기 추세가 살아있는 종목이 얼마나 되는지 보여줘요.
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-family:var(--mono);font-size:22px;font-weight:600;color:${pricePct>=70?'#22c55e':pricePct>=55?'#84cc16':pricePct>=40?'#f59e0b':pricePct>=25?'#f97316':'#ef4444'}">${pricePct}%</span>
+            <span style="font-size:12px;color:var(--text3)">${d.above50.length}/${d.data.length}개 상회</span>
+          </div>
+          ${healthBar(pricePct, pricePct>=70?'#22c55e':pricePct>=55?'#84cc16':pricePct>=40?'#f59e0b':pricePct>=25?'#f97316':'#ef4444')}
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);font-family:var(--mono);">
+            <span>0% 위험</span><span>25%</span><span>40%</span><span>55%</span><span>70%+ 강세</span>
+          </div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.6;">
+          💡 <b>읽는 법</b><br>
+          • <span style="color:#22c55e">70%+</span> = 강세 전방위 — 대부분 종목이 상승 추세<br>
+          • <span style="color:#84cc16">55~70%</span> = 건강한 시장<br>
+          • <span style="color:#f59e0b">40~55%</span> = 중립 — 방향성 불명확<br>
+          • <span style="color:#f97316">25~40%</span> = 약세 징후<br>
+          • <span style="color:#ef4444">25% 미만</span> = 위험 — 대부분 하락 추세
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;margin-bottom:8px;">✅ 50MA 상회 종목 (${d.above50.length}개)</div>
+        <div>${tickerList(d.above50.sort((a,b)=>b.rsLineScore-a.rsLineScore))}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;margin-bottom:8px;">❌ 50MA 하회 종목 (${d.below50.length}개)</div>
+        <div>${tickerList(d.below50.sort((a,b)=>b.rsLineScore-a.rsLineScore))}</div>
+      </div>`;
+
+  } else if (type === 'rs') {
+    title.textContent = '🔺 RS 폭 — 상세 분석';
+    body.innerHTML = `
+      <div style="margin-bottom:16px;">
+        <div style="font-size:13px;color:var(--text2);margin-bottom:8px;">
+          <b style="color:var(--text)">RS 폭(RS Breadth)</b>이란?<br>
+          전체 종목 중 <b>RS 점수 80 이상</b>인 종목 비율이에요.<br>
+          시장 대비 강한 상대강도를 가진 종목이 얼마나 넓게 퍼져있는지 보여줘요.
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-family:var(--mono);font-size:22px;font-weight:600;color:${rsPct>=70?'#22c55e':rsPct>=55?'#84cc16':rsPct>=40?'#f59e0b':rsPct>=25?'#f97316':'#ef4444'}">${rsPct}%</span>
+            <span style="font-size:12px;color:var(--text3)">${d.rs80.length}/${d.data.length}개 RS 80+</span>
+          </div>
+          ${healthBar(rsPct, rsPct>=70?'#22c55e':rsPct>=55?'#84cc16':rsPct>=40?'#f59e0b':rsPct>=25?'#f97316':'#ef4444')}
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);font-family:var(--mono);">
+            <span>0% 위험</span><span>25%</span><span>40%</span><span>55%</span><span>70%+ 강세</span>
+          </div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.6;">
+          💡 <b>가격 폭 vs RS 폭 차이</b><br>
+          • <b>가격 폭</b> = 단기 추세 (50MA 기준) — 지금 오르고 있나?<br>
+          • <b>RS 폭</b> = 상대 강도 (SPY 대비) — 시장보다 강한가?<br>
+          • <span style="color:#22c55e">둘 다 높으면</span> = 진짜 광범위 강세<br>
+          • <span style="color:#f97316">가격 폭만 높으면</span> = 소수 대형주가 끌어올리는 것
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;margin-bottom:8px;">🔥 RS 80+ 종목 (${d.rs80.length}개)</div>
+        <div>${tickerList(d.rs80.sort((a,b)=>b.rsLineScore-a.rsLineScore), 15)}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;margin-bottom:8px;">💤 RS 80 미만 (${d.rs50.length}개)</div>
+        <div>${tickerList(d.rs50.sort((a,b)=>b.rsLineScore-a.rsLineScore))}</div>
+      </div>`;
+
+  } else if (type === 'health') {
+    const sig = health>=70?{icon:'🚀',text:'강한 강세',color:'#22c55e',desc:'대부분 종목이 상승 추세, 적극적 매수 환경'}:
+                health>=55?{icon:'✅',text:'건강',color:'#84cc16',desc:'시장이 건강하게 상승 중, 선별적 매수 가능'}:
+                health>=40?{icon:'⚠️',text:'중립',color:'#f59e0b',desc:'방향성 불명확, 신중한 접근 필요'}:
+                health>=25?{icon:'📉',text:'약세',color:'#f97316',desc:'대부분 하락 추세, 방어적 포지션 권장'}:
+                           {icon:'🚨',text:'위험',color:'#ef4444',desc:'광범위 하락, 현금 보유 또는 관망'};
+    title.textContent = '🏥 시장 건강도 — 종합 분석';
+    body.innerHTML = `
+      <div style="text-align:center;padding:16px 0;margin-bottom:16px;background:var(--bg3);border-radius:10px;">
+        <div style="font-size:48px;margin-bottom:8px;">${sig.icon}</div>
+        <div style="font-size:32px;font-family:var(--mono);font-weight:700;color:${sig.color}">${health}%</div>
+        <div style="font-size:16px;color:${sig.color};font-weight:600;margin:4px 0">${sig.text}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">${sig.desc}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <div style="background:var(--bg3);border-radius:8px;padding:12px;text-align:center;">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px">📈 가격 폭</div>
+          <div style="font-size:20px;font-family:var(--mono);font-weight:600;color:${pricePct>=70?'#22c55e':pricePct>=55?'#84cc16':pricePct>=40?'#f59e0b':'#ef4444'}">${pricePct}%</div>
+          <div style="font-size:11px;color:var(--text3)">50MA 상회</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:12px;text-align:center;">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px">🔺 RS 폭</div>
+          <div style="font-size:20px;font-family:var(--mono);font-weight:600;color:${rsPct>=70?'#22c55e':rsPct>=55?'#84cc16':rsPct>=40?'#f59e0b':'#ef4444'}">${rsPct}%</div>
+          <div style="font-size:11px;color:var(--text3)">RS 80+</div>
+        </div>
+      </div>
+      <div style="background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.8;">
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;margin-bottom:8px;">📊 건강도 기준표</div>
+        <div><span style="color:#22c55e">🚀 70%+</span> &nbsp;강한 강세 — 적극 매수 환경</div>
+        <div><span style="color:#84cc16">✅ 55~70%</span> 건강 — 선별 매수 가능</div>
+        <div><span style="color:#f59e0b">⚠️ 40~55%</span> 중립 — 신중, 방향성 확인 필요</div>
+        <div><span style="color:#f97316">📉 25~40%</span> 약세 — 방어적 포지션</div>
+        <div><span style="color:#ef4444">🚨 0~25%</span> &nbsp;위험 — 현금 보유/관망</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:8px;padding:12px;font-size:12px;color:var(--text2);line-height:1.6;">
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;margin-bottom:8px;">💡 현재 시장 해석</div>
+        ${health >= 70 ? '두 지표 모두 강세권 — 광범위한 강세장으로 공격적 매수 환경입니다.' :
+          health >= 55 ? '시장이 건강하게 상승 중입니다. RS 강한 종목 위주로 선별 진입이 유리합니다.' :
+          health >= 40 ? '가격 폭과 RS 폭이 엇갈리는 구간입니다. 소수 종목이 지수를 끌어올릴 수 있어 주의가 필요합니다.' :
+          health >= 25 ? '대부분 종목이 약세입니다. 신규 진입보다 기존 포지션 관리에 집중하세요.' :
+          '광범위한 하락장입니다. 현금 비중을 높이고 관망을 권장합니다.'}
+        <br><br>
+        ${pricePct >= 70 && rsPct < 40 ? '⚠️ <b>주의:</b> 가격 폭은 높지만 RS 폭이 낮습니다. 소수 대형주가 지수를 끌어올리는 패턴일 수 있습니다.' :
+          pricePct < 40 && rsPct >= 70 ? '💡 RS 폭이 가격 폭보다 높습니다. 상대강도 선행 신호일 수 있어 주목하세요.' :
+          pricePct >= 55 && rsPct >= 55 ? '✅ 두 지표가 모두 건강권 이상입니다. 건강한 상승장 신호입니다.' : ''}
+      </div>`;
+  }
+
+  modal.style.display = 'flex';
+};
+
 // ── Market Pulse 계산 ──
 function updateMarketPulse(data) {
   if (!data || !data.length) return;
@@ -40,6 +192,15 @@ function updateMarketPulse(data) {
   const rc = getClass(rsPct);
   const hc = getClass(health);
   const sig = getSignal(health);
+
+  // 데이터 저장 (모달에서 사용)
+  pulseData = {
+    data, pricePct, rsPct, health,
+    above50: data.filter(r => r.stage === 'S2' || r.stage === 'S1→S2'),
+    below50: data.filter(r => r.stage !== 'S2' && r.stage !== 'S1→S2'),
+    rs80:  data.filter(r => r.rsLineScore >= 80),
+    rs50:  data.filter(r => r.rsLineScore < 80),
+  };
 
   // 업데이트
   const el = id => document.getElementById(id);
