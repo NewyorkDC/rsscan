@@ -610,3 +610,32 @@ input[type=range] {
   .pulse-divider { display: none; }
   .pulse-value { font-size: 22px; }
 }
+
+/* ── Pulse 카드 클릭 스타일 ── */
+.pulse-card {
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 8px;
+  transition: background 0.15s;
+}
+.pulse-card:hover {
+  background: var(--bg3);
+}
+.pulse-click-hint {
+  font-size: 10px;
+  color: var(--text3);
+  vertical-align: super;
+  margin-left: 2px;
+}
+.pulse-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--text3);
+  font-family: var(--mono);
+  margin-top: 3px;
+}
+.pulse-modal {
+  width: 520px;
+  max-width: 95vw;
+}
