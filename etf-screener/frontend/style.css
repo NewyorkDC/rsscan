@@ -213,7 +213,7 @@ thead th {
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
   position: sticky;
-  top: 52px;
+  top: 0;
 }
 thead th.num { text-align: right; }
 thead th.th-sort { cursor: pointer; user-select: none; }
