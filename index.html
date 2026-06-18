@@ -941,9 +941,76 @@
 
                 <!-- ===== TAB 4: 스크리너 ===== -->
                 <div id="screener-tab" class="tab-pane">
-                    <h1>스크리너</h1>
-                    <p>Phase 필터 + RS Line 정렬</p>
-                    <div class="placeholder">구성 중...</div>
+                    <h1>🔍 스크리너 — Phase 필터 + RS Line 정렬</h1>
+                    
+                    <!-- 필터 섹션 -->
+                    <section class="briefing-section">
+                        <h2>🎯 필터링</h2>
+                        
+                        <!-- 검색창 -->
+                        <div style="margin-bottom: 15px;">
+                            <input type="text" id="screener-search" placeholder="종목명 검색 (예: NVMI, STX)" 
+                                style="width: 100%; padding: 10px 12px; border: 1px solid #444; border-radius: 6px; 
+                                background: #222; color: #fff; font-size: 14px;">
+                        </div>
+                        
+                        <!-- Phase 필터 -->
+                        <div style="margin-bottom: 15px;">
+                            <h3 style="margin: 10px 0; font-size: 14px; color: #aaa;">Phase 필터</h3>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                <button class="filter-btn" data-filter="phase" data-value="all" style="background: #4da6ff;">전체</button>
+                                <button class="filter-btn" data-filter="phase" data-value="4">🎯 Phase 4</button>
+                                <button class="filter-btn" data-filter="phase" data-value="4+" style="background: #00d084;">🎯+ Phase 4+</button>
+                                <button class="filter-btn" data-filter="phase" data-value="3">🟢 Phase 3</button>
+                                <button class="filter-btn" data-filter="phase" data-value="5">🟢 Phase 5</button>
+                                <button class="filter-btn" data-filter="phase" data-value="6">🟠 Phase 6</button>
+                                <button class="filter-btn" data-filter="phase" data-value="7">🔴 Phase 7</button>
+                            </div>
+                        </div>
+                        
+                        <!-- RS Score 필터 -->
+                        <div style="margin-bottom: 15px;">
+                            <h3 style="margin: 10px 0; font-size: 14px; color: #aaa;">RS Score 필터</h3>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                <button class="filter-btn" data-filter="rs-score" data-value="all">전체</button>
+                                <button class="filter-btn" data-filter="rs-score" data-value="80" style="background: #00d084;">≥80 (최상)</button>
+                                <button class="filter-btn" data-filter="rs-score" data-value="70" style="background: #4da6ff;">≥70 (우수)</button>
+                                <button class="filter-btn" data-filter="rs-score" data-value="60">≥60 (양호)</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 패턴 필터 -->
+                        <div style="margin-bottom: 15px;">
+                            <h3 style="margin: 10px 0; font-size: 14px; color: #aaa;">패턴 필터</h3>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                <button class="filter-btn" data-filter="pattern" data-value="all">전체</button>
+                                <button class="filter-btn" data-filter="pattern" data-value="Ascending Base">Ascending Base</button>
+                                <button class="filter-btn" data-filter="pattern" data-value="HT Flag">HT Flag</button>
+                                <button class="filter-btn" data-filter="pattern" data-value="Correction">Correction</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 정렬 옵션 -->
+                        <div style="margin-bottom: 15px;">
+                            <h3 style="margin: 10px 0; font-size: 14px; color: #aaa;">정렬</h3>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                <button class="sort-btn" data-sort="rs-score" style="background: #4da6ff;">RS Score ↓</button>
+                                <button class="sort-btn" data-sort="phase">Phase (4→3→5)</button>
+                                <button class="sort-btn" data-sort="symbol">종목명 (A-Z)</button>
+                                <button class="sort-btn" data-sort="price">가격 ↓</button>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- 결과 테이블 -->
+                    <section class="briefing-section">
+                        <h2 id="screener-result-count">📊 스크린 결과: 0개</h2>
+                        <div id="screener-table" style="overflow-x: auto; border-radius: 6px;">
+                            <p style="text-align: center; color: #888; padding: 20px;">
+                                ⏳ run_daily.bat 실행 후 데이터를 불러오세요
+                            </p>
+                        </div>
+                    </section>
                 </div>
 
                 <!-- ===== TAB 5: 패턴 감지 ===== -->
@@ -974,21 +1041,17 @@
                         </div>
                     </section>
 
-                    <!-- 섹션 2: 진입 조건 -->
+                    <!-- 섹션 2: 신규 진입 신호 (자동 로드) -->
                     <section class="briefing-section">
-                        <h2>🎯 진입 조건 — 2026-06-16 (신규 신호 10건)</h2>
-                        <table class="compact-table">
-                            <thead>
-                                <tr><th>티커</th><th>산업</th><th>패턴</th><th>시그널 종가</th><th>pivot</th><th>RS</th><th>total</th><th>theme</th></tr>
-                            </thead>
-                            <tbody>
-                                <tr><td><strong>STX</strong></td><td>Computer Hardware</td><td>HT Flag</td><td>1018.80</td><td>1037.68 (-1.8%)</td><td>99</td><td>86.9</td><td>50.2</td></tr>
-                                <tr><td><strong>BHE</strong></td><td>Electronic Components</td><td>HT Flag</td><td>91.31</td><td>92.88 (-1.7%)</td><td>96</td><td>85.1</td><td>55.3</td></tr>
-                                <tr><td><strong>PRM</strong></td><td>Specialty Chemicals</td><td>HT Flag</td><td>36.36</td><td>36.60 (-0.7%)</td><td>95</td><td>83.1</td><td>40.0</td></tr>
-                                <tr><td><strong>NVMI</strong></td><td>Semiconductor Equipment</td><td>Ascending Base</td><td>605.65</td><td>619.07 (-2.2%)</td><td>93</td><td>83.0</td><td>63.9</td></tr>
-                                <tr><td><strong>TVTX</strong></td><td>Biotechnology</td><td>HT Flag</td><td>53.80</td><td>54.14 (-0.6%)</td><td>95</td><td>83.0</td><td>39.8</td></tr>
-                            </tbody>
-                        </table>
+                        <h2>🎯 신규 진입 신호 (자동 생성)</h2>
+                        <div id="entry-signals-summary" style="padding: 10px 0; border-bottom: 1px solid #444; color: #888; font-size: 0.9em; margin-bottom: 10px;">
+                            📅 2026-06-16 | 🎯 Phase 4: 0 | 🎯+ Phase 4+: 0
+                        </div>
+                        <div id="entry-signals-table" style="overflow-x: auto; border-radius: 6px;">
+                            <p style="text-align: center; color: #888; padding: 20px;">
+                                ⏳ run_daily.bat 실행 후 새로고침하세요
+                            </p>
+                        </div>
                     </section>
 
                     <!-- 섹션 3: 포트폴리오 요약 -->
@@ -1082,6 +1145,7 @@
     </div>
 
     <!-- 유틸리티 스크립트 -->
+    <script src="js/screener-functions.js"></script>
     <script src="js/data-loader.js"></script>
     <script src="js/app.js"></script>
 </body>
