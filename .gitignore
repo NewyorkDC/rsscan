@@ -1,1 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv
+*.egg-info/
+dist/
+build/
 
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Data (생성 파일)
+data/ibd_screener_*.json
+data/strategy_room_*.json
+data/market_pulse_history.csv
+data/price_cache/
+
+# Input (사용자 파일)
+input/
+
+# Logs
+*.log
