@@ -962,75 +962,119 @@
 
                 <!-- ===== TAB 7: 전략실 (Paper Trade) ===== -->
                 <div id="strategy-room-tab" class="tab-pane">
-                    <h1>🏛 전략실 - Paper Trade</h1>
+                    <h1>🏛 전략실 — g3+g1+g2 paper-trade</h1>
                     
-                    <div class="strategy-room-container">
-                        <!-- NAV 요약 카드 -->
-                        <div class="sr-summary">
-                            <div class="sr-card">
-                                <div class="sr-label">Portfolio NAV</div>
-                                <div class="sr-value" id="navValue">1.6141</div>
-                                <div class="sr-change">+61.41%</div>
-                            </div>
-                            <div class="sr-card">
-                                <div class="sr-label">Active Holdings</div>
-                                <div class="sr-value" id="activeCount">8</div>
-                                <div class="sr-change">PnL: +18.5%</div>
-                            </div>
-                            <div class="sr-card">
-                                <div class="sr-label">Closed Trades</div>
-                                <div class="sr-value" id="closedCount">62</div>
-                                <div class="sr-change">Hit Rate: 48.4%</div>
-                            </div>
-                            <div class="sr-card">
-                                <div class="sr-label">Track</div>
-                                <div class="sr-value">g3+g1+g2</div>
-                                <div class="sr-change">5-Gate Funnel</div>
-                            </div>
+                    <!-- 섹션 1: 검증 시작 -->
+                    <section class="briefing-section">
+                        <h2>🔬 전방향 검증 (OOS) 진행 중</h2>
+                        <div style="background: #e3f2fd; padding: 12px; border-radius: 6px; margin-bottom: 12px;">
+                            <div style="font-size: 12px; color: #0d47a1; margin-bottom: 8px;">🔵 검증 시작 · v6.17 · inception 2026-06-10 · 0.2개월</div>
+                            <div style="font-size: 11px; color: #1565c0;">표본 진행: 0/30건 | 기간 진행: 0.2/6개월</div>
+                            <div style="font-size: 10px; color: #2196f3; margin-top: 8px;">📌 seed (개발/in-sample): 24건 · 기대값 14.5% · PF 8.85</div>
                         </div>
+                    </section>
 
-                        <!-- NAV 곡선 -->
-                        <div class="sr-chart-container">
-                            <h3>NAV History (7주)</h3>
-                            <canvas id="navChart"></canvas>
-                        </div>
+                    <!-- 섹션 2: 진입 조건 -->
+                    <section class="briefing-section">
+                        <h2>🎯 진입 조건 — 2026-06-16 (신규 신호 10건)</h2>
+                        <table class="compact-table">
+                            <thead>
+                                <tr><th>티커</th><th>산업</th><th>패턴</th><th>시그널 종가</th><th>pivot</th><th>RS</th><th>total</th><th>theme</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><strong>STX</strong></td><td>Computer Hardware</td><td>HT Flag</td><td>1018.80</td><td>1037.68 (-1.8%)</td><td>99</td><td>86.9</td><td>50.2</td></tr>
+                                <tr><td><strong>BHE</strong></td><td>Electronic Components</td><td>HT Flag</td><td>91.31</td><td>92.88 (-1.7%)</td><td>96</td><td>85.1</td><td>55.3</td></tr>
+                                <tr><td><strong>PRM</strong></td><td>Specialty Chemicals</td><td>HT Flag</td><td>36.36</td><td>36.60 (-0.7%)</td><td>95</td><td>83.1</td><td>40.0</td></tr>
+                                <tr><td><strong>NVMI</strong></td><td>Semiconductor Equipment</td><td>Ascending Base</td><td>605.65</td><td>619.07 (-2.2%)</td><td>93</td><td>83.0</td><td>63.9</td></tr>
+                                <tr><td><strong>TVTX</strong></td><td>Biotechnology</td><td>HT Flag</td><td>53.80</td><td>54.14 (-0.6%)</td><td>95</td><td>83.0</td><td>39.8</td></tr>
+                            </tbody>
+                        </table>
+                    </section>
 
-                        <!-- 보유 종목 테이블 -->
-                        <div class="sr-holdings-table">
-                            <h3>Active Holdings</h3>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Symbol</th>
-                                        <th>Entry</th>
-                                        <th>Current</th>
-                                        <th>PnL%</th>
-                                        <th>Days</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="srHoldingsBody">
-                                    <tr>
-                                        <td>NVDA</td>
-                                        <td>$875</td>
-                                        <td>$1,073</td>
-                                        <td class="positive">+22.6%</td>
-                                        <td>14</td>
-                                        <td><span class="status-badge rising">RISING</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>MSTR</td>
-                                        <td>$420</td>
-                                        <td>$512</td>
-                                        <td class="positive">+21.9%</td>
-                                        <td>21</td>
-                                        <td><span class="status-badge rising">RISING</span></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    <!-- 섹션 3: 포트폴리오 요약 -->
+                    <section class="briefing-section">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+                            <div style="background: linear-gradient(135deg, #4caf50, #45a049); color: white; padding: 16px; border-radius: 8px;">
+                                <div style="font-size: 11px; opacity: 0.9;">Portfolio NAV</div>
+                                <div style="font-size: 24px; font-weight: bold; margin: 6px 0;">1.4307</div>
+                                <div style="font-size: 12px;">+43.07%</div>
+                            </div>
+                            <div style="background: linear-gradient(135deg, #2196f3, #1976d2); color: white; padding: 16px; border-radius: 8px;">
+                                <div style="font-size: 11px; opacity: 0.9;">Active Holdings</div>
+                                <div style="font-size: 24px; font-weight: bold; margin: 6px 0;">12 / 12</div>
+                                <div style="font-size: 12px;">미실현 +19.17%</div>
+                            </div>
+                            <div style="background: linear-gradient(135deg, #ff9800, #f57c00); color: white; padding: 16px; border-radius: 8px;">
+                                <div style="font-size: 11px; opacity: 0.9;">Closed Trades</div>
+                                <div style="font-size: 24px; font-weight: bold; margin: 6px 0;">24건</div>
+                                <div style="font-size: 12px;">Hit 54.2% | Avg +14.5%</div>
+                            </div>
+                            <div style="background: linear-gradient(135deg, #9c27b0, #7b1fa2); color: white; padding: 16px; border-radius: 8px;">
+                                <div style="font-size: 11px; opacity: 0.9;">Strategy</div>
+                                <div style="font-size: 24px; font-weight: bold; margin: 6px 0;">g3+g1+g2</div>
+                                <div style="font-size: 12px;">5-Gate Funnel</div>
+                            </div>
                         </div>
-                    </div>
+                    </section>
+
+                    <!-- 섹션 4: 보유 종목 (주요) -->
+                    <section class="briefing-section">
+                        <h2>💼 보유 종목 TOP 5 (PnL 내림차순)</h2>
+                        <table class="compact-table">
+                            <thead>
+                                <tr><th>종목</th><th>진입일</th><th>보유일</th><th>진입가</th><th>현재가</th><th>PnL%</th><th>max%</th><th>패턴</th><th>RS</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr style="background: #e8f5e9;"><td><strong>FLEX</strong> ✂33% 🚀</td><td>2026-04-14</td><td>63d</td><td>78.31</td><td>149.22</td><td style="color: #2e7d32; font-weight: bold;">+47.96%</td><td>+106.8%</td><td>Ascending Base</td><td>94</td></tr>
+                                <tr style="background: #e8f5e9;"><td><strong>TTMI</strong> ✂33%</td><td>2026-04-14</td><td>63d</td><td>123.49</td><td>206.66</td><td style="color: #2e7d32; font-weight: bold;">+52.76%</td><td>+67.3%</td><td>Ascending Base</td><td>99</td></tr>
+                                <tr style="background: #e8f5e9;"><td><strong>STM</strong> 🔄</td><td>2026-04-29</td><td>48d</td><td>50.56</td><td>78.95</td><td style="color: #2e7d32; font-weight: bold;">+56.15%</td><td>+57.7%</td><td>Ascending Base</td><td>97</td></tr>
+                                <tr><td><strong>POWL</strong> ✂33%</td><td>2026-04-14</td><td>63d</td><td>228.99</td><td>293.60</td><td style="color: #2e7d32;">+13.03%</td><td>+40.6%</td><td>Ascending Base</td><td>98</td></tr>
+                                <tr><td><strong>PEB</strong> 🔄</td><td>2026-06-08</td><td>8d</td><td>16.89</td><td>18.50</td><td style="color: #2e7d32;">+9.53%</td><td>+9.5%</td><td>Pocket Pivot</td><td>91</td></tr>
+                            </tbody>
+                        </table>
+                    </section>
+
+                    <!-- 섹션 5: 청산 이력 -->
+                    <section class="briefing-section">
+                        <h2>📒 청산 이력 (24건) — Hit 54.2% | Avg +14.5% | Best +249.9%</h2>
+                        <table class="compact-table">
+                            <thead>
+                                <tr><th>티커</th><th>진입</th><th>청산</th><th>진입가</th><th>청산가</th><th>실현%</th><th>max%</th><th>청산 사유</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr style="background: #f0f7ff;"><td><strong>MXL</strong></td><td>2026-04-16</td><td>2026-06-10</td><td>22.01</td><td>77.03</td><td style="color: #1976d2; font-weight: bold;">+249.90%</td><td>+364.7%</td><td>🚀 Lock청산</td></tr>
+                                <tr style="background: #f0f7ff;"><td><strong>INTC</strong></td><td>2026-04-28</td><td>2026-06-06</td><td>84.99</td><td>106.24</td><td style="color: #1976d2;">+24.90%</td><td>+52.3%</td><td>Lock청산8w</td></tr>
+                                <tr style="background: #f0f7ff;"><td><strong>JBL</strong></td><td>2026-04-14</td><td>2026-06-09</td><td>305.37</td><td>363.95</td><td style="color: #1976d2;">+19.08%</td><td>+24.5%</td><td>max hold</td></tr>
+                                <tr><td><strong>FLEX</strong></td><td>2026-04-14</td><td>2026-05-05</td><td>78.31</td><td>96.45</td><td style="color: #388e3c;">+23.06%</td><td>+23.2%</td><td>✂ 실적정리</td></tr>
+                                <tr><td><strong>POWL</strong></td><td>2026-04-14</td><td>2026-05-02</td><td>228.99</td><td>275.24</td><td style="color: #388e3c;">+20.10%</td><td>+21.0%</td><td>✂ 실적정리</td></tr>
+                            </tbody>
+                        </table>
+                    </section>
+
+                    <!-- 섹션 6: 5-Gate Funnel -->
+                    <section class="briefing-section">
+                        <h2>📋 5-Gate Funnel Rules</h2>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: #fffde7; padding: 10px; border-left: 4px solid #fbc02d; border-radius: 4px; font-size: 12px;">
+                                <strong>Gate 0:</strong> Market Health Phase ∈ {normal, accumulation, momentum, neutral}
+                            </div>
+                            <div style="background: #f1f8e9; padding: 10px; border-left: 4px solid #7cb342; border-radius: 4px; font-size: 12px;">
+                                <strong>Gate 1:</strong> Theme Score ≥ 48 · RS Line 상위 25%
+                            </div>
+                            <div style="background: #e0f2f1; padding: 10px; border-left: 4px solid #26a69a; border-radius: 4px; font-size: 12px;">
+                                <strong>Gate 2:</strong> 패턴 보유 AND (pivot ≤ 3% 또는 breakout=True) · 거래량 +40%↑
+                            </div>
+                            <div style="background: #e3f2fd; padding: 10px; border-left: 4px solid #1976d2; border-radius: 4px; font-size: 12px;">
+                                <strong>Gate 3:</strong> RS 가속 강화 AND RS 신고가 (진입 당일)
+                            </div>
+                            <div style="background: #f3e5f5; padding: 10px; border-left: 4px solid #7b1fa2; border-radius: 4px; font-size: 12px;">
+                                <strong>Gate 4:</strong> 종합 점수 ≥ 중간값 AND AD Score ≥ 45 AND 추세신호 ≥ 6개
+                            </div>
+                        </div>
+                    </section>
+
                 </div>
+
 
             </div>
 
