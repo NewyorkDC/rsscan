@@ -133,7 +133,7 @@ class StrategyRoomBinder {
                 : '–';
             html += `
                 <tr style="border-bottom:1px solid var(--color-border-light);">
-                    <td style="text-align:left; font-weight:600; color:#2563eb;">${s.ticker}</td>
+                    <td style="text-align:left; font-weight:600;"><span class="ticker-link" style="color:#2563eb;" onclick="window.strategyRoomBinder.openModal('${s.ticker}')">${s.ticker}</span></td>
                     <td style="text-align:left; font-size:0.75rem;">${s.top_pattern ? 'Top Pattern' : (s.breakout ? 'Breakout' : '–')}</td>
                     <td style="text-align:right;">$${(s.close || 0).toFixed(2)}</td>
                     <td style="text-align:right; font-size:0.75rem;">${pivotStr}</td>
@@ -203,7 +203,7 @@ class StrategyRoomBinder {
         nextTier.forEach(s => {
             html += `
                 <tr style="border-bottom:1px solid var(--color-border-light);">
-                    <td style="text-align:left; font-weight:600; color:#2563eb;">${s.ticker}</td>
+                    <td style="text-align:left; font-weight:600;"><span class="ticker-link" style="color:#2563eb;" onclick="window.strategyRoomBinder.openModal('${s.ticker}')">${s.ticker}</span></td>
                     <td style="text-align:left; font-size:0.75rem;">${s.top_pattern ? 'Top Pattern' : (s.breakout ? 'Breakout' : '–')}</td>
                     <td style="text-align:right;">${(s.total_score || 0).toFixed(1)}</td>
                     <td style="text-align:center; font-weight:600; color:#fbbf24;">${s.ibd_rs_rating || 0}</td>
@@ -344,7 +344,7 @@ class StrategyRoomBinder {
 
             html += `
                 <tr style="border-bottom:1px solid var(--color-border-light);">
-                    <td style="text-align:left; font-weight:600; color:#2563eb;">${h.ticker}</td>
+                    <td style="text-align:left; font-weight:600;"><span class="ticker-link" style="color:#2563eb;" onclick="window.strategyRoomBinder.openModal('${h.ticker}')">${h.ticker}</span></td>
                     <td style="text-align:left; font-size:0.7rem; color:var(--color-text-tertiary);">${h.entry_date || '-'}</td>
                     <td style="text-align:right;">${h.days_held || 0}d</td>
                     <td style="text-align:right;">$${(h.entry_price || 0).toFixed(2)}</td>
@@ -421,10 +421,125 @@ class StrategyRoomBinder {
     init() {
         this.loadAndRender();
     }
+
+    // ===== 종목 상세 모달 =====
+    openModal(ticker) {
+        // 보유종목/신호/스캔에서 해당 종목 데이터 찾기
+        const fromHolding = this.holdings.find(h => h.ticker === ticker);
+        const fromSignal = this.entrySignals.find(s => s.ticker === ticker);
+        const data = fromSignal || fromHolding || { ticker };
+
+        const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+        const setHTML = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+
+        const phase = data.phase || (fromHolding ? fromHolding.phase : 0) || 0;
+        const rs = data.ibd_rs_rating || (fromHolding ? fromHolding.rs_score : 0) || 0;
+        const close = data.close || (fromHolding ? fromHolding.current_price || fromHolding.entry_price : 0) || 0;
+        const pivot = data.dist_pivot_pct;
+        const chg6w = data.rs_6w_change;
+        const pattern = data.top_pattern ? 'Top Pattern' : (data.breakout ? 'Breakout' : (fromHolding ? fromHolding.pattern : '—'));
+
+        setText('modal-ticker', ticker);
+        setText('modal-price', `$${close.toFixed(2)}`);
+        setText('modal-rs', rs);
+        setText('modal-phase', `P${phase}`);
+        setText('modal-pivot', pivot != null ? `${pivot >= 0 ? '+' : ''}${pivot.toFixed(1)}%` : '—');
+        setText('modal-chg', chg6w != null ? `${chg6w >= 0 ? '+' : ''}${chg6w.toFixed(1)}%` : '—');
+
+        // Phase 뱃지 색
+        const phaseColor = phase >= 5 ? '#10b981' : phase === 4 ? '#059669' : phase === 3 ? '#3b82f6' : phase >= 6 ? '#ef4444' : '#9ca3af';
+        const badge = document.getElementById('modal-phase-badge');
+        if (badge) { badge.textContent = `P${phase}`; badge.style.background = phaseColor; }
+
+        // 패턴 뱃지
+        setHTML('modal-pattern', pattern && pattern !== '—'
+            ? `<span style="display:inline-block; padding:2px 8px; background:#fef3c7; color:#92400e; border-radius:4px; font-size:0.7rem; font-weight:600;">${pattern}</span>`
+            : '');
+
+        // 종목명 (있으면)
+        setText('modal-name', data.name || ticker);
+
+        // 선정 이유 생성
+        const reasons = [];
+        if (rs >= 90) reasons.push(`IBD RS ${rs} (상위 ${100 - rs}%)`);
+        else if (rs >= 80) reasons.push(`IBD RS ${rs} (강세)`);
+        if (phase >= 5) reasons.push('Phase 5+ 완숙 리더 (강한 정배열)');
+        else if (phase === 4) reasons.push('Phase 4 돌파 임박');
+        if (data.rs_new_high) reasons.push('RS 신고가');
+        if (data.rs_accelerating_strong) reasons.push('가속 추세');
+        if (data.breakout) reasons.push('피벗 돌파');
+        else if (pivot != null && pivot >= -3) reasons.push('피벗 근접 (3% 이내)');
+        if (data.entry_reason) reasons.push(data.entry_reason);
+        setText('modal-reason', reasons.length ? reasons.join(' · ') : '5-Gate Funnel 통과 종목');
+
+        // 모달 표시
+        const modal = document.getElementById('ticker-modal');
+        if (modal) modal.style.display = 'flex';
+
+        // TradingView 차트 로드
+        this.loadChart(ticker);
+    }
+
+    loadChart(ticker) {
+        const container = document.getElementById('modal-chart');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const render = () => {
+            try {
+                new TradingView.widget({
+                    container_id: 'modal-chart',
+                    symbol: ticker,
+                    interval: 'D',
+                    theme: 'light',
+                    style: '1',
+                    locale: 'kr',
+                    autosize: true,
+                    hide_side_toolbar: true,
+                    hide_top_toolbar: false,
+                    studies: ['MASimple@tv-basicstudies'],
+                });
+            } catch (e) {
+                container.innerHTML = `<div style="padding:40px; text-align:center; color:var(--color-text-tertiary); font-size:0.8rem;">차트를 불러올 수 없습니다 (${ticker})</div>`;
+            }
+        };
+
+        // TradingView 스크립트 동적 로드
+        if (typeof TradingView === 'undefined') {
+            const script = document.createElement('script');
+            script.src = 'https://s3.tradingview.com/tv.js';
+            script.onload = render;
+            script.onerror = () => {
+                container.innerHTML = `<div style="padding:40px; text-align:center; color:var(--color-text-tertiary); font-size:0.8rem;">차트 라이브러리 로드 실패</div>`;
+            };
+            document.head.appendChild(script);
+        } else {
+            render();
+        }
+    }
+
+    closeModal() {
+        const modal = document.getElementById('ticker-modal');
+        if (modal) modal.style.display = 'none';
+        const chart = document.getElementById('modal-chart');
+        if (chart) chart.innerHTML = '';  // 차트 정리
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     const strategyRoom = new StrategyRoomBinder();
     strategyRoom.init();
     window.strategyRoomBinder = strategyRoom;
+
+    // 모달 배경 클릭 시 닫기
+    const modal = document.getElementById('ticker-modal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) strategyRoom.closeModal();
+        });
+    }
+    // ESC 키로 닫기
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') strategyRoom.closeModal();
+    });
 });
