@@ -288,7 +288,7 @@
                                 </div>
                                 <div style="font-size: 20px;">🟢</div>
                             </div>
-                            <div style="font-size: 1.75rem; font-weight: 700; color: #0c4a6e;">620<span style="font-size: 0.9rem; color: #0c4a6e;">개</span></div>
+                            <div id="trend8-count" style="font-size: 1.75rem; font-weight: 700; color: #0c4a6e;">829<span style="font-size: 0.9rem; color: #0c4a6e;">개</span></div>
                         </div>
 
                         <!-- SETUP: 8/8 통과 비중 -->
@@ -300,7 +300,7 @@
                                 </div>
                                 <div style="font-size: 20px;">🟢</div>
                             </div>
-                            <div style="font-size: 1.75rem; font-weight: 700; color: #0c4a6e;">58.7<span style="font-size: 0.9rem; color: #0c4a6e;">%</span></div>
+                            <div id="trend8-percentage" style="font-size: 1.75rem; font-weight: 700; color: #0c4a6e;">58.7<span style="font-size: 0.9rem; color: #0c4a6e;">%</span></div>
                         </div>
 
                         <!-- SETUP: 7-/8 파차리스트 -->
@@ -336,7 +336,7 @@
                                 </div>
                                 <div style="font-size: 20px;">🟢</div>
                             </div>
-                            <div style="font-size: 1.75rem; font-weight: 700; color: #713f12;">328<span style="font-size: 0.9rem; color: #713f12;">개</span></div>
+                            <div id="rs80-count" style="font-size: 1.75rem; font-weight: 700; color: #713f12;">328<span style="font-size: 0.9rem; color: #713f12;">개</span></div>
                         </div>
 
                         <!-- STRENGTH: RS 랭크 -->
@@ -348,7 +348,7 @@
                                 </div>
                                 <div style="font-size: 20px;">🟢</div>
                             </div>
-                            <div style="font-size: 1.75rem; font-weight: 700; color: #713f12;">88</div>
+                            <div id="rs80-percentage" style="font-size: 1.75rem; font-weight: 700; color: #713f12;">88</div>
                         </div>
 
                     </div>
@@ -629,52 +629,8 @@
                                 <th>Status</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td class="ticker-cell">NVMI</td>
-                                <td>$619.07</td>
-                                <td><span class="score-badge green">92</span></td>
-                                <td><span class="badge badge-green">4</span></td>
-                                <td><span class="badge badge-gray">Ascending Base</span></td>
-                                <td><strong>1.0</strong></td>
-                                <td><span class="badge badge-green">1순위</span></td>
-                            </tr>
-                            <tr>
-                                <td class="ticker-cell">STX</td>
-                                <td>$1,018.80</td>
-                                <td><span class="score-badge green">88</span></td>
-                                <td><span class="badge badge-green">4</span></td>
-                                <td><span class="badge badge-gray">HT Flag</span></td>
-                                <td><strong>0.9</strong></td>
-                                <td><span class="badge badge-green">2순위</span></td>
-                            </tr>
-                            <tr>
-                                <td class="ticker-cell">BHE</td>
-                                <td>$91.31</td>
-                                <td><span class="score-badge green">86</span></td>
-                                <td><span class="badge badge-green">4</span></td>
-                                <td><span class="badge badge-gray">HT Flag</span></td>
-                                <td><strong>0.9</strong></td>
-                                <td><span class="badge badge-blue">Hold</span></td>
-                            </tr>
-                            <tr>
-                                <td class="ticker-cell">PRM</td>
-                                <td>$36.36</td>
-                                <td><span class="score-badge orange">84</span></td>
-                                <td><span class="badge badge-blue">3</span></td>
-                                <td><span class="badge badge-gray">HT Flag</span></td>
-                                <td><strong>0.6</strong></td>
-                                <td><span class="badge badge-gray">Watch</span></td>
-                            </tr>
-                            <tr>
-                                <td class="ticker-cell">TVTX</td>
-                                <td>$53.80</td>
-                                <td><span class="score-badge orange">82</span></td>
-                                <td><span class="badge badge-green">4</span></td>
-                                <td><span class="badge badge-gray">HT Flag</span></td>
-                                <td><strong>0.9</strong></td>
-                                <td><span class="badge badge-green">Active</span></td>
-                            </tr>
+                        <tbody id="entry-signals-table">
+                            <!-- JS에서 동적으로 생성됨 -->
                         </tbody>
                     </table>
                 </div>
@@ -947,6 +903,9 @@
             loadData();
         });
     </script>
+
+    <!-- Daily Briefing 데이터 바인딩 -->
+    <script src="js/briefing.js"></script>
 
 </body>
 </html>
