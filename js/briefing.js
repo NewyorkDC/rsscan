@@ -133,14 +133,20 @@ class BriefingDataBinder {
 
         // Market Regime 카드
         setText('.regime-text', mp.regime || '');
-        const ratioEl = document.querySelector('.regime-detail .detail-value');
-        if (ratioEl) ratioEl.textContent = mp.investment_ratio || '';
+        const setId = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+        setId('sidebar-regime-ratio', mp.investment_ratio || '');
+        setId('sidebar-dd-count', mp.dd_count != null ? mp.dd_count : '—');
+        setId('sidebar-breadth', mp.breadth_pct != null ? `${mp.breadth_pct}%` : '—');
 
-        // DD Count / Breadth
-        const condRows = document.querySelectorAll('.regime-conditions .condition-row strong');
-        if (condRows.length >= 2) {
-            condRows[0].textContent = mp.dd_count;
-            condRows[1].textContent = `${mp.breadth_pct}%`;
+        // IBD Exposure Count
+        if (mp.exposure_count != null) {
+            setId('sidebar-exposure', `${mp.exposure_count}/5 · ${mp.exposure_pct || ''}`);
+            // 노출도에 따라 색상
+            const expEl = document.getElementById('sidebar-exposure');
+            if (expEl) {
+                const c = mp.exposure_count;
+                expEl.style.color = c >= 4 ? '#10b981' : c >= 2 ? '#f59e0b' : '#ef4444';
+            }
         }
 
         // Market Pulse 카드 (Stage 2/3/4)
