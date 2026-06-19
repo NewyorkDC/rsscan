@@ -7,8 +7,8 @@
     
     <!-- 시스템 폰트 스택 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/dashboard.css?v=20260619i">
-    <link rel="stylesheet" href="css/responsive.css?v=20260619i">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260619k">
+    <link rel="stylesheet" href="css/responsive.css?v=20260619k">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
@@ -31,16 +31,20 @@
                 </div>
                 <div class="regime-detail">
                     <div class="detail-label">투자 비중</div>
-                    <div class="detail-value" style="color: #10b981;">75-95%</div>
+                    <div class="detail-value" id="sidebar-regime-ratio" style="color: #10b981;">75-95%</div>
+                </div>
+                <div class="regime-detail" style="margin-top:6px; padding-top:6px; border-top:1px dashed var(--color-border-light);">
+                    <div class="detail-label">IBD Exposure Count</div>
+                    <div class="detail-value" id="sidebar-exposure" style="color: #10b981; font-size:0.95rem;">5/5 · 100%</div>
                 </div>
                 <div class="regime-conditions">
                     <div class="condition-row">
                         <span>DD Count</span>
-                        <strong>3</strong>
+                        <strong id="sidebar-dd-count">3</strong>
                     </div>
                     <div class="condition-row">
                         <span>Breadth</span>
-                        <strong>58%</strong>
+                        <strong id="sidebar-breadth">58%</strong>
                     </div>
                 </div>
             </div>
@@ -467,7 +471,10 @@
             <div id="strategy-tab" class="tab-pane">
                 <div class="content-header">
                     <h2>🏛️ 전략실 — IBD/O'Neil Paper-Trade</h2>
-                    <div class="header-meta">5-Gate Funnel · Lock Ratchet Stop · 동시보유 12 · 매일 진입/스위칭/청산</div>
+                    <div class="header-meta">5-Gate Funnel · Lock Ratchet Stop · IBD Exposure 연동 · 매일 진입/스위칭/청산</div>
+                    <div id="strategy-exposure-banner" style="margin-top:8px; padding:8px 12px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; font-size:0.78rem; color:#166534; display:none;">
+                        <strong>📊 IBD 시장 노출도:</strong> <span id="strategy-exposure-text">—</span>
+                    </div>
                 </div>
 
                 <!-- ===== 1. 전방향 검증 (OOS) ===== -->
@@ -774,22 +781,36 @@
                             <div id="modal-reason" style="font-size:0.8rem; color:#166534; line-height:1.5;">—</div>
                         </div>
                         <!-- 지표 그리드 -->
-                        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:16px 20px;">
+                        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:16px 20px 8px;">
+                            <div style="text-align:center; padding:8px; background:var(--color-bg-main); border-radius:6px;">
+                                <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">Composite</div>
+                                <div id="modal-comp" style="font-size:1.2rem; font-weight:700; color:#7c3aed;">0</div>
+                            </div>
                             <div style="text-align:center; padding:8px; background:var(--color-bg-main); border-radius:6px;">
                                 <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">IBD RS</div>
                                 <div id="modal-rs" style="font-size:1.2rem; font-weight:700; color:#fbbf24;">0</div>
                             </div>
                             <div style="text-align:center; padding:8px; background:var(--color-bg-main); border-radius:6px;">
+                                <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">Acc/Dis</div>
+                                <div id="modal-accdis" style="font-size:1.2rem; font-weight:700; color:#10b981;">—</div>
+                            </div>
+                            <div style="text-align:center; padding:8px; background:var(--color-bg-main); border-radius:6px;">
                                 <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">Phase</div>
                                 <div id="modal-phase" style="font-size:1.2rem; font-weight:700; color:var(--color-text-primary);">0</div>
                             </div>
+                        </div>
+                        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:0 20px 16px;">
                             <div style="text-align:center; padding:8px; background:var(--color-bg-main); border-radius:6px;">
                                 <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">피벗까지</div>
-                                <div id="modal-pivot" style="font-size:1.2rem; font-weight:700; color:var(--color-text-primary);">0%</div>
+                                <div id="modal-pivot" style="font-size:1.1rem; font-weight:700; color:var(--color-text-primary);">0%</div>
                             </div>
                             <div style="text-align:center; padding:8px; background:var(--color-bg-main); border-radius:6px;">
-                                <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">1주 변화</div>
-                                <div id="modal-chg" style="font-size:1.2rem; font-weight:700; color:var(--color-text-primary);">0%</div>
+                                <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">6주 변화</div>
+                                <div id="modal-chg" style="font-size:1.1rem; font-weight:700; color:var(--color-text-primary);">0%</div>
+                            </div>
+                            <div style="text-align:center; padding:8px; background:var(--color-bg-main); border-radius:6px;">
+                                <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">위 매물</div>
+                                <div id="modal-supply" style="font-size:1.1rem; font-weight:700; color:var(--color-text-primary);">—</div>
                             </div>
                         </div>
                         <!-- TradingView 차트 -->
@@ -1156,16 +1177,16 @@
     </script>
 
     <!-- Daily Briefing 데이터 바인딩 -->
-    <script src="js/briefing.js?v=20260619i"></script>
+    <script src="js/briefing.js?v=20260619k"></script>
 
     <!-- Market Pulse 데이터 바인딩 -->
-    <script src="js/market-pulse.js?v=20260619i"></script>
+    <script src="js/market-pulse.js?v=20260619k"></script>
 
     <!-- Strategy Room v5 데이터 바인딩 -->
-    <script src="js/strategy-room.js?v=20260619i"></script>
+    <script src="js/strategy-room.js?v=20260619k"></script>
 
     <!-- 섹터 ETF 스크리너 -->
-    <script src="js/sectors-etf.js?v=20260619i"></script>
+    <script src="js/sectors-etf.js?v=20260619k"></script>
 
 </body>
 </html>
