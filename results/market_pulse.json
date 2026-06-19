@@ -1,6 +1,6 @@
 {
   "date": "2026-06-19",
-  "timestamp": "2026-06-19 15:09:48",
+  "timestamp": "2026-06-19 15:21:13",
   "regime": "Unknown",
   "regime_icon": "⚪",
   "regime_code": "unknown",
@@ -34,15 +34,15 @@
     }
   },
   "stages": {
-    "stage2": 106,
-    "stage3": 489,
-    "stage4": 627
+    "stage2": 1663,
+    "stage3": 2,
+    "stage4": 2
   },
   "phase_distribution": {
-    "p4plus": 627,
-    "p4": 489,
-    "p3": 106,
-    "p67": 309
+    "p4plus": 2,
+    "p4": 2,
+    "p3": 1663,
+    "p67": 0
   },
-  "total_stocks": 1222
+  "total_stocks": 1667
 }
