@@ -1,346 +1,244 @@
 #!/usr/bin/env python3
 """
-RSSCAN v3 - 완전 일일 분석 파이프라인
-yfinance → RS/Phase/MTR 계산 → 섹터분석 → Market Pulse → Daily Briefing → JSON/HTML 생성
+RSSCAN v3 - 5-Gate Funnel 필터링 + Phase & RS 지표
+기초 데이터: results/daily_ibd_scan.json
+출력: results/entry_signals.json
 """
 
-import yfinance as yf
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
 import json
-from collections import defaultdict
-import warnings
-warnings.filterwarnings('ignore')
+import os
+from datetime import datetime
+from statistics import median
+import sys
 
-class RSCANDailyAnalyzer:
+class GateFunnelFilter:
     def __init__(self):
-        self.spy_data = None
-        self.sp500_data = {}
-        self.signals = []
-        self.sector_stats = {}
-        self.market_stats = {}
-        self.daily_briefing = {}
+        self.input_file = 'results/daily_ibd_scan.json'
+        self.output_file = 'results/entry_signals.json'
+        self.data = []
+        self.filtered_signals = []
         
-        # S&P 500 주요 종목 (실제 데이터)
-        self.sp500_symbols = [
-            'NVDA', 'AAPL', 'MSFT', 'TSLA', 'AMZN', 'META', 'GOOGL',
-            'NVMI', 'LRCX', 'ASML', 'AMD', 'QCOM', 'AVGO', 'MU',
-            'AXTI', 'MXL', 'EZPW', 'STX', 'BHE', 'PRM', 'TVTX',
-            'SPHR', 'SNEX', 'ALGM', 'ATLC', 'COHU', 'XYL', 'EMR',
-            'ETN', 'FLS', 'SKM', 'DHI', 'VEEV', 'DXCM', 'ALGN',
-            'OMCL', 'ODFL', 'GWW', 'RSG', 'WEX', 'OC', 'DECK'
-        ]
-        
-        # 섹터 매핑
-        self.sector_map = {
-            'NVMI': ('Semiconductor Equipment', 63.9),
-            'STX': ('Computer Hardware', 50.2),
-            'BHE': ('Electronic Components', 55.3),
-            'PRM': ('Specialty Chemicals', 40.0),
-            'TVTX': ('Biotechnology', 39.8),
-            'SPHR': ('Entertainment', 51.0),
-            'SNEX': ('Capital Markets', 58.9),
-            'ALGM': ('Semiconductors', 57.5),
-            'ATLC': ('Credit Services', 51.7),
-            'COHU': ('Semiconductor Equipment & Materials', 63.9),
-            'NVDA': ('Semiconductors', 57.5),
-            'AMD': ('Semiconductors', 57.5),
-            'ASML': ('Semiconductor Equipment', 63.9),
-        }
-    
-    def fetch_benchmark_data(self):
-        """SPY 벤치마크 및 S&P 500 지수 데이터"""
-        print("📥 벤치마크 데이터 로드 중...")
+    def load_data(self):
+        """기초 데이터 로드"""
+        print(f"📥 기초 데이터 로드: {self.input_file}")
         try:
-            self.spy_data = yf.download('SPY', start='2026-03-01', end=datetime.now().strftime('%Y-%m-%d'), progress=False)
-            
-            # 주요 지수
-            indices = yf.download(['GSPC', '^IXIC', '^RUT'], start='2026-03-01', end=datetime.now().strftime('%Y-%m-%d'), progress=False)
-            
-            print(f"✅ SPY {len(self.spy_data)} 거래일 로드")
+            with open(self.input_file, 'r', encoding='utf-8') as f:
+                self.data = json.load(f)
+            print(f"✅ {len(self.data)}개 종목 로드 완료\n")
             return True
-        except Exception as e:
-            print(f"⚠️ 벤치마크 데이터 로드 실패: {e}")
+        except FileNotFoundError:
+            print(f"❌ 파일 없음: {self.input_file}")
+            return False
+        except json.JSONDecodeError:
+            print(f"❌ JSON 파싱 오류")
             return False
     
-    def calculate_rs_metrics(self, stock_data):
-        """RS Line, RS Score, MTR State 계산"""
-        if len(stock_data) < 30:
-            return None
-        
-        prices = stock_data['Close']
-        rs_line = (prices / self.spy_data['Close']) * 100
-        
-        current_rs = rs_line.iloc[-1]
-        rs_1w_ago = rs_line.iloc[-5] if len(rs_line) >= 5 else rs_line.iloc[0]
-        rs_3w_ago = rs_line.iloc[-15] if len(rs_line) >= 15 else rs_line.iloc[0]
-        rs_6w_ago = rs_line.iloc[-30] if len(rs_line) >= 30 else rs_line.iloc[0]
-        rs_10w_ago = rs_line.iloc[-50] if len(rs_line) >= 50 else rs_line.iloc[0]
-        
-        rs_chg_1w = ((rs_1w_ago - rs_3w_ago) / rs_3w_ago * 100) if rs_3w_ago else 0
-        rs_chg_3w = ((rs_3w_ago - rs_6w_ago) / rs_6w_ago * 100) if rs_6w_ago else 0
-        rs_chg_6w = ((rs_6w_ago - rs_10w_ago) / rs_10w_ago * 100) if rs_10w_ago else 0
-        
-        # RS Score (0~100)
-        rs_score = self._calc_rs_score(current_rs, rs_chg_1w, rs_chg_3w)
-        
-        # MTR State (0~7)
-        mtr_state = self._calc_mtr_state(rs_chg_1w, rs_chg_3w, rs_chg_6w)
-        
-        # Phase (0~7)
-        phase = self._calc_phase(rs_score, mtr_state)
-        
-        return {
-            'rs_line': current_rs,
-            'rs_score': rs_score,
-            'rs_1w_chg': rs_chg_1w,
-            'rs_3w_chg': rs_chg_3w,
-            'rs_6w_chg': rs_chg_6w,
-            'mtr_state': mtr_state,
-            'phase': phase
-        }
+    def check_gate_1(self, stock):
+        """Gate 1: 테마/섹터"""
+        theme_score = stock.get('theme_score', 0)
+        rs_line_bayes = stock.get('rs_line_bayes', 0)
+        passed = (theme_score >= 48) or (rs_line_bayes >= 75)
+        return passed
     
-    def _calc_rs_score(self, rs_now, rs_1w_chg, rs_3w_chg):
-        """RS Score 계산 (0~100)"""
-        score = 0
+    def check_gate_2(self, stock):
+        """Gate 2: 패턴/Pivot"""
+        top_pattern = stock.get('top_pattern', False)
+        dist_pivot_pct = stock.get('dist_pivot_pct', 999)
+        breakout = stock.get('breakout', False)
         
-        # 절대 강도
-        if rs_now >= 90: score += 40
-        elif rs_now >= 85: score += 32
-        elif rs_now >= 80: score += 24
-        else: score += 12
+        if not top_pattern:
+            return False
         
-        # 1주 변화
-        if rs_1w_chg >= 2.0: score += 25
-        elif rs_1w_chg >= 1.0: score += 18
-        elif rs_1w_chg >= 0.3: score += 10
-        elif rs_1w_chg >= -0.3: score += 5
-        
-        # 1~3주 변화
-        if rs_3w_chg >= 1.5: score += 20
-        elif rs_3w_chg >= 0.8: score += 14
-        elif rs_3w_chg >= 0.2: score += 8
-        elif rs_3w_chg >= -0.2: score += 3
-        
-        # 가속
-        if rs_1w_chg > rs_3w_chg:
-            score += 15
-        
-        return min(score, 100)
+        passed = (dist_pivot_pct <= 3) or breakout
+        return passed
     
-    def _calc_mtr_state(self, rs_1w, rs_3w, rs_6w):
-        """MTR State (0~7) 계산"""
-        c1 = 1 if rs_1w > 0 else 0
-        c3 = 1 if rs_3w > 0 else 0
-        c6 = 1 if rs_6w > 0 else 0
-        return (c6 << 2) | (c3 << 1) | c1
+    def check_gate_3(self, stock):
+        """Gate 3: Trigger (RS 가속 + 신고가)"""
+        rs_accelerating_strong = stock.get('rs_accelerating_strong', False)
+        rs_new_high = stock.get('rs_new_high', False)
+        passed = rs_accelerating_strong and rs_new_high
+        return passed
     
-    def _calc_phase(self, rs_score, mtr_state):
-        """Phase (0~7) 계산"""
-        if rs_score < 70 or mtr_state in [0, 2, 4]:
-            return 0
-        elif mtr_state == 1:
-            return 1
-        elif mtr_state == 3:
-            return 2 if rs_score < 75 else 3
-        elif rs_score >= 75 and mtr_state in [3, 5, 7]:
-            return 4
-        elif mtr_state in [5, 7]:
-            return 5
-        elif mtr_state == 6:
-            return 6
-        else:
-            return 7
-    
-    def analyze_stocks(self):
-        """S&P 500 종목 분석"""
-        print(f"\n🔍 {len(self.sp500_symbols)}개 종목 분석 중...")
+    def check_gate_4(self, stock, median_score):
+        """Gate 4: Guard (기본 가드)"""
+        total_score = stock.get('total_score', 0)
+        ad_score = stock.get('ad_score', 0)
+        trend_pass = stock.get('trend_pass', 0)
         
-        for i, symbol in enumerate(self.sp500_symbols, 1):
-            try:
-                stock = yf.download(symbol, start='2026-03-01', end=datetime.now().strftime('%Y-%m-%d'), progress=False)
-                
-                if len(stock) < 20:
-                    continue
-                
-                rs_metrics = self.calculate_rs_metrics(stock)
-                if not rs_metrics:
-                    continue
-                
-                # 기본 정보
-                current_price = stock['Close'].iloc[-1]
-                volume = stock['Volume'].iloc[-1]
-                
-                # 패턴 판정
-                ma20 = stock['Close'].iloc[-20:].mean()
-                ma50 = stock['Close'].iloc[-50:].mean() if len(stock) >= 50 else ma20
-                
-                if current_price > ma20 > ma50:
-                    pattern = "Ascending Base"
-                    stage = 2
-                elif current_price > ma50:
-                    pattern = "HT Flag"
-                    stage = 2
-                else:
-                    pattern = "Correction"
-                    stage = 1
-                
-                # 섹터 정보
-                sector, theme_score = self.sector_map.get(symbol, ('Technology', 50.0))
-                
-                signal = {
-                    'symbol': symbol,
-                    'price': round(current_price, 2),
-                    'rs_line': round(rs_metrics['rs_line'], 1),
-                    'rs_score': rs_metrics['rs_score'],
-                    'rs_1w_chg': round(rs_metrics['rs_1w_chg'], 2),
-                    'rs_3w_chg': round(rs_metrics['rs_3w_chg'], 2),
-                    'rs_6w_chg': round(rs_metrics['rs_6w_chg'], 2),
-                    'ibd_rs': np.random.randint(75, 99),
-                    'pattern': pattern,
-                    'stage': stage,
-                    'mtr_state': rs_metrics['mtr_state'],
-                    'phase': rs_metrics['phase'],
-                    'is_phase_4_plus': rs_metrics['phase'] == 4 and rs_metrics['rs_6w_chg'] > 0,
-                    'volume': int(volume),
-                    'sector': sector,
-                    'theme_score': theme_score
-                }
-                
-                if signal['rs_score'] >= 65:
-                    self.signals.append(signal)
-                
-                # 섹터 통계
-                if sector not in self.sector_stats:
-                    self.sector_stats[sector] = {
-                        'count': 0,
-                        'rs_avg': 0,
-                        'phase_dist': defaultdict(int)
-                    }
-                self.sector_stats[sector]['count'] += 1
-                self.sector_stats[sector]['rs_avg'] += signal['rs_score']
-                self.sector_stats[sector]['phase_dist'][signal['phase']] += 1
-                
-                print(f"  [{i:2d}] {symbol:6s} ✅ RS:{signal['rs_score']:3d} Phase:{signal['phase']}")
+        passed = (total_score >= median_score) and (ad_score >= 45) and (trend_pass >= 6)
+        return passed
+    
+    def calculate_entry_weight(self, stock):
+        """진입 가중치 계산 (Phase & RS 기반)"""
+        phase = stock.get('phase', 0)
+        momentum_score = stock.get('momentum_score_v2', 0)
+        ibd_rs_rating = stock.get('ibd_rs_rating', 0)
+        rs_6w_change = stock.get('rs_6w_change', 0)
+        
+        weight = 0.0
+        reason = ""
+        
+        # 1순위: Phase 4+ AND momentum_score >= 80 (장기 배경 양호)
+        if phase == 4 and momentum_score >= 80 and rs_6w_change > 0:
+            weight = 1.0
+            reason = "🎯 1순위: Phase 4+ 강세 (최고 가중치)"
+        
+        # 2순위: Phase 4 AND momentum_score >= 75
+        elif phase == 4 and momentum_score >= 75:
+            weight = 0.9
+            reason = "🎯 2순위: Phase 4 진입 (높은 가중치)"
+        
+        # 3순위: Phase 3 (감시 중)
+        elif phase == 3:
+            weight = 0.6
+            reason = "🟢 3순위: Phase 3 대기 (감시)"
+        
+        # 4순위: Phase 5 AND momentum_score >= 70 (Hold)
+        elif phase == 5 and momentum_score >= 70:
+            weight = 0.7
+            reason = "🟢 Hold: Phase 5 본격 리더"
+        
+        # 위험 신호: Phase 6, 7
+        elif phase in [6, 7]:
+            weight = 0.0
+            reason = "🔴 익절/청산: Phase 6~7"
+        
+        # 갭 전략: RS 급상승
+        gap = momentum_score - ibd_rs_rating
+        if gap > 10:
+            weight = min(weight + 0.2, 1.0)
+            reason += f" + 갭전략({gap:.0f}p)"
+        
+        return weight, reason
+    
+    def filter_all_gates(self):
+        """모든 Gate를 통과한 종목 필터링"""
+        print("🔍 5-Gate Funnel 필터링 중...\n")
+        
+        if not self.data:
+            print("❌ 데이터 없음")
+            return False
+        
+        # Gate 4를 위한 median 계산
+        total_scores = [s.get('total_score', 0) for s in self.data]
+        median_score = median(total_scores) if total_scores else 50
+        print(f"📊 total_score median: {median_score:.1f}\n")
+        
+        print("종목별 Gate 검사 결과 & 진입 가중치:")
+        print("-" * 140)
+        print(f"{'Ticker':<8} {'Phase':<6} {'RS':<5} {'G1':<5} {'G2':<5} {'G3':<5} {'G4':<5} {'Weight':<7} {'사유':<50}")
+        print("-" * 140)
+        
+        for stock in self.data:
+            ticker = stock.get('ticker', 'N/A')
+            phase = stock.get('phase', 0)
+            momentum = stock.get('momentum_score_v2', 0)
             
-            except Exception as e:
-                print(f"  [{i:2d}] {symbol:6s} ⚠️ {str(e)[:30]}")
-        
-        # 섹터 평균 계산
-        for sector in self.sector_stats:
-            if self.sector_stats[sector]['count'] > 0:
-                self.sector_stats[sector]['rs_avg'] /= self.sector_stats[sector]['count']
-    
-    def calculate_market_stats(self):
-        """Market Pulse 계산"""
-        print("\n📊 Market Pulse 계산 중...")
-        
-        total = len(self.signals)
-        phase_4 = len([s for s in self.signals if s['phase'] == 4])
-        phase_4_plus = len([s for s in self.signals if s['is_phase_4_plus']])
-        
-        stage_2 = len([s for s in self.signals if s['stage'] == 2])
-        stage_3 = len([s for s in self.signals if s['stage'] == 3])
-        
-        self.market_stats = {
-            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'market_health': '🟢 Uptrend Resumed',
-            'market_regime': '75~95%',
-            'total_scanned': total,
-            'phase_4_count': phase_4,
-            'phase_4_plus_count': phase_4_plus,
-            'stage_2_count': stage_2,
-            'stage_3_count': stage_3,
-            'breadth': round(len([s for s in self.signals if s['rs_score'] >= 80]) / total * 100, 1) if total > 0 else 0,
-            'avg_rs_score': round(sum(s['rs_score'] for s in self.signals) / total, 1) if total > 0 else 0
-        }
-    
-    def generate_briefing(self):
-        """Daily Briefing 12섹션 생성"""
-        print("\n📝 Daily Briefing 생성 중...")
-        
-        total = len(self.signals)
-        phase_4 = [s for s in self.signals if s['phase'] == 4]
-        top_themes = sorted(self.sector_stats.items(), key=lambda x: x[1]['rs_avg'], reverse=True)[:5]
-        
-        self.daily_briefing = {
-            'timestamp': datetime.now().strftime('%Y-%m-%d'),
-            'sections': {
-                '1': {
-                    'title': '① 시장 상태',
-                    'regime': '🟢 Uptrend Resumed',
-                    'ratio': '75~95%',
-                    'strategy': 'FTD 직후 황금 구간 — 적극 진입'
-                },
-                '2': {
-                    'title': '② 시장 환경',
-                    'status': '정상 매매',
-                    'total_qualified': total,
-                    'qualified_ratio': self.market_stats['breadth']
-                },
-                '3': {
-                    'title': '③ 진입 신호',
-                    'phase_4_count': self.market_stats['phase_4_count'],
-                    'new_signals': len(phase_4)
-                },
-                '4': {
-                    'title': '④ 섹터 강도 TOP5',
-                    'top_sectors': [(name, round(stats['rs_avg'], 1)) for name, stats in top_themes]
-                },
-                '5': {
-                    'title': '⑤ 평균 RS Score',
-                    'avg_rs': self.market_stats['avg_rs_score']
+            gate_1 = self.check_gate_1(stock)
+            gate_2 = self.check_gate_2(stock)
+            gate_3 = self.check_gate_3(stock)
+            gate_4 = self.check_gate_4(stock, median_score)
+            
+            # 모든 Gate 통과 확인
+            all_passed = gate_1 and gate_2 and gate_3 and gate_4
+            
+            # 진입 가중치 계산
+            weight, reason = self.calculate_entry_weight(stock)
+            
+            # 출력
+            status = "✅" if all_passed else "❌"
+            print(f"{ticker:<8} {phase:<6} {momentum:<5} {str(gate_1):<5} {str(gate_2):<5} {str(gate_3):<5} {str(gate_4):<5} {weight:<7.1f} {reason:<50}")
+            
+            # 통과 종목 저장
+            if all_passed:
+                signal = {
+                    'ticker': ticker,
+                    'date': stock.get('date', datetime.now().strftime('%Y-%m-%d')),
+                    'close': stock.get('close', 0),
+                    'phase': phase,
+                    'momentum_score_v2': momentum,
+                    'ibd_rs_rating': stock.get('ibd_rs_rating', 0),
+                    'rs_6w_change': stock.get('rs_6w_change', 0),
+                    'rs_10w_change': stock.get('rs_10w_change', 0),
+                    'entry_weight': weight,
+                    'entry_reason': reason,
+                    'gates_passed': {
+                        'gate_1': gate_1,
+                        'gate_2': gate_2,
+                        'gate_3': gate_3,
+                        'gate_4': gate_4
+                    }
                 }
-            }
-        }
+                self.filtered_signals.append(signal)
+        
+        print("-" * 140)
+        print(f"\n✅ 5-Gate 통과 종목: {len(self.filtered_signals)}개\n")
+        return True
     
-    def save_results(self):
-        """JSON으로 저장"""
-        print("\n💾 결과 저장 중...")
+    def save_signals(self):
+        """필터링된 신호 저장"""
+        print(f"💾 신호 저장: {self.output_file}")
+        
+        os.makedirs('results', exist_ok=True)
+        
+        # 진입 가중치 높은 순으로 정렬
+        sorted_signals = sorted(self.filtered_signals, key=lambda x: x['entry_weight'], reverse=True)
         
         output = {
-            'timestamp': self.market_stats['timestamp'],
-            'market_health': self.market_stats['market_health'],
-            'market_regime': self.market_stats['market_regime'],
-            'total_scanned': self.market_stats['total_scanned'],
-            'phase_4_count': self.market_stats['phase_4_count'],
-            'phase_4_plus_count': self.market_stats['phase_4_plus_count'],
-            'stage_2_count': self.market_stats['stage_2_count'],
-            'breadth': self.market_stats['breadth'],
-            'avg_rs_score': self.market_stats['avg_rs_score'],
-            'top_sectors': [(name, round(stats['rs_avg'], 1)) for name, stats in sorted(self.sector_stats.items(), key=lambda x: x[1]['rs_avg'], reverse=True)[:10]],
-            'daily_briefing': self.daily_briefing,
-            'signals': self.signals[:20]
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'total_scanned': len(self.data),
+            'total_passed': len(self.filtered_signals),
+            'signals': sorted_signals
         }
         
-        with open('entry_signals.json', 'w', encoding='utf-8') as f:
-            json.dump(output, f, indent=2, ensure_ascii=False)
+        try:
+            with open(self.output_file, 'w', encoding='utf-8') as f:
+                json.dump(output, f, indent=2, ensure_ascii=False)
+            print(f"✅ 저장 완료: {self.output_file}\n")
+            return True
+        except Exception as e:
+            print(f"❌ 저장 오류: {e}\n")
+            return False
+    
+    def print_summary(self):
+        """최종 요약"""
+        print("=" * 140)
+        print("📈 최종 결과 요약")
+        print("=" * 140)
+        print(f"스캔 종목: {len(self.data)}개")
+        print(f"5-Gate 통과: {len(self.filtered_signals)}개")
+        print(f"통과율: {(len(self.filtered_signals) / len(self.data) * 100):.1f}%\n" if self.data else "통과율: 0%\n")
         
-        print(f"✅ entry_signals.json 저장 완료")
-        print(f"\n📊 요약:")
-        print(f"  • 스캔: {self.market_stats['total_scanned']}개")
-        print(f"  • Phase 4: {self.market_stats['phase_4_count']}개")
-        print(f"  • Phase 4+: {self.market_stats['phase_4_plus_count']}개")
-        print(f"  • 평균 RS: {self.market_stats['avg_rs_score']}")
-        print(f"  • Breadth: {self.market_stats['breadth']}%")
+        if self.filtered_signals:
+            print("🎯 통과 종목 (진입 가중치 순):")
+            print("-" * 140)
+            for i, signal in enumerate(self.filtered_signals, 1):
+                print(f"  {i}. {signal['ticker']:8} | Phase: {signal['phase']} | RS: {signal['momentum_score_v2']:3.0f} | Weight: {signal['entry_weight']:.1f} | {signal['entry_reason']}")
+            print("-" * 140)
+        else:
+            print("⚠️ 5-Gate를 통과한 종목이 없습니다.")
+        
+        print("\n✅ 완료! entry_signals.json이 저장되었습니다.")
+        print("   다음 단계: strategy_room.py에서 v5 룰로 paper-trade 실행\n")
     
     def run(self):
-        """메인 파이프라인"""
-        print("🚀 RSSCAN v3 - 완전 일일 분석 시작")
-        print("=" * 70)
+        """메인 실행"""
+        print("\n🚀 RSSCAN v3 - 5-Gate Funnel + Phase/RS 분석")
+        print("=" * 140 + "\n")
         
-        if not self.fetch_benchmark_data():
+        if not self.load_data():
             return False
         
-        self.analyze_stocks()
-        self.calculate_market_stats()
-        self.generate_briefing()
-        self.save_results()
+        if not self.filter_all_gates():
+            return False
         
-        print("\n✅ 완료!")
+        if not self.save_signals():
+            return False
+        
+        self.print_summary()
         return True
 
 if __name__ == '__main__':
-    analyzer = RSCANDailyAnalyzer()
-    analyzer.run()
+    filter_engine = GateFunnelFilter()
+    success = filter_engine.run()
+    sys.exit(0 if success else 1)
