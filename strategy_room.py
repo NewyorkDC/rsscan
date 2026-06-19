@@ -87,22 +87,37 @@ class StrategyRoomV6:
 
     # ---------- 데이터 로드 ----------
     def load_portfolio(self):
-        """기존 포트폴리오 상태를 읽어 이어받음. 없으면 초기화."""
+        """기존 포트폴리오 상태를 읽어 이어받음. 없으면 초기화.
+        오염 데이터(같은 날 진입=청산된 비현실적 거래)가 다수면 자동 리셋."""
         if os.path.exists(self.portfolio_file):
             try:
                 with open(self.portfolio_file, encoding='utf-8') as f:
                     p = json.load(f)
-                print(f"📂 기존 포트폴리오 로드: 보유 {len(p.get('holdings', []))}개, "
-                      f"청산 {len(p.get('closed_trades', []))}건")
-                # 누락 필드 보정
                 p.setdefault('nav_history', [])
                 p.setdefault('closed_trades', [])
                 p.setdefault('holdings', [])
+
+                # 오염 검사: 같은 날 진입=청산된 거래 비율
+                closed = p.get('closed_trades', [])
+                same_day = [t for t in closed
+                            if t.get('entry_date') and t.get('exit_date')
+                            and t['entry_date'] == t['exit_date']]
+                # 같은 날 진입/청산이 절반 이상이면 오염으로 판단 → 리셋
+                if closed and len(same_day) >= len(closed) * 0.5:
+                    print(f"⚠️ 오염 감지: 청산 {len(closed)}건 중 {len(same_day)}건이 "
+                          f"같은 날 진입/청산 → 포트폴리오 리셋")
+                    return self._fresh_portfolio()
+
+                print(f"📂 기존 포트폴리오 로드: 보유 {len(p.get('holdings', []))}개, "
+                      f"청산 {len(closed)}건")
                 return p
             except Exception as e:
                 print(f"⚠️ 포트폴리오 로드 실패 ({e}), 새로 초기화")
 
         print("🆕 신규 포트폴리오 초기화")
+        return self._fresh_portfolio()
+
+    def _fresh_portfolio(self):
         return {
             'timestamp': '',
             'nav': self.initial_capital,
