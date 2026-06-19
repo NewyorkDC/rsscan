@@ -39,12 +39,19 @@ jobs:
           python update_universe.py
           echo "✅ 유니버스 갱신 완료"
 
-      # Step 5: 📈 S&P 500 RS Line 데이터 수집
-      - name: 📈 Fetch S&P 500 RS Line Data
+      # Step 4.5: 🌐 동적 Universe 생성 (시총/거래량 필터)
+      - name: 🌐 Build Dynamic Universe
         run: |
-          echo "📊 S&P 500 기초 데이터 수집 중..."
+          echo "🌐 동적 universe 생성 중 (NASDAQ/NYSE/AMEX 시총 필터)..."
+          python build_universe.py
+          echo "✅ 동적 universe 생성 완료"
+
+      # Step 5: 📈 RS Line 데이터 수집 (동적 universe 기반)
+      - name: 📈 Fetch RS Line Data
+        run: |
+          echo "📊 RS Line 기초 데이터 수집 중..."
           python fetch_sp500_data.py
-          echo "✅ S&P 500 데이터 수집 완료"
+          echo "✅ 데이터 수집 완료"
 
       # Step 6: 🔍 5-Gate Funnel 분석 실행
       - name: 🔍 Run 5-Gate Funnel Analysis
