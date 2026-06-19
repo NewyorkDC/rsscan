@@ -224,7 +224,14 @@ def main():
     print(f"\n✅ 유효 데이터 {len(results)}개 수집 완료")
 
     # ===== RS Rating 계산: 252일 모멘텀의 종목 간 백분위 (1~99) =====
-    perfs = np.array([r['_perf_252'] for r in results])
+    # NaN(모멘텀 계산 불가)은 최저값(-inf)으로 처리해 백분위 하위로
+    perfs = np.array([
+        r['_perf_252'] if (r.get('_perf_252') is not None
+                           and not np.isnan(r['_perf_252'])
+                           and not np.isinf(r['_perf_252']))
+        else -np.inf
+        for r in results
+    ])
     ranks = perfs.argsort().argsort()  # 0(최저) ~ N-1(최고)
     n = len(results)
     for i, r in enumerate(results):
@@ -234,11 +241,30 @@ def main():
 
     # ===== 파생 점수 계산 =====
     today = datetime.now().strftime('%Y-%m-%d')
+
+    # NaN 안전 처리 헬퍼: NaN/None/inf → 기본값
+    def safe_num(v, default=0.0):
+        try:
+            f = float(v)
+            if np.isnan(f) or np.isinf(f):
+                return default
+            return f
+        except (TypeError, ValueError):
+            return default
+
+    # 모든 수치 필드의 NaN을 먼저 청소
+    numeric_fields = ['ibd_rs_rating', 'rs_6w_change', 'rs_10w_change',
+                      'dist_pivot_pct', 'rs_line_bayes', 'close', '_perf_252']
+    for r in results:
+        for fld in numeric_fields:
+            if fld in r:
+                r[fld] = safe_num(r[fld])
+
     # total_score 중앙값 계산을 위해 먼저 raw 산출
     for r in results:
-        rs = r['ibd_rs_rating']
+        rs = safe_num(r['ibd_rs_rating'])
         # momentum_score_v2: RS와 단기 모멘텀 결합
-        mom = int(np.clip(rs * 0.7 + max(r['rs_6w_change'], 0) * 1.5, 0, 100))
+        mom = int(np.clip(rs * 0.7 + max(safe_num(r['rs_6w_change']), 0) * 1.5, 0, 100))
         r['momentum_score_v2'] = mom
         # theme_score: 신고가/가속이면 가산
         theme = 50
@@ -248,7 +274,7 @@ def main():
             theme += 10
         r['theme_score'] = min(theme, 100)
         # top_pattern: 피벗 3% 이내 + RS 70+ + Phase 4+
-        r['top_pattern'] = bool(r['dist_pivot_pct'] >= -3 and rs >= 70 and r['phase'] >= 4)
+        r['top_pattern'] = bool(safe_num(r['dist_pivot_pct']) >= -3 and rs >= 70 and r['phase'] >= 4)
         # ad_score: 거래대금 기반 (큰 거래대금일수록 기관 관심) — 백분위 근사
         r['ad_score'] = int(np.clip(40 + (rs * 0.4), 40, 90))
         # trend_pass: Phase 기반 추세 통과 개수 (4~8)
@@ -314,3 +340,4 @@ if __name__ == '__main__':
         import traceback
         traceback.print_exc()
         sys.exit(1)
+    
