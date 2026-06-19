@@ -1,163 +1,19 @@
 {
-  "timestamp": "2026-06-19 04:25:21",
+  "timestamp": "2026-06-19 04:50:01",
   "total_scanned": 176,
-  "total_passed": 16,
+  "total_passed": 21,
   "signals": [
     {
-      "ticker": "ANSS",
+      "ticker": "AAPL",
       "date": "2026-06-19",
-      "close": 222.87,
+      "close": 159.69,
       "phase": 4,
-      "momentum_score_v2": 86,
-      "ibd_rs_rating": 86,
-      "rs_6w_change": 8.8,
-      "rs_10w_change": -6.3,
-      "entry_weight": 1.0,
-      "entry_reason": "🎯 1순위: Phase 4+ 강세 (최고 가중치)",
-      "gates_passed": {
-        "gate_1": true,
-        "gate_2": true,
-        "gate_3": true,
-        "gate_4": true
-      }
-    },
-    {
-      "ticker": "BERKB",
-      "date": "2026-06-19",
-      "close": 91.44,
-      "phase": 4,
-      "momentum_score_v2": 84,
-      "ibd_rs_rating": 89,
-      "rs_6w_change": 14.4,
-      "rs_10w_change": 20.3,
-      "entry_weight": 1.0,
-      "entry_reason": "🎯 1순위: Phase 4+ 강세 (최고 가중치)",
-      "gates_passed": {
-        "gate_1": true,
-        "gate_2": true,
-        "gate_3": true,
-        "gate_4": true
-      }
-    },
-    {
-      "ticker": "NRG",
-      "date": "2026-06-19",
-      "close": 161.16,
-      "phase": 4,
-      "momentum_score_v2": 82,
-      "ibd_rs_rating": 94,
-      "rs_6w_change": 11.6,
-      "rs_10w_change": 24.6,
-      "entry_weight": 1.0,
-      "entry_reason": "🎯 1순위: Phase 4+ 강세 (최고 가중치)",
-      "gates_passed": {
-        "gate_1": true,
-        "gate_2": true,
-        "gate_3": true,
-        "gate_4": true
-      }
-    },
-    {
-      "ticker": "AEP",
-      "date": "2026-06-19",
-      "close": 201.09,
-      "phase": 4,
-      "momentum_score_v2": 94,
-      "ibd_rs_rating": 98,
-      "rs_6w_change": -2.9,
-      "rs_10w_change": 0.5,
-      "entry_weight": 0.9,
-      "entry_reason": "🎯 2순위: Phase 4 진입 (높은 가중치)",
-      "gates_passed": {
-        "gate_1": true,
-        "gate_2": true,
-        "gate_3": true,
-        "gate_4": true
-      }
-    },
-    {
-      "ticker": "AMAT",
-      "date": "2026-06-19",
-      "close": 343.92,
-      "phase": 4,
-      "momentum_score_v2": 88,
-      "ibd_rs_rating": 97,
-      "rs_6w_change": -3.0,
-      "rs_10w_change": 20.3,
-      "entry_weight": 0.9,
-      "entry_reason": "🎯 2순위: Phase 4 진입 (높은 가중치)",
-      "gates_passed": {
-        "gate_1": true,
-        "gate_2": true,
-        "gate_3": true,
-        "gate_4": true
-      }
-    },
-    {
-      "ticker": "LULULEMON",
-      "date": "2026-06-19",
-      "close": 475.96,
-      "phase": 4,
-      "momentum_score_v2": 77,
-      "ibd_rs_rating": 87,
-      "rs_6w_change": 10.5,
-      "rs_10w_change": 24.1,
-      "entry_weight": 0.9,
-      "entry_reason": "🎯 2순위: Phase 4 진입 (높은 가중치)",
-      "gates_passed": {
-        "gate_1": true,
-        "gate_2": true,
-        "gate_3": true,
-        "gate_4": true
-      }
-    },
-    {
-      "ticker": "PYPL",
-      "date": "2026-06-19",
-      "close": 43.8,
-      "phase": 4,
-      "momentum_score_v2": 76,
-      "ibd_rs_rating": 86,
-      "rs_6w_change": 5.5,
-      "rs_10w_change": 23.3,
-      "entry_weight": 0.9,
-      "entry_reason": "🎯 2순위: Phase 4 진입 (높은 가중치)",
-      "gates_passed": {
-        "gate_1": true,
-        "gate_2": true,
-        "gate_3": true,
-        "gate_4": true
-      }
-    },
-    {
-      "ticker": "HON",
-      "date": "2026-06-19",
-      "close": 458.15,
-      "phase": 5,
-      "momentum_score_v2": 80,
-      "ibd_rs_rating": 83,
-      "rs_6w_change": -1.0,
-      "rs_10w_change": 22.4,
-      "entry_weight": 0.7,
-      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
-      "gates_passed": {
-        "gate_1": true,
-        "gate_2": true,
-        "gate_3": true,
-        "gate_4": true
-      }
-    },
-    {
-      "ticker": "JPM",
-      "date": "2026-06-19",
-      "close": 255.91,
-      "phase": 5,
       "momentum_score_v2": 86,
       "ibd_rs_rating": 93,
-      "rs_6w_change": 9.6,
-      "rs_10w_change": 18.3,
-      "entry_weight": 0.7,
-      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
+      "rs_6w_change": 4.7,
+      "rs_10w_change": 6.9,
+      "entry_weight": 1.0,
+      "entry_reason": "🎯 1순위: Phase 4+ 강세 (최고 가중치)",
       "gates_passed": {
         "gate_1": true,
         "gate_2": true,
@@ -166,14 +22,104 @@
       }
     },
     {
-      "ticker": "PKG",
+      "ticker": "BRK",
       "date": "2026-06-19",
-      "close": 427.02,
-      "phase": 5,
+      "close": 275.22,
+      "phase": 4,
+      "momentum_score_v2": 89,
+      "ibd_rs_rating": 94,
+      "rs_6w_change": 2.0,
+      "rs_10w_change": 16.7,
+      "entry_weight": 1.0,
+      "entry_reason": "🎯 1순위: Phase 4+ 강세 (최고 가중치)",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "BLL",
+      "date": "2026-06-19",
+      "close": 65.33,
+      "phase": 4,
+      "momentum_score_v2": 76,
+      "ibd_rs_rating": 95,
+      "rs_6w_change": 0.9,
+      "rs_10w_change": -7.6,
+      "entry_weight": 0.9,
+      "entry_reason": "🎯 2순위: Phase 4 진입 (높은 가중치)",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "CDNS",
+      "date": "2026-06-19",
+      "close": 179.29,
+      "phase": 4,
       "momentum_score_v2": 79,
-      "ibd_rs_rating": 84,
-      "rs_6w_change": 13.2,
-      "rs_10w_change": -2.8,
+      "ibd_rs_rating": 97,
+      "rs_6w_change": 3.9,
+      "rs_10w_change": 13.7,
+      "entry_weight": 0.9,
+      "entry_reason": "🎯 2순위: Phase 4 진입 (높은 가중치)",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "FE",
+      "date": "2026-06-19",
+      "close": 105.84,
+      "phase": 4,
+      "momentum_score_v2": 79,
+      "ibd_rs_rating": 89,
+      "rs_6w_change": 5.2,
+      "rs_10w_change": 18.9,
+      "entry_weight": 0.9,
+      "entry_reason": "🎯 2순위: Phase 4 진입 (높은 가중치)",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "NFLX",
+      "date": "2026-06-19",
+      "close": 379.49,
+      "phase": 4,
+      "momentum_score_v2": 90,
+      "ibd_rs_rating": 85,
+      "rs_6w_change": -3.5,
+      "rs_10w_change": 10.9,
+      "entry_weight": 0.9,
+      "entry_reason": "🎯 2순위: Phase 4 진입 (높은 가중치)",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "ADSK",
+      "date": "2026-06-19",
+      "close": 105.47,
+      "phase": 5,
+      "momentum_score_v2": 88,
+      "ibd_rs_rating": 93,
+      "rs_6w_change": -3.3,
+      "rs_10w_change": 1.1,
       "entry_weight": 0.7,
       "entry_reason": "🟢 Hold: Phase 5 본격 리더",
       "gates_passed": {
@@ -184,14 +130,14 @@
       }
     },
     {
-      "ticker": "UAL",
+      "ticker": "ARKW",
       "date": "2026-06-19",
-      "close": 385.47,
+      "close": 45.14,
       "phase": 5,
       "momentum_score_v2": 86,
-      "ibd_rs_rating": 87,
-      "rs_6w_change": 5.4,
-      "rs_10w_change": 19.4,
+      "ibd_rs_rating": 92,
+      "rs_6w_change": 10.2,
+      "rs_10w_change": 16.2,
       "entry_weight": 0.7,
       "entry_reason": "🟢 Hold: Phase 5 본격 리더",
       "gates_passed": {
@@ -202,16 +148,34 @@
       }
     },
     {
-      "ticker": "LYB",
+      "ticker": "ASML",
       "date": "2026-06-19",
-      "close": 310.2,
-      "phase": 3,
-      "momentum_score_v2": 87,
+      "close": 213.0,
+      "phase": 5,
+      "momentum_score_v2": 86,
+      "ibd_rs_rating": 98,
+      "rs_6w_change": 14.5,
+      "rs_10w_change": -7.9,
+      "entry_weight": 0.7,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "CF",
+      "date": "2026-06-19",
+      "close": 162.81,
+      "phase": 5,
+      "momentum_score_v2": 85,
       "ibd_rs_rating": 92,
-      "rs_6w_change": -2.8,
-      "rs_10w_change": -9.3,
-      "entry_weight": 0.6,
-      "entry_reason": "🟢 3순위: Phase 3 대기 (감시)",
+      "rs_6w_change": -1.4,
+      "rs_10w_change": -2.7,
+      "entry_weight": 0.7,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
       "gates_passed": {
         "gate_1": true,
         "gate_2": true,
@@ -220,14 +184,86 @@
       }
     },
     {
-      "ticker": "NCLH",
+      "ticker": "IP",
       "date": "2026-06-19",
-      "close": 373.99,
+      "close": 224.35,
+      "phase": 5,
+      "momentum_score_v2": 79,
+      "ibd_rs_rating": 82,
+      "rs_6w_change": 12.1,
+      "rs_10w_change": 10.9,
+      "entry_weight": 0.7,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "NOW",
+      "date": "2026-06-19",
+      "close": 250.87,
+      "phase": 5,
+      "momentum_score_v2": 74,
+      "ibd_rs_rating": 82,
+      "rs_6w_change": 13.6,
+      "rs_10w_change": -3.1,
+      "entry_weight": 0.7,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "SEE",
+      "date": "2026-06-19",
+      "close": 41.78,
+      "phase": 5,
+      "momentum_score_v2": 81,
+      "ibd_rs_rating": 94,
+      "rs_6w_change": -3.2,
+      "rs_10w_change": 11.7,
+      "entry_weight": 0.7,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "XLE",
+      "date": "2026-06-19",
+      "close": 282.38,
+      "phase": 5,
+      "momentum_score_v2": 73,
+      "ibd_rs_rating": 95,
+      "rs_6w_change": 8.0,
+      "rs_10w_change": 11.8,
+      "entry_weight": 0.7,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "CARR",
+      "date": "2026-06-19",
+      "close": 163.08,
       "phase": 3,
-      "momentum_score_v2": 92,
-      "ibd_rs_rating": 88,
-      "rs_6w_change": -0.9,
-      "rs_10w_change": 14.2,
+      "momentum_score_v2": 85,
+      "ibd_rs_rating": 89,
+      "rs_6w_change": 12.4,
+      "rs_10w_change": 5.3,
       "entry_weight": 0.6,
       "entry_reason": "🟢 3순위: Phase 3 대기 (감시)",
       "gates_passed": {
@@ -238,14 +274,14 @@
       }
     },
     {
-      "ticker": "QQQ",
+      "ticker": "ESTC",
       "date": "2026-06-19",
-      "close": 158.22,
+      "close": 370.17,
       "phase": 3,
-      "momentum_score_v2": 78,
-      "ibd_rs_rating": 90,
-      "rs_6w_change": 14.8,
-      "rs_10w_change": 9.5,
+      "momentum_score_v2": 76,
+      "ibd_rs_rating": 99,
+      "rs_6w_change": 5.7,
+      "rs_10w_change": 20.7,
       "entry_weight": 0.6,
       "entry_reason": "🟢 3순위: Phase 3 대기 (감시)",
       "gates_passed": {
@@ -256,14 +292,50 @@
       }
     },
     {
-      "ticker": "RDDT",
+      "ticker": "LIN",
       "date": "2026-06-19",
-      "close": 203.36,
+      "close": 335.31,
+      "phase": 3,
+      "momentum_score_v2": 90,
+      "ibd_rs_rating": 97,
+      "rs_6w_change": 13.9,
+      "rs_10w_change": 2.1,
+      "entry_weight": 0.6,
+      "entry_reason": "🟢 3순위: Phase 3 대기 (감시)",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "PUMA",
+      "date": "2026-06-19",
+      "close": 132.87,
+      "phase": 3,
+      "momentum_score_v2": 81,
+      "ibd_rs_rating": 93,
+      "rs_6w_change": 3.1,
+      "rs_10w_change": 4.6,
+      "entry_weight": 0.6,
+      "entry_reason": "🟢 3순위: Phase 3 대기 (감시)",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "SCHD",
+      "date": "2026-06-19",
+      "close": 109.74,
       "phase": 3,
       "momentum_score_v2": 87,
-      "ibd_rs_rating": 91,
-      "rs_6w_change": -4.7,
-      "rs_10w_change": 24.5,
+      "ibd_rs_rating": 86,
+      "rs_6w_change": 5.6,
+      "rs_10w_change": -8.3,
       "entry_weight": 0.6,
       "entry_reason": "🟢 3순위: Phase 3 대기 (감시)",
       "gates_passed": {
@@ -274,16 +346,34 @@
       }
     },
     {
-      "ticker": "VEEV",
+      "ticker": "MRK",
       "date": "2026-06-19",
-      "close": 217.42,
-      "phase": 3,
-      "momentum_score_v2": 93,
-      "ibd_rs_rating": 87,
-      "rs_6w_change": 5.5,
-      "rs_10w_change": -6.0,
-      "entry_weight": 0.6,
-      "entry_reason": "🟢 3순위: Phase 3 대기 (감시)",
+      "close": 321.1,
+      "phase": 4,
+      "momentum_score_v2": 71,
+      "ibd_rs_rating": 96,
+      "rs_6w_change": 5.3,
+      "rs_10w_change": -2.8,
+      "entry_weight": 0.0,
+      "entry_reason": "",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "RCL",
+      "date": "2026-06-19",
+      "close": 322.1,
+      "phase": 4,
+      "momentum_score_v2": 74,
+      "ibd_rs_rating": 81,
+      "rs_6w_change": 11.5,
+      "rs_10w_change": 9.6,
+      "entry_weight": 0.0,
+      "entry_reason": "",
       "gates_passed": {
         "gate_1": true,
         "gate_2": true,
