@@ -1,48 +1,58 @@
 {
   "date": "2026-06-19",
-  "timestamp": "2026-06-19 15:30:28",
-  "regime": "Unknown",
-  "regime_icon": "⚪",
-  "regime_code": "unknown",
-  "investment_ratio": "—",
+  "timestamp": "2026-06-19 16:34:28",
+  "regime": "Market in Correction",
+  "regime_icon": "🔴",
+  "regime_code": "correction",
+  "investment_ratio": "0-20%",
+  "exposure_count": 0,
+  "exposure_pct": "0-20%",
+  "exposure_label": "Correction (신규 매수 금지)",
+  "exposure_max_ratio": 0.2,
   "breadth_pct": 100,
-  "dd_count": 0,
+  "dd_count": 7,
   "indices": {
     "SP500": {
-      "name": "S&P 500",
-      "close": null,
-      "change_pct": 0.0,
-      "above_ma21": false,
-      "above_ma50": false,
-      "above_ma200": false
+      "close": 746.74,
+      "change_pct": 1.04,
+      "above_ma21": true,
+      "above_ma50": true,
+      "above_ma200": true,
+      "ma50": 727.82,
+      "ma200": 684.49,
+      "name": "S&P 500"
     },
     "NASDAQ": {
-      "name": "NASDAQ",
-      "close": null,
-      "change_pct": 0.0,
-      "above_ma21": false,
-      "above_ma50": false,
-      "above_ma200": false
+      "close": 740.62,
+      "change_pct": 2.51,
+      "above_ma21": true,
+      "above_ma50": true,
+      "above_ma200": true,
+      "ma50": 693.18,
+      "ma200": 627.76,
+      "name": "NASDAQ"
     },
     "RUSSELL": {
-      "name": "Russell 2000",
-      "close": null,
-      "change_pct": 0.0,
-      "above_ma21": false,
-      "above_ma50": false,
-      "above_ma200": false
+      "close": 295.59,
+      "change_pct": 1.97,
+      "above_ma21": true,
+      "above_ma50": true,
+      "above_ma200": true,
+      "ma50": 280.74,
+      "ma200": 256.78,
+      "name": "Russell 2000"
     }
   },
   "stages": {
-    "stage2": 145,
-    "stage3": 680,
-    "stage4": 889
+    "stage2": 164,
+    "stage3": 747,
+    "stage4": 982
   },
   "phase_distribution": {
-    "p4plus": 889,
-    "p4": 680,
-    "p3": 145,
-    "p67": 435
+    "p4plus": 982,
+    "p4": 747,
+    "p3": 164,
+    "p67": 490
   },
-  "total_stocks": 1714
+  "total_stocks": 1893
 }

@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-06-19 15:29:51",
-  "total_scanned": 1714,
-  "total_passed": 95,
+  "timestamp": "2026-06-19 16:31:25",
+  "total_scanned": 1893,
+  "total_passed": 103,
   "signals": [
     {
       "ticker": "CDNL",
@@ -19,7 +19,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "CRS",
@@ -37,7 +45,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "ATEN",
@@ -55,7 +71,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "MRX",
@@ -73,7 +97,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "IFS",
@@ -91,15 +123,49 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
+    },
+    {
+      "ticker": "PK",
+      "date": "2026-06-19",
+      "close": 14.72,
+      "phase": 5,
+      "momentum_score_v2": 97,
+      "ibd_rs_rating": 73.0,
+      "rs_6w_change": 31.2,
+      "rs_10w_change": 35.4,
+      "entry_weight": 0.8999999999999999,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더 + 갭전략(24p)",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "GOLF",
       "date": "2026-06-19",
       "close": 107.73,
       "phase": 5,
-      "momentum_score_v2": 87,
-      "ibd_rs_rating": 70.0,
+      "momentum_score_v2": 88,
+      "ibd_rs_rating": 71.0,
       "rs_6w_change": 25.7,
       "rs_10w_change": 9.7,
       "entry_weight": 0.8999999999999999,
@@ -109,15 +175,23 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "VIRT",
       "date": "2026-06-19",
       "close": 63.07,
       "phase": 5,
-      "momentum_score_v2": 88,
-      "ibd_rs_rating": 70.0,
+      "momentum_score_v2": 89,
+      "ibd_rs_rating": 71.0,
       "rs_6w_change": 26.3,
       "rs_10w_change": 29.5,
       "entry_weight": 0.8999999999999999,
@@ -127,7 +201,67 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
+    },
+    {
+      "ticker": "IMAX",
+      "date": "2026-06-19",
+      "close": 44.33,
+      "phase": 5,
+      "momentum_score_v2": 85,
+      "ibd_rs_rating": 70.0,
+      "rs_6w_change": 24.2,
+      "rs_10w_change": 16.0,
+      "entry_weight": 0.8999999999999999,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더 + 갭전략(15p)",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
+    },
+    {
+      "ticker": "TGTX",
+      "date": "2026-06-19",
+      "close": 53.22,
+      "phase": 5,
+      "momentum_score_v2": 89,
+      "ibd_rs_rating": 70.0,
+      "rs_6w_change": 26.8,
+      "rs_10w_change": 55.6,
+      "entry_weight": 0.8999999999999999,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더 + 갭전략(19p)",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "WDC",
@@ -145,7 +279,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "ICHR",
@@ -163,7 +305,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "TER",
@@ -181,7 +331,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "UCTT",
@@ -199,7 +357,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "AMKR",
@@ -217,7 +383,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "AXGN",
@@ -235,7 +409,41 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
+    },
+    {
+      "ticker": "MBX",
+      "date": "2026-06-19",
+      "close": 43.03,
+      "phase": 5,
+      "momentum_score_v2": 100,
+      "ibd_rs_rating": 96.0,
+      "rs_6w_change": 34.0,
+      "rs_10w_change": 35.9,
+      "entry_weight": 0.7,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "MKSI",
@@ -253,7 +461,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "VSXY",
@@ -271,7 +487,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "BFLY",
@@ -289,7 +513,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "LRCX",
@@ -307,25 +539,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
-    },
-    {
-      "ticker": "MBX",
-      "date": "2026-06-19",
-      "close": 43.03,
-      "phase": 5,
-      "momentum_score_v2": 100,
-      "ibd_rs_rating": 95.0,
-      "rs_6w_change": 34.0,
-      "rs_10w_change": 35.9,
-      "entry_weight": 0.7,
-      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
-      "gates_passed": {
-        "gate_1": true,
-        "gate_2": true,
-        "gate_3": true,
-        "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "SPHR",
@@ -343,7 +565,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "AMAT",
@@ -361,7 +591,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "BELFA",
@@ -379,7 +617,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "MTRN",
@@ -397,7 +643,41 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
+    },
+    {
+      "ticker": "ONTO",
+      "date": "2026-06-19",
+      "close": 333.76,
+      "phase": 5,
+      "momentum_score_v2": 86,
+      "ibd_rs_rating": 94.0,
+      "rs_6w_change": 13.5,
+      "rs_10w_change": 38.8,
+      "entry_weight": 0.7,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "TXG",
@@ -415,7 +695,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "KLAC",
@@ -433,17 +721,25 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
-      "ticker": "SEI",
+      "ticker": "PDFS",
       "date": "2026-06-19",
-      "close": 82.88,
+      "close": 65.36,
       "phase": 5,
-      "momentum_score_v2": 75,
+      "momentum_score_v2": 100,
       "ibd_rs_rating": 93.0,
-      "rs_6w_change": 7.2,
-      "rs_10w_change": 36.0,
+      "rs_6w_change": 35.9,
+      "rs_10w_change": 76.9,
       "entry_weight": 0.7,
       "entry_reason": "🟢 Hold: Phase 5 본격 리더",
       "gates_passed": {
@@ -451,7 +747,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "TH",
@@ -469,7 +773,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "CAT",
@@ -487,7 +799,41 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
+    },
+    {
+      "ticker": "SEI",
+      "date": "2026-06-19",
+      "close": 82.88,
+      "phase": 5,
+      "momentum_score_v2": 75,
+      "ibd_rs_rating": 92.0,
+      "rs_6w_change": 7.2,
+      "rs_10w_change": 36.0,
+      "entry_weight": 0.7,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      },
+      "eps_rating": null,
+      "smr_grade": null,
+      "smr_score": null,
+      "sales_growth": null,
+      "profit_margin": null,
+      "roe": null,
+      "eps_growth_q": null,
+      "inst_ownership": null
     },
     {
       "ticker": "TRVI",
@@ -505,7 +851,41 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": "E",
+      "smr_score": 0.0,
+      "sales_growth": null,
+      "profit_margin": 0.0,
+      "roe": -33.6,
+      "eps_growth_q": null,
+      "inst_ownership": 98.3
+    },
+    {
+      "ticker": "ASML",
+      "date": "2026-06-19",
+      "close": 1929.68,
+      "phase": 5,
+      "momentum_score_v2": 100,
+      "ibd_rs_rating": 91.0,
+      "rs_6w_change": 24.9,
+      "rs_10w_change": 36.1,
+      "entry_weight": 0.7,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      },
+      "eps_rating": 88,
+      "smr_grade": "A",
+      "smr_score": 75.1,
+      "sales_growth": 13.2,
+      "profit_margin": 29.7,
+      "roe": 52.2,
+      "eps_growth_q": 17.1,
+      "inst_ownership": 19.6
     },
     {
       "ticker": "KRYS",
@@ -523,7 +903,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "A",
+      "smr_score": 71.2,
+      "sales_growth": 31.9,
+      "profit_margin": 53.9,
+      "roe": 19.9,
+      "eps_growth_q": 56.5,
+      "inst_ownership": 99.4
     },
     {
       "ticker": "TWST",
@@ -541,25 +929,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
-    },
-    {
-      "ticker": "ASML",
-      "date": "2026-06-19",
-      "close": 1929.68,
-      "phase": 5,
-      "momentum_score_v2": 100,
-      "ibd_rs_rating": 90.0,
-      "rs_6w_change": 24.9,
-      "rs_10w_change": 36.1,
-      "entry_weight": 0.7,
-      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
-      "gates_passed": {
-        "gate_1": true,
-        "gate_2": true,
-        "gate_3": true,
-        "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": "E",
+      "smr_score": 12.9,
+      "sales_growth": 19.3,
+      "profit_margin": -19.8,
+      "roe": -18.2,
+      "eps_growth_q": null,
+      "inst_ownership": 123.8
     },
     {
       "ticker": "GRC",
@@ -577,7 +955,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 97,
+      "smr_grade": "D",
+      "smr_score": 26.6,
+      "sales_growth": 7.7,
+      "profit_margin": 8.5,
+      "roe": 14.5,
+      "eps_growth_q": 47.1,
+      "inst_ownership": 67.1
     },
     {
       "ticker": "MRNA",
@@ -595,7 +981,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": "D",
+      "smr_score": 33.3,
+      "sales_growth": 260.2,
+      "profit_margin": -143.6,
+      "roe": -36.6,
+      "eps_growth_q": null,
+      "inst_ownership": 78.9
     },
     {
       "ticker": "SNEX",
@@ -613,7 +1007,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "D",
+      "smr_score": 33.0,
+      "sales_growth": 23.8,
+      "profit_margin": 0.3,
+      "roe": 20.2,
+      "eps_growth_q": 143.1,
+      "inst_ownership": 85.8
     },
     {
       "ticker": "ATI",
@@ -631,7 +1033,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "D",
+      "smr_score": 29.6,
+      "sales_growth": 0.6,
+      "profit_margin": 9.3,
+      "roe": 22.7,
+      "eps_growth_q": 21.9,
+      "inst_ownership": 96.8
     },
     {
       "ticker": "LGND",
@@ -649,7 +1059,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "B",
+      "smr_score": 57.0,
+      "sales_growth": 14.1,
+      "profit_margin": 55.9,
+      "roe": 17.1,
+      "eps_growth_q": null,
+      "inst_ownership": 106.3
     },
     {
       "ticker": "LIND",
@@ -667,7 +1085,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "E",
+      "smr_score": 15.7,
+      "sales_growth": 15.7,
+      "profit_margin": -3.0,
+      "roe": null,
+      "eps_growth_q": 459.9,
+      "inst_ownership": 74.9
     },
     {
       "ticker": "ENTG",
@@ -685,7 +1111,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "E",
+      "smr_score": 18.1,
+      "sales_growth": 5.0,
+      "profit_margin": 8.2,
+      "roe": 6.8,
+      "eps_growth_q": 46.3,
+      "inst_ownership": 112.3
     },
     {
       "ticker": "ESTA",
@@ -703,7 +1137,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": "D",
+      "smr_score": 29.8,
+      "sales_growth": 44.7,
+      "profit_margin": -19.1,
+      "roe": -164.0,
+      "eps_growth_q": null,
+      "inst_ownership": 102.8
     },
     {
       "ticker": "SNX",
@@ -721,7 +1163,41 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "E",
+      "smr_score": 23.5,
+      "sales_growth": 18.1,
+      "profit_margin": 1.5,
+      "roe": 11.7,
+      "eps_growth_q": 95.1,
+      "inst_ownership": 95.2
+    },
+    {
+      "ticker": "APGE",
+      "date": "2026-06-19",
+      "close": 90.38,
+      "phase": 5,
+      "momentum_score_v2": 71,
+      "ibd_rs_rating": 87.0,
+      "rs_6w_change": 6.9,
+      "rs_10w_change": 8.7,
+      "entry_weight": 0.7,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      },
+      "eps_rating": null,
+      "smr_grade": "E",
+      "smr_score": 0.0,
+      "sales_growth": null,
+      "profit_margin": 0.0,
+      "roe": -28.5,
+      "eps_growth_q": null,
+      "inst_ownership": 131.1
     },
     {
       "ticker": "FRO",
@@ -739,7 +1215,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "A",
+      "smr_score": 95.8,
+      "sales_growth": 66.9,
+      "profit_margin": 40.2,
+      "roe": 35.0,
+      "eps_growth_q": 1579.7,
+      "inst_ownership": 35.8
     },
     {
       "ticker": "TSM",
@@ -757,25 +1241,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
-    },
-    {
-      "ticker": "APGE",
-      "date": "2026-06-19",
-      "close": 90.38,
-      "phase": 5,
-      "momentum_score_v2": 70,
-      "ibd_rs_rating": 86.0,
-      "rs_6w_change": 6.9,
-      "rs_10w_change": 8.7,
-      "entry_weight": 0.7,
-      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
-      "gates_passed": {
-        "gate_1": true,
-        "gate_2": true,
-        "gate_3": true,
-        "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "A",
+      "smr_score": 86.9,
+      "sales_growth": 35.1,
+      "profit_margin": 46.5,
+      "roe": 36.2,
+      "eps_growth_q": 58.3,
+      "inst_ownership": 15.6
     },
     {
       "ticker": "CALY",
@@ -793,7 +1267,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "E",
+      "smr_score": 8.0,
+      "sales_growth": 9.2,
+      "profit_margin": -15.0,
+      "roe": 2.2,
+      "eps_growth_q": 4333.3,
+      "inst_ownership": 81.7
     },
     {
       "ticker": "ENVA",
@@ -811,7 +1293,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 94,
+      "smr_grade": "B",
+      "smr_score": 61.1,
+      "sales_growth": 25.8,
+      "profit_margin": 20.7,
+      "roe": 25.1,
+      "eps_growth_q": 24.9,
+      "inst_ownership": 97.2
     },
     {
       "ticker": "AMRX",
@@ -829,7 +1319,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "E",
+      "smr_score": 10.6,
+      "sales_growth": 3.9,
+      "profit_margin": 4.0,
+      "roe": null,
+      "eps_growth_q": 410.5,
+      "inst_ownership": 52.2
     },
     {
       "ticker": "DCO",
@@ -847,7 +1345,67 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "E",
+      "smr_score": 5.7,
+      "sales_growth": 8.6,
+      "profit_margin": -3.4,
+      "roe": -4.2,
+      "eps_growth_q": 607.3,
+      "inst_ownership": 95.1
+    },
+    {
+      "ticker": "NHC",
+      "date": "2026-06-19",
+      "close": 201.53,
+      "phase": 5,
+      "momentum_score_v2": 88,
+      "ibd_rs_rating": 85.0,
+      "rs_6w_change": 19.0,
+      "rs_10w_change": 16.9,
+      "entry_weight": 0.7,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      },
+      "eps_rating": 1,
+      "smr_grade": "E",
+      "smr_score": 20.5,
+      "sales_growth": 2.2,
+      "profit_margin": 8.1,
+      "roe": 12.0,
+      "eps_growth_q": 11.3,
+      "inst_ownership": 67.8
+    },
+    {
+      "ticker": "PTGX",
+      "date": "2026-06-19",
+      "close": 112.86,
+      "phase": 5,
+      "momentum_score_v2": 72,
+      "ibd_rs_rating": 85.0,
+      "rs_6w_change": 8.6,
+      "rs_10w_change": 10.5,
+      "entry_weight": 0.7,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      },
+      "eps_rating": null,
+      "smr_grade": "D",
+      "smr_score": 33.3,
+      "sales_growth": 99.0,
+      "profit_margin": -154.9,
+      "roe": -17.1,
+      "eps_growth_q": null,
+      "inst_ownership": 125.3
     },
     {
       "ticker": "SXI",
@@ -865,7 +1423,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "D",
+      "smr_score": 31.1,
+      "sales_growth": 8.1,
+      "profit_margin": 11.2,
+      "roe": 15.9,
+      "eps_growth_q": 206.1,
+      "inst_ownership": 105.0
     },
     {
       "ticker": "TKR",
@@ -883,7 +1449,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 97,
+      "smr_grade": "E",
+      "smr_score": 21.2,
+      "sales_growth": 8.0,
+      "profit_margin": 6.6,
+      "roe": 10.3,
+      "eps_growth_q": 25.4,
+      "inst_ownership": 95.3
     },
     {
       "ticker": "AIR",
@@ -901,7 +1475,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 74,
+      "smr_grade": "D",
+      "smr_score": 32.5,
+      "sales_growth": 24.6,
+      "profit_margin": 5.5,
+      "roe": 12.1,
+      "eps_growth_q": null,
+      "inst_ownership": 102.9
     },
     {
       "ticker": "BFH",
@@ -919,17 +1501,25 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 67,
+      "smr_grade": "C",
+      "smr_score": 42.2,
+      "sales_growth": 6.1,
+      "profit_margin": 21.2,
+      "roe": 17.5,
+      "eps_growth_q": 31.2,
+      "inst_ownership": 112.3
     },
     {
-      "ticker": "NHC",
+      "ticker": "PHVS",
       "date": "2026-06-19",
-      "close": 201.53,
+      "close": 32.8,
       "phase": 5,
-      "momentum_score_v2": 87,
+      "momentum_score_v2": 72,
       "ibd_rs_rating": 84.0,
-      "rs_6w_change": 19.0,
-      "rs_10w_change": 16.9,
+      "rs_6w_change": 8.9,
+      "rs_10w_change": 19.0,
       "entry_weight": 0.7,
       "entry_reason": "🟢 Hold: Phase 5 본격 리더",
       "gates_passed": {
@@ -937,25 +1527,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
-    },
-    {
-      "ticker": "NPO",
-      "date": "2026-06-19",
-      "close": 379.65,
-      "phase": 5,
-      "momentum_score_v2": 94,
-      "ibd_rs_rating": 84.0,
-      "rs_6w_change": 24.0,
-      "rs_10w_change": 38.8,
-      "entry_weight": 0.7,
-      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
-      "gates_passed": {
-        "gate_1": true,
-        "gate_2": true,
-        "gate_3": true,
-        "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": "E",
+      "smr_score": 0.0,
+      "sales_growth": null,
+      "profit_margin": 0.0,
+      "roe": -73.0,
+      "eps_growth_q": null,
+      "inst_ownership": 85.2
     },
     {
       "ticker": "AMG",
@@ -973,7 +1553,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "B",
+      "smr_score": 58.0,
+      "sales_growth": 9.7,
+      "profit_margin": 35.5,
+      "roe": 21.8,
+      "eps_growth_q": 52.5,
+      "inst_ownership": 98.8
     },
     {
       "ticker": "C",
@@ -991,7 +1579,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "D",
+      "smr_score": 39.6,
+      "sales_growth": 15.9,
+      "profit_margin": 20.4,
+      "roe": 7.6,
+      "eps_growth_q": 42.3,
+      "inst_ownership": 81.6
     },
     {
       "ticker": "MFG",
@@ -1009,7 +1605,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "C",
+      "smr_score": 52.2,
+      "sales_growth": 16.7,
+      "profit_margin": 28.4,
+      "roe": 11.4,
+      "eps_growth_q": 661.0,
+      "inst_ownership": 2.1
     },
     {
       "ticker": "BAP",
@@ -1027,7 +1631,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 69,
+      "smr_grade": "B",
+      "smr_score": 66.4,
+      "sales_growth": 25.6,
+      "profit_margin": 32.9,
+      "roe": 19.1,
+      "eps_growth_q": 16.1,
+      "inst_ownership": 82.4
     },
     {
       "ticker": "IBKR",
@@ -1045,7 +1657,41 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 74,
+      "smr_grade": "C",
+      "smr_score": 48.7,
+      "sales_growth": 16.8,
+      "profit_margin": 16.1,
+      "roe": 23.6,
+      "eps_growth_q": 25.4,
+      "inst_ownership": 89.8
+    },
+    {
+      "ticker": "WWD",
+      "date": "2026-06-19",
+      "close": 430.08,
+      "phase": 5,
+      "momentum_score_v2": 75,
+      "ibd_rs_rating": 81.0,
+      "rs_6w_change": 12.6,
+      "rs_10w_change": 9.0,
+      "entry_weight": 0.7,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      },
+      "eps_rating": 75,
+      "smr_grade": "C",
+      "smr_score": 47.5,
+      "sales_growth": 23.4,
+      "profit_margin": 12.9,
+      "roe": 21.1,
+      "eps_growth_q": 23.0,
+      "inst_ownership": 90.9
     },
     {
       "ticker": "GS",
@@ -1063,25 +1709,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
-    },
-    {
-      "ticker": "WWD",
-      "date": "2026-06-19",
-      "close": 430.08,
-      "phase": 5,
-      "momentum_score_v2": 74,
-      "ibd_rs_rating": 80.0,
-      "rs_6w_change": 12.6,
-      "rs_10w_change": 9.0,
-      "entry_weight": 0.7,
-      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
-      "gates_passed": {
-        "gate_1": true,
-        "gate_2": true,
-        "gate_3": true,
-        "gate_4": true
-      }
+      },
+      "eps_rating": 67,
+      "smr_grade": "C",
+      "smr_score": 54.4,
+      "sales_growth": 14.5,
+      "profit_margin": 29.4,
+      "roe": 14.5,
+      "eps_growth_q": 18.8,
+      "inst_ownership": 74.6
     },
     {
       "ticker": "APH",
@@ -1099,7 +1735,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 98,
+      "smr_grade": "A",
+      "smr_score": 83.2,
+      "sales_growth": 58.4,
+      "profit_margin": 17.2,
+      "roe": 36.8,
+      "eps_growth_q": 26.5,
+      "inst_ownership": 97.9
     },
     {
       "ticker": "LFST",
@@ -1117,7 +1761,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "E",
+      "smr_score": 17.2,
+      "sales_growth": 21.2,
+      "profit_margin": 1.6,
+      "roe": 1.6,
+      "eps_growth_q": 1908.9,
+      "inst_ownership": 88.6
     },
     {
       "ticker": "LIVN",
@@ -1135,7 +1787,41 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "D",
+      "smr_score": 25.8,
+      "sales_growth": 14.3,
+      "profit_margin": 7.5,
+      "roe": 9.5,
+      "eps_growth_q": null,
+      "inst_ownership": 112.4
+    },
+    {
+      "ticker": "PSMT",
+      "date": "2026-06-19",
+      "close": 182.02,
+      "phase": 5,
+      "momentum_score_v2": 76,
+      "ibd_rs_rating": 79.0,
+      "rs_6w_change": 13.8,
+      "rs_10w_change": 16.2,
+      "entry_weight": 0.7,
+      "entry_reason": "🟢 Hold: Phase 5 본격 리더",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      },
+      "eps_rating": 72,
+      "smr_grade": "E",
+      "smr_score": 20.0,
+      "sales_growth": 9.7,
+      "profit_margin": 2.8,
+      "roe": 12.4,
+      "eps_growth_q": 12.2,
+      "inst_ownership": 98.6
     },
     {
       "ticker": "MS",
@@ -1153,7 +1839,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 73,
+      "smr_grade": "C",
+      "smr_score": 52.0,
+      "sales_growth": 16.3,
+      "profit_margin": 24.8,
+      "roe": 16.4,
+      "eps_growth_q": 29.0,
+      "inst_ownership": 62.8
     },
     {
       "ticker": "DRH",
@@ -1171,7 +1865,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 71,
+      "smr_grade": "E",
+      "smr_score": 16.9,
+      "sales_growth": 1.3,
+      "profit_margin": 9.3,
+      "roe": 6.9,
+      "eps_growth_q": 22.0,
+      "inst_ownership": 114.7
     },
     {
       "ticker": "XHR",
@@ -1189,7 +1891,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 51,
+      "smr_grade": "E",
+      "smr_score": 13.2,
+      "sales_growth": 2.2,
+      "profit_margin": 6.2,
+      "roe": 5.9,
+      "eps_growth_q": 26.9,
+      "inst_ownership": 103.1
     },
     {
       "ticker": "DNLI",
@@ -1207,7 +1917,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": "E",
+      "smr_score": 0.0,
+      "sales_growth": null,
+      "profit_margin": 0.0,
+      "roe": -49.6,
+      "eps_growth_q": null,
+      "inst_ownership": 99.6
     },
     {
       "ticker": "SN",
@@ -1225,15 +1943,23 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 66,
+      "smr_grade": "C",
+      "smr_score": 46.8,
+      "sales_growth": 15.6,
+      "profit_margin": 10.7,
+      "roe": 29.4,
+      "eps_growth_q": 3.1,
+      "inst_ownership": 61.6
     },
     {
       "ticker": "TNL",
       "date": "2026-06-19",
       "close": 76.71,
       "phase": 5,
-      "momentum_score_v2": 80,
-      "ibd_rs_rating": 74.0,
+      "momentum_score_v2": 81,
+      "ibd_rs_rating": 75.0,
       "rs_6w_change": 19.0,
       "rs_10w_change": 4.7,
       "entry_weight": 0.7,
@@ -1243,7 +1969,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "E",
+      "smr_score": 12.6,
+      "sales_growth": 2.9,
+      "profit_margin": 5.8,
+      "roe": null,
+      "eps_growth_q": 8.2,
+      "inst_ownership": 100.7
     },
     {
       "ticker": "TBBB",
@@ -1251,7 +1985,7 @@
       "close": 42.1,
       "phase": 5,
       "momentum_score_v2": 70,
-      "ibd_rs_rating": 73.0,
+      "ibd_rs_rating": 74.0,
       "rs_6w_change": 12.6,
       "rs_10w_change": 13.4,
       "entry_weight": 0.7,
@@ -1261,15 +1995,23 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": null,
+      "smr_grade": "E",
+      "smr_score": 22.3,
+      "sales_growth": 33.4,
+      "profit_margin": -3.9,
+      "roe": -78.4,
+      "eps_growth_q": null,
+      "inst_ownership": 109.8
     },
     {
       "ticker": "MUFG",
       "date": "2026-06-19",
       "close": 21.08,
       "phase": 5,
-      "momentum_score_v2": 72,
-      "ibd_rs_rating": 72.0,
+      "momentum_score_v2": 73,
+      "ibd_rs_rating": 73.0,
       "rs_6w_change": 14.6,
       "rs_10w_change": 14.4,
       "entry_weight": 0.7,
@@ -1279,7 +2021,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 8,
+      "smr_grade": "B",
+      "smr_score": 62.4,
+      "sales_growth": null,
+      "profit_margin": 28.5,
+      "roe": 11.9,
+      "eps_growth_q": null,
+      "inst_ownership": 3.2
     },
     {
       "ticker": "SPXC",
@@ -1297,7 +2047,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 95,
+      "smr_grade": "D",
+      "smr_score": 35.1,
+      "sales_growth": 17.4,
+      "profit_margin": 10.8,
+      "roe": 13.8,
+      "eps_growth_q": 17.0,
+      "inst_ownership": 99.4
     },
     {
       "ticker": "CHEF",
@@ -1315,7 +2073,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "E",
+      "smr_score": 21.2,
+      "sales_growth": 11.4,
+      "profit_margin": 1.9,
+      "roe": 13.8,
+      "eps_growth_q": 68.8,
+      "inst_ownership": 101.3
     },
     {
       "ticker": "GE",
@@ -1333,7 +2099,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 41,
+      "smr_grade": "B",
+      "smr_score": 69.6,
+      "sales_growth": 24.7,
+      "profit_margin": 17.9,
+      "roe": 45.4,
+      "eps_growth_q": -3.7,
+      "inst_ownership": 81.0
     },
     {
       "ticker": "AGX",
@@ -1351,7 +2125,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "A",
+      "smr_score": 82.6,
+      "sales_growth": 50.2,
+      "profit_margin": 15.5,
+      "roe": 38.5,
+      "eps_growth_q": 104.3,
+      "inst_ownership": 109.0
     },
     {
       "ticker": "CMI",
@@ -1369,7 +2151,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 65,
+      "smr_grade": "D",
+      "smr_score": 28.9,
+      "sales_growth": 2.7,
+      "profit_margin": 7.9,
+      "roe": 22.0,
+      "eps_growth_q": -20.6,
+      "inst_ownership": 88.0
     },
     {
       "ticker": "ESI",
@@ -1387,7 +2177,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "D",
+      "smr_score": 38.3,
+      "sales_growth": 41.5,
+      "profit_margin": 5.3,
+      "roe": 5.6,
+      "eps_growth_q": -43.0,
+      "inst_ownership": 105.5
     },
     {
       "ticker": "AUPH",
@@ -1405,7 +2203,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 53,
+      "smr_grade": "A",
+      "smr_score": 82.9,
+      "sales_growth": 24.4,
+      "profit_margin": 100.0,
+      "roe": 65.0,
+      "eps_growth_q": 47.2,
+      "inst_ownership": 60.2
     },
     {
       "ticker": "ESE",
@@ -1423,7 +2229,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 95,
+      "smr_grade": "B",
+      "smr_score": 57.4,
+      "sales_growth": 33.5,
+      "profit_margin": 24.7,
+      "roe": 9.2,
+      "eps_growth_q": 11.9,
+      "inst_ownership": 99.0
     },
     {
       "ticker": "AZZ",
@@ -1441,7 +2255,67 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 7,
+      "smr_grade": "C",
+      "smr_score": 49.8,
+      "sales_growth": 9.4,
+      "profit_margin": 19.2,
+      "roe": 26.6,
+      "eps_growth_q": -21.2,
+      "inst_ownership": 96.5
+    },
+    {
+      "ticker": "RBC",
+      "date": "2026-06-19",
+      "close": 639.18,
+      "phase": 5,
+      "momentum_score_v2": 58,
+      "ibd_rs_rating": 78.0,
+      "rs_6w_change": 2.6,
+      "rs_10w_change": 10.1,
+      "entry_weight": 0.0,
+      "entry_reason": "",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      },
+      "eps_rating": 99,
+      "smr_grade": "D",
+      "smr_score": 36.8,
+      "sales_growth": 18.3,
+      "profit_margin": 15.4,
+      "roe": 9.0,
+      "eps_growth_q": 26.1,
+      "inst_ownership": 102.5
+    },
+    {
+      "ticker": "SAN",
+      "date": "2026-06-19",
+      "close": 13.5,
+      "phase": 5,
+      "momentum_score_v2": 67,
+      "ibd_rs_rating": 78.0,
+      "rs_6w_change": 8.9,
+      "rs_10w_change": 12.0,
+      "entry_weight": 0.0,
+      "entry_reason": "",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      },
+      "eps_rating": 99,
+      "smr_grade": "C",
+      "smr_score": 47.1,
+      "sales_growth": 4.6,
+      "profit_margin": 34.1,
+      "roe": 12.9,
+      "eps_growth_q": 60.3,
+      "inst_ownership": 3.4
     },
     {
       "ticker": "CFG",
@@ -1459,7 +2333,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "C",
+      "smr_score": 43.5,
+      "sales_growth": 13.8,
+      "profit_margin": 25.0,
+      "roe": 7.7,
+      "eps_growth_q": 38.6,
+      "inst_ownership": 98.7
     },
     {
       "ticker": "HSBC",
@@ -1477,17 +2359,25 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 72,
+      "smr_grade": "C",
+      "smr_score": 45.2,
+      "sales_growth": 3.3,
+      "profit_margin": 35.0,
+      "roe": 11.6,
+      "eps_growth_q": 0.3,
+      "inst_ownership": 2.5
     },
     {
-      "ticker": "SAN",
+      "ticker": "GVA",
       "date": "2026-06-19",
-      "close": 13.5,
+      "close": 146.67,
       "phase": 5,
-      "momentum_score_v2": 67,
-      "ibd_rs_rating": 77.0,
-      "rs_6w_change": 8.9,
-      "rs_10w_change": 12.0,
+      "momentum_score_v2": 57,
+      "ibd_rs_rating": 76.0,
+      "rs_6w_change": 3.0,
+      "rs_10w_change": 16.5,
       "entry_weight": 0.0,
       "entry_reason": "",
       "gates_passed": {
@@ -1495,7 +2385,41 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "C",
+      "smr_score": 41.4,
+      "sales_growth": 30.4,
+      "profit_margin": 4.0,
+      "roe": 20.0,
+      "eps_growth_q": null,
+      "inst_ownership": 118.8
+    },
+    {
+      "ticker": "BNS",
+      "date": "2026-06-19",
+      "close": 87.03,
+      "phase": 5,
+      "momentum_score_v2": 68,
+      "ibd_rs_rating": 75.0,
+      "rs_6w_change": 10.9,
+      "rs_10w_change": 22.0,
+      "entry_weight": 0.0,
+      "entry_reason": "",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      },
+      "eps_rating": 82,
+      "smr_grade": "C",
+      "smr_score": 48.6,
+      "sales_growth": 12.6,
+      "profit_margin": 27.9,
+      "roe": 11.0,
+      "eps_growth_q": 31.3,
+      "inst_ownership": 50.9
     },
     {
       "ticker": "DHT",
@@ -1513,43 +2437,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
-    },
-    {
-      "ticker": "GVA",
-      "date": "2026-06-19",
-      "close": 146.67,
-      "phase": 5,
-      "momentum_score_v2": 57,
-      "ibd_rs_rating": 75.0,
-      "rs_6w_change": 3.0,
-      "rs_10w_change": 16.5,
-      "entry_weight": 0.0,
-      "entry_reason": "",
-      "gates_passed": {
-        "gate_1": true,
-        "gate_2": true,
-        "gate_3": true,
-        "gate_4": true
-      }
-    },
-    {
-      "ticker": "BNS",
-      "date": "2026-06-19",
-      "close": 87.03,
-      "phase": 5,
-      "momentum_score_v2": 68,
-      "ibd_rs_rating": 74.0,
-      "rs_6w_change": 10.9,
-      "rs_10w_change": 22.0,
-      "entry_weight": 0.0,
-      "entry_reason": "",
-      "gates_passed": {
-        "gate_1": true,
-        "gate_2": true,
-        "gate_3": true,
-        "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "A",
+      "smr_score": 90.7,
+      "sales_growth": 78.1,
+      "profit_margin": 50.3,
+      "roe": 28.9,
+      "eps_growth_q": 272.9,
+      "inst_ownership": 81.4
     },
     {
       "ticker": "HWM",
@@ -1567,7 +2463,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "B",
+      "smr_score": 63.4,
+      "sales_growth": 19.1,
+      "profit_margin": 20.2,
+      "roe": 33.8,
+      "eps_growth_q": 68.6,
+      "inst_ownership": 94.5
     },
     {
       "ticker": "MBIN",
@@ -1585,7 +2489,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 76,
+      "smr_grade": "C",
+      "smr_score": 52.3,
+      "sales_growth": 15.8,
+      "profit_margin": 39.0,
+      "roe": 10.2,
+      "eps_growth_q": 16.3,
+      "inst_ownership": 99.9
     },
     {
       "ticker": "MCY",
@@ -1603,7 +2515,41 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 11,
+      "smr_grade": "C",
+      "smr_score": 53.9,
+      "sales_growth": 10.5,
+      "profit_margin": 13.7,
+      "roe": 38.1,
+      "eps_growth_q": null,
+      "inst_ownership": 48.1
+    },
+    {
+      "ticker": "BPOP",
+      "date": "2026-06-19",
+      "close": 159.24,
+      "phase": 5,
+      "momentum_score_v2": 61,
+      "ibd_rs_rating": 73.0,
+      "rs_6w_change": 6.7,
+      "rs_10w_change": 10.1,
+      "entry_weight": 0.0,
+      "entry_reason": "",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      },
+      "eps_rating": 84,
+      "smr_grade": "C",
+      "smr_score": 52.1,
+      "sales_growth": 9.6,
+      "profit_margin": 30.0,
+      "roe": 14.9,
+      "eps_growth_q": 38.4,
+      "inst_ownership": 93.3
     },
     {
       "ticker": "RY",
@@ -1621,25 +2567,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
-    },
-    {
-      "ticker": "BPOP",
-      "date": "2026-06-19",
-      "close": 159.24,
-      "phase": 5,
-      "momentum_score_v2": 60,
-      "ibd_rs_rating": 72.0,
-      "rs_6w_change": 6.7,
-      "rs_10w_change": 10.1,
-      "entry_weight": 0.0,
-      "entry_reason": "",
-      "gates_passed": {
-        "gate_1": true,
-        "gate_2": true,
-        "gate_3": true,
-        "gate_4": true
-      }
+      },
+      "eps_rating": 69,
+      "smr_grade": "B",
+      "smr_score": 57.6,
+      "sales_growth": 16.1,
+      "profit_margin": 33.7,
+      "roe": 16.2,
+      "eps_growth_q": 25.6,
+      "inst_ownership": 49.3
     },
     {
       "ticker": "DBRG",
@@ -1657,7 +2593,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 64,
+      "smr_grade": "B",
+      "smr_score": 66.7,
+      "sales_growth": 58.9,
+      "profit_margin": 122.6,
+      "roe": -0.2,
+      "eps_growth_q": 44.9,
+      "inst_ownership": 101.6
     },
     {
       "ticker": "RL",
@@ -1675,7 +2619,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 74,
+      "smr_grade": "C",
+      "smr_score": 52.8,
+      "sales_growth": 16.6,
+      "profit_margin": 11.6,
+      "roe": 34.7,
+      "eps_growth_q": 17.5,
+      "inst_ownership": 108.0
     },
     {
       "ticker": "FBNC",
@@ -1683,7 +2635,7 @@
       "close": 60.76,
       "phase": 4,
       "momentum_score_v2": 53,
-      "ibd_rs_rating": 70.0,
+      "ibd_rs_rating": 71.0,
       "rs_6w_change": 2.8,
       "rs_10w_change": 4.9,
       "entry_weight": 0.0,
@@ -1693,7 +2645,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 99,
+      "smr_grade": "C",
+      "smr_score": 48.9,
+      "sales_growth": 13.9,
+      "profit_margin": 30.8,
+      "roe": 7.6,
+      "eps_growth_q": 28.2,
+      "inst_ownership": 83.5
     },
     {
       "ticker": "WBS",
@@ -1711,7 +2671,15 @@
         "gate_2": true,
         "gate_3": true,
         "gate_4": true
-      }
+      },
+      "eps_rating": 58,
+      "smr_grade": "C",
+      "smr_score": 48.2,
+      "sales_growth": 8.7,
+      "profit_margin": 37.4,
+      "roe": 10.9,
+      "eps_growth_q": 8.5,
+      "inst_ownership": 92.9
     }
   ]
 }
