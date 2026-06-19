@@ -130,6 +130,109 @@ def compute_phase(close, ma50, ma200, ma150=None):
     return 6 if close > long_ma * 0.85 else 7
 
 
+def compute_acc_dis(close, volume):
+    """기관 매집/분산 등급 (A+~E). 최근 50일 상승일 vs 하락일 거래량 비교."""
+    n = min(len(close), 50)
+    if n < 10:
+        return 'C', 50.0
+    c = close.iloc[-n:].values
+    v = volume.iloc[-n:].values
+    up_vol = 0.0
+    down_vol = 0.0
+    for i in range(1, n):
+        if c[i] > c[i - 1]:
+            up_vol += v[i]
+        elif c[i] < c[i - 1]:
+            down_vol += v[i]
+    total = up_vol + down_vol
+    if total <= 0:
+        return 'C', 50.0
+    # 매집비율 0~1 → 점수 0~100
+    acc_ratio = up_vol / total
+    score = round(acc_ratio * 100, 1)
+    # 등급 매핑 (IBD 스타일 A+~E)
+    if score >= 70: grade = 'A+'
+    elif score >= 62: grade = 'A'
+    elif score >= 56: grade = 'B+'
+    elif score >= 50: grade = 'B'
+    elif score >= 44: grade = 'C+'
+    elif score >= 38: grade = 'C'
+    elif score >= 30: grade = 'D'
+    else: grade = 'E'
+    return grade, score
+
+
+def detect_pattern(close, high, low, volume):
+    """룰베이스 차트 패턴 탐지. (패턴명, 점수0~100) 반환.
+    HT Flag(고타이트 깃발), Cup with Handle, VCP(변동성 수축), Flat Base 순으로 검사."""
+    n = len(close)
+    if n < 40:
+        return None, 0
+
+    c = close.values
+    last = c[-1]
+    hi = high.values
+    lo = low.values
+
+    # 최근 고점 대비 위치
+    high_50 = float(np.max(c[-50:])) if n >= 50 else float(np.max(c))
+    dist_high = (last / high_50 - 1) * 100 if high_50 > 0 else -100
+
+    # 1) 변동성 수축 (최근 10일 변동폭 vs 그 이전 20일 변동폭)
+    recent_range = (np.max(hi[-10:]) - np.min(lo[-10:])) / last if last > 0 else 1
+    prior_range = (np.max(hi[-30:-10]) - np.min(lo[-30:-10])) / last if last > 0 and n >= 30 else 1
+    contracting = recent_range < prior_range * 0.7  # 변동폭 30%+ 수축
+
+    # 2) 베이스 깊이 (최근 60일 조정폭 — 컵 등 깊은 베이스 포착)
+    base_window = min(60, n)
+    base_high = float(np.max(c[-base_window:]))
+    base_low = float(np.min(c[-base_window:]))
+    base_depth = (1 - base_low / base_high) * 100 if base_high > 0 else 100
+
+    # 3) 거래량 수축 여부 (최근 5일 평균 < 20일 평균 → 매물 소화)
+    vol = volume.values
+    vol_dry = float(np.mean(vol[-5:])) < float(np.mean(vol[-20:])) if n >= 20 else False
+
+    # === 패턴 판정 (신고가 근접 + 베이스 형태) ===
+    # High Tight Flag: 신고가 3% 이내 + 얕은 베이스(<15%) + 변동성 수축
+    if dist_high >= -3 and base_depth < 15 and contracting:
+        score = 80 + min(int((3 + dist_high) * 3), 15)  # 신고가 가까울수록 가점
+        return 'High Tight Flag', min(score, 99)
+
+    # VCP (Volatility Contraction): 변동성 수축 + 거래량 마름 + 신고가 8% 이내
+    if contracting and vol_dry and dist_high >= -8 and base_depth < 25:
+        score = 72 + min(int((8 + dist_high) * 2), 18)
+        return 'VCP', min(score, 95)
+
+    # Cup with Handle: 중간 깊이 베이스(15~35%) + 신고가 10% 이내 + 거래량 마름
+    if 15 <= base_depth <= 35 and dist_high >= -10 and vol_dry:
+        score = 68 + min(int((10 + dist_high) * 1.5), 20)
+        return 'Cup with Handle', min(score, 92)
+
+    # Flat Base: 얕은 횡보(<12%) + 신고가 12% 이내
+    if base_depth < 12 and dist_high >= -12:
+        score = 62 + min(int((12 + dist_high)), 18)
+        return 'Flat Base', min(score, 85)
+
+    return None, 0
+
+
+def compute_supply_zone(close, volume):
+    """매물 분포: 현재가 위 저항 매물 비율(%). 낮을수록 돌파 쉬움.
+    가격대별 거래량 히스토그램으로 현재가 위/아래 매물량 비교."""
+    n = min(len(close), 252)
+    if n < 30:
+        return 50.0
+    c = close.iloc[-n:].values
+    v = volume.iloc[-n:].values
+    last = c[-1]
+    above_vol = float(np.sum(v[c > last]))  # 현재가보다 높은 가격대 거래량 = 저항
+    total_vol = float(np.sum(v))
+    if total_vol <= 0:
+        return 50.0
+    return round(above_vol / total_vol * 100, 1)  # 위 매물 % (0=저항없음, 100=전부저항)
+
+
 def fetch_one(ticker, bench_perf):
     """단일 종목 분석. 실패 시 None 반환."""
     try:
@@ -139,6 +242,8 @@ def fetch_one(ticker, bench_perf):
 
         close = df['Close']
         volume = df['Volume']
+        high = df['High'] if 'High' in df else close
+        low = df['Low'] if 'Low' in df else close
         last = float(close.iloc[-1])
         if last < 5:   # 페니주 제외
             return None
@@ -180,6 +285,14 @@ def fetch_one(ticker, bench_perf):
         # 가속 여부: 최근 3주 모멘텀이 10주 평균보다 강한가
         accelerating = chg_3w > 0 and chg_6w > 0 and (chg_3w >= chg_10w / 3)
 
+        # ===== A그룹: IBD 스타일 정밀 지표 =====
+        # Acc/Dis (기관 매집/분산 등급)
+        acc_grade, acc_score = compute_acc_dis(close, volume)
+        # 차트 패턴 인식
+        pattern_name, pattern_score = detect_pattern(close, high, low, volume)
+        # 매물 분포 (현재가 위 저항 %)
+        supply_above_pct = compute_supply_zone(close, volume)
+
         return {
             'ticker': ticker,
             'close': round(last, 2),
@@ -193,6 +306,12 @@ def fetch_one(ticker, bench_perf):
             'rs_accelerating_strong': bool(accelerating),
             'dollar_vol': dollar_vol,
             '_perf_252': perf_252,      # RS 백분위 계산용 (임시)
+            # A그룹
+            'acc_dis_grade': acc_grade,
+            'acc_dis_score': acc_score,
+            'chart_pattern': pattern_name,        # 'High Tight Flag' 등 or None
+            'pattern_score': pattern_score,       # 0~99
+            'supply_above_pct': supply_above_pct, # 위 매물 % (낮을수록 돌파 쉬움)
         }
     except Exception:
         return None
@@ -258,6 +377,22 @@ def main():
         r['ibd_rs_rating'] = percentile
         r['rs_line_bayes'] = percentile
 
+    # ===== Composite Rating: 여러 지표 가중 합성 후 종목 간 백분위 (1~99) =====
+    # IBD Composite 근사: RS 35% + 추세(Phase) 25% + Acc/Dis 20% + 패턴 20%
+    raw_comp = []
+    for r in results:
+        rs = r['ibd_rs_rating']
+        phase = r.get('phase', 3)
+        phase_pts = {7: 0, 6: 20, 3: 40, 4: 70, 5: 100}.get(phase, 40)
+        acc = r.get('acc_dis_score', 50)
+        pat = r.get('pattern_score', 0)
+        comp_raw = rs * 0.35 + phase_pts * 0.25 + acc * 0.20 + pat * 0.20
+        raw_comp.append(comp_raw)
+    comp_arr = np.array(raw_comp)
+    comp_ranks = comp_arr.argsort().argsort()
+    for i, r in enumerate(results):
+        r['composite_rating'] = int(round((comp_ranks[i] / max(n - 1, 1)) * 98)) + 1
+
     # ===== 파생 점수 계산 =====
     today = datetime.now().strftime('%Y-%m-%d')
 
@@ -292,10 +427,11 @@ def main():
         if r['rs_accelerating_strong']:
             theme += 10
         r['theme_score'] = min(theme, 100)
-        # top_pattern: 피벗 3% 이내 + RS 70+ + Phase 4+
-        r['top_pattern'] = bool(safe_num(r['dist_pivot_pct']) >= -3 and rs >= 70 and r['phase'] >= 4)
-        # ad_score: 거래대금 기반 (큰 거래대금일수록 기관 관심) — 백분위 근사
-        r['ad_score'] = int(np.clip(40 + (rs * 0.4), 40, 90))
+        # top_pattern: 실제 차트 패턴이 인식됐고 신고가 근접 + RS 70+ + Phase 4+
+        has_pattern = bool(r.get('chart_pattern'))
+        r['top_pattern'] = bool(has_pattern and rs >= 70 and r['phase'] >= 4)
+        # ad_score: 실제 Acc/Dis 매집 점수 (기관 수급)
+        r['ad_score'] = int(round(safe_num(r.get('acc_dis_score', 50))))
         # trend_pass: Phase 기반 추세 통과 개수 (4~8)
         if r['phase'] >= 5:
             r['trend_pass'] = 8
@@ -305,8 +441,10 @@ def main():
             r['trend_pass'] = 6
         else:
             r['trend_pass'] = 4
-        # total_score: RS + 모멘텀 + 추세 종합
-        r['total_score'] = int(np.clip(rs * 0.6 + mom * 0.3 + r['trend_pass'] * 1.25, 0, 100))
+        # total_score: RS + 모멘텀 + 추세 + 패턴 종합
+        r['total_score'] = int(np.clip(
+            rs * 0.5 + mom * 0.25 + r['trend_pass'] * 1.25
+            + safe_num(r.get('pattern_score', 0)) * 0.12, 0, 100))
 
     # ===== 최종 레코드 정리 (불필요 임시필드 제거, 18컬럼 보존) =====
     output = []
@@ -330,6 +468,13 @@ def main():
             'total_score': r['total_score'],
             'ad_score': r['ad_score'],
             'trend_pass': r['trend_pass'],
+            # A그룹: IBD 스타일 정밀 지표
+            'composite_rating': r.get('composite_rating', 0),
+            'acc_dis_grade': r.get('acc_dis_grade', 'C'),
+            'acc_dis_score': r.get('acc_dis_score', 50.0),
+            'chart_pattern': r.get('chart_pattern'),
+            'pattern_score': r.get('pattern_score', 0),
+            'supply_above_pct': r.get('supply_above_pct', 50.0),
         })
 
     # RS Rating 내림차순 정렬
