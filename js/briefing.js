@@ -147,48 +147,45 @@ class BriefingDataBinder {
      * 섹션 ② 시장 환경 평가 - 카드 동적 계산
      */
     renderUniverseBreadth() {
-        // 1. total_score >= 80인 종목 개수
-        const rs80Count = this.universeData.filter(item => item.total_score >= 80).length;
-        
-        // 2. trend_pass == 8인 종목 개수
-        const trend8Count = this.universeData.filter(item => item.trend_pass === 8).length;
-        
-        // 3. 전체 유니버스 개수
         const totalUniverse = this.universeData.length;
-        
-        // 4. 비율 계산
-        const rs80Percentage = totalUniverse > 0 
-            ? ((rs80Count / totalUniverse) * 100).toFixed(1) 
-            : 0;
-        
-        const trend8Percentage = totalUniverse > 0 
-            ? ((trend8Count / totalUniverse) * 100).toFixed(1) 
-            : 0;
+        const setText = (id, text) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text;
+        };
 
-        // DOM 업데이트
-        const rs80Element = document.getElementById('rs80-count');
-        if (rs80Element) {
-            rs80Element.textContent = `${rs80Count}개`;
-        }
+        // === RS Rating 기반 분포 (IBD RS Rating 사용) ===
+        // RS 90+ 종목
+        const rs90Count = this.universeData.filter(item => (item.ibd_rs_rating || 0) >= 90).length;
+        // RS 80-89 (스트롱)
+        const rs80to89Count = this.universeData.filter(item => {
+            const rs = item.ibd_rs_rating || 0;
+            return rs >= 80 && rs < 90;
+        }).length;
+        // RS 80+ 전체 (랭크 비중 계산용)
+        const rs80PlusCount = this.universeData.filter(item => (item.ibd_rs_rating || 0) >= 80).length;
 
-        const trend8Element = document.getElementById('trend8-count');
-        if (trend8Element) {
-            trend8Element.textContent = `${trend8Count}개`;
-        }
+        // === Trend Pass(추세 통과) 분포 ===
+        const trend8Count = this.universeData.filter(item => item.trend_pass === 8).length;
+        const trend7Count = this.universeData.filter(item => item.trend_pass >= 7).length;
 
-        const rs80PercentElement = document.getElementById('rs80-percentage');
-        if (rs80PercentElement) {
-            rs80PercentElement.textContent = `${rs80Percentage}%`;
-        }
+        // === 비율 ===
+        const pct = (n) => totalUniverse > 0 ? ((n / totalUniverse) * 100).toFixed(1) : '0.0';
+        const trend8Pct = pct(trend8Count);
+        const rs80Rank = pct(rs80PlusCount);  // RS 80+ 비중 = "RS 랭크"
 
-        const trend8PercentElement = document.getElementById('trend8-percentage');
-        if (trend8PercentElement) {
-            trend8PercentElement.textContent = `${trend8Percentage}%`;
-        }
+        // === DOM 업데이트 ===
+        // SETUP 카드
+        setText('trend8-count', `${trend8Count}개`);          // 8/8 통과 증폭
+        setText('trend8-percentage', `${trend8Pct}%`);        // 8/8 통과 비중
+        setText('trend7-count', `${trend7Count}개`);          // 7-/8 파차리스트(7+ 통과)
+        // STRENGTH 카드
+        setText('rs90-count', `${rs90Count}개`);              // RS 90+ 종목
+        setText('rs80-count', `${rs80to89Count}개`);          // RS 80-89 (스트롱)
+        setText('rs80-percentage', `${rs80Rank}%`);           // RS 랭크 (RS 80+ 비중)
 
-        console.log(`📊 Universe Breadth 계산 완료`);
-        console.log(`   - RS 80+: ${rs80Count}개 (${rs80Percentage}%)`);
-        console.log(`   - Trend Pass 8: ${trend8Count}개 (${trend8Percentage}%)`);
+        console.log(`📊 시장 환경 평가 계산 완료 (전체 ${totalUniverse}개)`);
+        console.log(`   - Trend 8: ${trend8Count}개 (${trend8Pct}%) / Trend 7+: ${trend7Count}개`);
+        console.log(`   - RS 90+: ${rs90Count}개 / RS 80-89: ${rs80to89Count}개 / RS 80+ 비중: ${rs80Rank}%`);
     }
 
     /**
@@ -198,7 +195,7 @@ class BriefingDataBinder {
         const tableContainer = document.getElementById('entry-signals-table');
         
         if (!tableContainer) {
-            console.warn('⚠️ entry-signals-table ID를 찾을 수 없습니다');
+            // 이 영역은 현재 레이아웃에서 사용되지 않음 (전략실 탭으로 이동)
             return;
         }
 
