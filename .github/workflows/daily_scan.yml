@@ -44,7 +44,17 @@ jobs:
           pip install -r requirements.txt
           echo "✅ Dependencies installed"
 
-      # Step 4: 5-Gate 필터링 실행
+      # Step 4: S&P 500 RS Line 데이터 수집
+      - name: 📊 Fetch S&P 500 RS Line Data
+        run: |
+          echo "🚀 Starting: fetch_sp500_data.py"
+          python fetch_sp500_data.py
+          echo "✅ S&P 500 data fetch complete"
+        env:
+          PYTHONUNBUFFERED: 1
+        timeout-minutes: 15
+
+      # Step 5: 5-Gate 필터링 실행
       - name: 🔍 Run 5-Gate Funnel Analysis
         run: |
           echo "🚀 Starting: generate_rsscan_daily.py"
@@ -53,7 +63,7 @@ jobs:
         env:
           PYTHONUNBUFFERED: 1
 
-      # Step 5: Strategy Room (v5 Paper-Trade) 실행
+      # Step 6: Strategy Room (v5 Paper-Trade) 실행
       - name: 🏛️  Run Strategy Room v5 Paper-Trade
         run: |
           echo "🚀 Starting: strategy_room.py"
@@ -62,7 +72,7 @@ jobs:
         env:
           PYTHONUNBUFFERED: 1
 
-      # Step 6: 결과 파일 확인
+      # Step 7: 결과 파일 확인
       - name: 📊 Verify output files
         run: |
           echo "📂 Checking results/ directory..."
@@ -77,13 +87,13 @@ jobs:
             exit 1
           fi
 
-      # Step 7: Git 설정
+      # Step 8: Git 설정
       - name: ⚙️  Configure Git
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-      # Step 8: 변경사항 확인
+      # Step 9: 변경사항 확인
       - name: 📝 Check changes
         run: |
           echo "📊 Git status:"
@@ -92,7 +102,7 @@ jobs:
           echo "📝 Diff summary:"
           git diff --stat || echo "No changes"
 
-      # Step 9: 변경사항 커밋 & 푸시
+      # Step 10: 변경사항 커밋 & 푸시
       - name: 💾 Commit and push results
         run: |
           # 변경사항이 있는지 확인
@@ -111,7 +121,7 @@ jobs:
             echo "✅ Results pushed successfully"
           fi
 
-      # Step 10: 완료 알림
+      # Step 11: 완료 알림
       - name: ✅ Workflow complete
         run: |
           echo "=========================================="
@@ -120,12 +130,13 @@ jobs:
           echo "📊 Analysis Timestamp: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "📁 Results location: results/"
           echo "📋 Files updated:"
+          echo "   - results/daily_ibd_scan.json"
           echo "   - results/entry_signals.json"
           echo "   - results/strategy_room_portfolio.json"
           echo "🔗 Dashboard: https://rsscan.vercel.app"
           echo "=========================================="
 
-      # Step 11: 실패 시 알림 (선택사항)
+      # Step 12: 실패 시 알림 (선택사항)
       - name: ❌ Notify on failure
         if: failure()
         run: |
