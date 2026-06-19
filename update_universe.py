@@ -86,31 +86,60 @@ GICS_MAPPING = {
 def get_sp500_tickers():
     """S&P 500 구성 종목 + 주요 나스닥 종목 조합으로 초기 유니버스 생성"""
     print("📊 S&P 500 및 주요 종목 티커 수집 중...")
-    
+
+    from io import StringIO
+
+    # 브라우저처럼 보이는 User-Agent (Wikipedia 403 방지)
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                      'AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/120.0.0.0 Safari/537.36'
+    }
+
+    sp500_tickers = []
+
+    # 1차 시도: Wikipedia (User-Agent 헤더 포함)
     try:
-        # S&P 500 종목
-        sp500 = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]
+        resp = requests.get(
+            'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies',
+            headers=headers,
+            timeout=15
+        )
+        resp.raise_for_status()
+        sp500 = pd.read_html(StringIO(resp.text))[0]
         sp500_tickers = sp500['Symbol'].tolist()
-        
-        # 주요 Nasdaq 테크 종목 추가
-        additional = ['NVDA', 'AVGO', 'ASML', 'MSTR', 'PLTR', 'COIN', 'RIOT', 'MARA']
-        
-        tickers = list(set(sp500_tickers + additional))
-        print(f"✅ 총 {len(tickers)}개 종목 수집됨")
-        
-        return sorted(tickers)
-    
+        print(f"✅ Wikipedia에서 {len(sp500_tickers)}개 수집")
     except Exception as e:
-        print(f"\n{'='*60}")
-        print(f"❌ 치명적 오류: S&P 500 티커 수집 실패")
-        print(f"{'='*60}")
-        print(f"오류 메시지: {str(e)}")
-        print(f"\n📦 필요한 패키지: lxml, html5lib")
-        print(f"💾 설치 방법: pip install lxml html5lib")
-        print(f"또는 requirements.txt에 추가")
-        print(f"{'='*60}\n")
-        import sys
-        sys.exit(1)
+        print(f"⚠️ Wikipedia 수집 실패 ({e}), GitHub fallback 시도...")
+
+        # 2차 시도: GitHub의 datahub S&P 500 CSV (안정적)
+        try:
+            fallback_url = 'https://raw.githubusercontent.com/datasets/s-and-p-500-companies/main/data/constituents.csv'
+            resp = requests.get(fallback_url, headers=headers, timeout=15)
+            resp.raise_for_status()
+            df = pd.read_csv(StringIO(resp.text))
+            sp500_tickers = df['Symbol'].tolist()
+            print(f"✅ GitHub fallback에서 {len(sp500_tickers)}개 수집")
+        except Exception as e2:
+            print(f"\n{'='*60}")
+            print(f"❌ 치명적 오류: S&P 500 티커 수집 실패 (Wikipedia + fallback 모두 실패)")
+            print(f"{'='*60}")
+            print(f"Wikipedia 오류: {str(e)}")
+            print(f"Fallback 오류: {str(e2)}")
+            print(f"{'='*60}\n")
+            import sys
+            sys.exit(1)
+
+    # 티커 정규화 (BRK.B → BRK-B 등 yfinance 형식)
+    sp500_tickers = [str(t).replace('.', '-').strip() for t in sp500_tickers if t]
+
+    # 주요 Nasdaq 테크 종목 추가
+    additional = ['NVDA', 'AVGO', 'ASML', 'MSTR', 'PLTR', 'COIN', 'RIOT', 'MARA']
+
+    tickers = list(set(sp500_tickers + additional))
+    print(f"✅ 총 {len(tickers)}개 종목 수집됨")
+
+    return sorted(tickers)
 
 def fetch_ticker_info(ticker):
     """개별 종목의 기본 정보 수집 (가격, 시가총액, 거래량)"""
