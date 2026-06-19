@@ -157,117 +157,191 @@
             
             <!-- TAB 1: Daily Briefing -->
             <div id="briefing-tab" class="tab-pane active">
-                <div class="content-header">
-                    <h2>📰 Daily Briefing</h2>
-                    <div class="header-meta">2026-06-19 (금) · 다음날 장 시작 전 의사결정 보조</div>
-                </div>
-
-                <!-- 🔄 수동 분석 실행 버튼 -->
-                <div class="card" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bfdbfe; margin-bottom: var(--spacing-lg); padding: var(--spacing-lg);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-lg);">
+                
+                <!-- ===== 공통 헤더 ===== -->
+                <div style="margin-bottom: var(--spacing-2xl);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-lg);">
                         <div>
-                            <h3 style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--spacing-sm);">🔄 지금 바로 분석 실행</h3>
-                            <p style="font-size: 0.8rem; color: var(--color-text-tertiary);">GitHub Actions에서 최신 데이터를 수집하고 필터링합니다</p>
+                            <h2 style="font-size: 1.75rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: var(--spacing-sm);">📰 Daily Briefing</h2>
+                            <div style="font-size: 0.85rem; color: var(--color-text-tertiary);">2026.06.19 (금) · 다음날 장 시작 전 의사결정 보조</div>
                         </div>
-                        <button id="triggerAnalysisBtn" onclick="triggerWorkflow()" style="padding: var(--spacing-md) var(--spacing-xl); background: var(--color-secondary); color: white; border: none; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
-                            ▶️ 지금 실행
-                        </button>
-                    </div>
-                    <div id="triggerStatus" style="display: none; margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid #bfdbfe;">
-                        <div id="statusMessage" style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: var(--spacing-sm);"></div>
-                        <a href="https://github.com/NewyorkDC/rsscan/actions" target="_blank" style="font-size: 0.8rem; color: var(--color-secondary); text-decoration: none; font-weight: 600;">GitHub Actions 확인 →</a>
-                    </div>
-                </div>
-
-                <!-- 경고 알림 박스 -->
-                <div class="alert alert-warning">
-                    <div class="alert-icon">⚠️</div>
-                    <div class="alert-content">
-                        <strong>운용 철칙:</strong> 이 자료는 "AI가 정성 추천"이 아니라 "사용자 결정을 위한 정성 정보"입니다. 결정은 사용자.
-                    </div>
-                </div>
-
-                <!-- 시장 상태 섹션 -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>① 오늘의 시장 상태</h3>
-                        <div class="header-status uptrend">● Uptrend Resumed</div>
-                    </div>
-
-                    <div class="market-overview grid-3">
-                        <div class="stat-card">
-                            <div class="stat-label">S&P 500</div>
-                            <div class="stat-value price-up">+1.65%</div>
-                            <div class="stat-unit">상승률</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">NASDAQ</div>
-                            <div class="stat-value price-up">+3.07%</div>
-                            <div class="stat-unit">상승률</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Russell</div>
-                            <div class="stat-value price-up">+0.72%</div>
-                            <div class="stat-unit">상승률</div>
+                        <div style="display: flex; gap: var(--spacing-sm);">
+                            <button onclick="expandAll()" style="padding: var(--spacing-sm) var(--spacing-lg); background: var(--color-bg-main); border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 0.8rem; font-weight: 500; color: var(--color-text-secondary); cursor: pointer; transition: all 0.2s ease; white-space: nowrap;">▼ 모두 펼치기</button>
+                            <button onclick="collapseAll()" style="padding: var(--spacing-sm) var(--spacing-lg); background: var(--color-bg-main); border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 0.8rem; font-weight: 500; color: var(--color-text-secondary); cursor: pointer; transition: all 0.2s ease; white-space: nowrap;">▲ 모두 접기</button>
+                            <button onclick="refreshBriefing()" style="padding: var(--spacing-sm) var(--spacing-lg); background: var(--color-bg-main); border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 0.8rem; font-weight: 500; color: var(--color-text-secondary); cursor: pointer; transition: all 0.2s ease; white-space: nowrap;">🔄 새로고침</button>
                         </div>
                     </div>
 
-                    <div class="breadth-info">
-                        <div class="breadth-item">
-                            <span class="breadth-label">S&P DD: 3</span>
-                            <span class="breadth-label">NASDAQ DD: 3</span>
-                            <span class="breadth-label">Breadth (50MA ▼): 68%</span>
+                    <!-- 경고 문구 -->
+                    <div style="padding: var(--spacing-lg); background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; display: flex; gap: var(--spacing-lg); align-items: flex-start;">
+                        <span style="font-size: 18px; flex-shrink: 0;">🚨</span>
+                        <div style="flex: 1;">
+                            <p style="font-size: 0.8rem; color: #78350f; font-weight: 500; margin-bottom: var(--spacing-xs); margin: 0 0 var(--spacing-xs) 0;"><strong>운용 철학:</strong></p>
+                            <p style="font-size: 0.8rem; color: #78350f; line-height: 1.6; margin: 0;">이 화면은 "AI가 결정 추천"이 아니라 "사용자 결정을 위한 정보 정리"입니다. 결정은 사용자.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- 시장 환경 평가 섹션 -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>② 시장 환경 평가 (Universe Breadth)</h3>
+                <!-- ===== 섹션 ① 오늘의 시장 상태 ===== -->
+                <div style="margin-bottom: var(--spacing-2xl);">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--spacing-lg); display: flex; align-items: center; gap: var(--spacing-sm);">
+                        <span style="font-size: 1.2rem;">①</span> 오늘의 시장 상태
+                    </h3>
+
+                    <div style="background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 10px; padding: var(--spacing-xl); display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-xl);">
+                        
+                        <!-- 좌측: 현재 상태 -->
+                        <div>
+                            <div style="margin-bottom: var(--spacing-lg);">
+                                <div style="display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);">
+                                    <span style="font-size: 20px;">🟢</span>
+                                    <span style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary);">Uptrend Resumed</span>
+                                </div>
+                                <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: var(--spacing-sm);">
+                                    <strong>권장 비중:</strong> <span style="color: var(--color-primary); font-weight: 700;">75~95%</span>
+                                </div>
+                                <div style="font-size: 0.8rem; color: var(--color-text-secondary);">
+                                    <strong>전략:</strong> FTD 최종 위권 구간 → 적극 진입
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 우측: 3개 인덱스 카드 -->
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-sm);">
+                            <!-- S&P 500 -->
+                            <div style="background: white; padding: var(--spacing-lg); border-radius: 8px; border: 1px solid var(--color-border-light); box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center;">
+                                <div style="font-size: 0.7rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-sm);">S&P 500</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary); margin-bottom: var(--spacing-xs);">+1.65%</div>
+                                <div style="font-size: 0.7rem; color: var(--color-text-tertiary);">상승률</div>
+                            </div>
+
+                            <!-- NASDAQ -->
+                            <div style="background: white; padding: var(--spacing-lg); border-radius: 8px; border: 1px solid var(--color-border-light); box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center;">
+                                <div style="font-size: 0.7rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-sm);">NASDAQ</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary); margin-bottom: var(--spacing-xs);">+3.07%</div>
+                                <div style="font-size: 0.7rem; color: var(--color-text-tertiary);">상승률</div>
+                            </div>
+
+                            <!-- RUSSELL -->
+                            <div style="background: white; padding: var(--spacing-lg); border-radius: 8px; border: 1px solid var(--color-border-light); box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center;">
+                                <div style="font-size: 0.7rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-sm);">RUSSELL</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary); margin-bottom: var(--spacing-xs);">+0.72%</div>
+                                <div style="font-size: 0.7rem; color: var(--color-text-tertiary);">상승률</div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="breadth-grid grid-3">
-                        <div class="breadth-box">
-                            <div class="breadth-title">SETUP</div>
-                            <div class="breadth-sublabel">8/8 통과 증폭</div>
-                            <div class="breadth-count">620개</div>
-                            <div class="breadth-indicator positive">✓ 정상</div>
+                    <!-- 하단: 추가 정보 -->
+                    <div style="margin-top: var(--spacing-lg); padding: var(--spacing-lg); background: white; border: 1px solid var(--color-border-light); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <div style="display: flex; gap: var(--spacing-xl); flex-wrap: wrap;">
+                            <div>
+                                <span style="font-size: 0.7rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600;">S&P DD</span>
+                                <div style="font-size: 1rem; font-weight: 700; color: var(--color-text-primary); margin-top: var(--spacing-xs);">3</div>
+                            </div>
+                            <div>
+                                <span style="font-size: 0.7rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600;">NASDAQ DD</span>
+                                <div style="font-size: 1rem; font-weight: 700; color: var(--color-text-primary); margin-top: var(--spacing-xs);">3</div>
+                            </div>
+                            <div>
+                                <span style="font-size: 0.7rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600;">Breadth (50MA ▼)</span>
+                                <div style="font-size: 1rem; font-weight: 700; color: var(--color-primary); margin-top: var(--spacing-xs);">68%</div>
+                            </div>
                         </div>
-                        <div class="breadth-box">
-                            <div class="breadth-title">SETUP</div>
-                            <div class="breadth-sublabel">8/8 통과 버짐</div>
-                            <div class="breadth-count">58.7%</div>
-                            <div class="breadth-indicator positive">✓ 정상</div>
-                        </div>
-                        <div class="breadth-box">
-                            <div class="breadth-title">SETUP</div>
-                            <div class="breadth-sublabel">7-/8 파차리스트</div>
-                            <div class="breadth-count">829개</div>
-                            <div class="breadth-indicator positive">✓ 정상</div>
+                    </div>
+                </div>
+
+                <!-- ===== 섹션 ② 시장 환경 평가 ===== -->
+                <div style="margin-bottom: var(--spacing-2xl);">
+                    <div style="display: flex; align-items: center; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+                        <h3 style="font-size: 1rem; font-weight: 600; color: var(--color-text-primary); display: flex; align-items: center; gap: var(--spacing-sm); margin: 0;">
+                            <span style="font-size: 1.2rem;">②</span> 시장 환경 평가
+                        </h3>
+                        <div style="padding: var(--spacing-sm) var(--spacing-md); background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 6px; font-size: 0.75rem; font-weight: 600; color: var(--color-primary); text-transform: uppercase;">
+                            🟢 정상 매매
                         </div>
                     </div>
 
-                    <div class="breadth-grid grid-3">
-                        <div class="breadth-box strength">
-                            <div class="breadth-title">STRENGTH</div>
-                            <div class="breadth-sublabel">RS 90+ 종목</div>
-                            <div class="breadth-count">494개</div>
-                            <div class="strength-dots">● ●</div>
+                    <!-- 카드 그리드 -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--spacing-lg);">
+                        
+                        <!-- SETUP: 8/8 통과 증폭 -->
+                        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-md);">
+                                <div>
+                                    <div style="font-size: 0.7rem; color: #0c4a6e; text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-xs);">SETUP</div>
+                                    <div style="font-size: 0.9rem; color: #0c4a6e; font-weight: 600;">8/8 통과 증폭</div>
+                                </div>
+                                <div style="font-size: 20px;">🟢</div>
+                            </div>
+                            <div style="font-size: 1.75rem; font-weight: 700; color: #0c4a6e;">620<span style="font-size: 0.9rem; color: #0c4a6e;">개</span></div>
                         </div>
-                        <div class="breadth-box strength">
-                            <div class="breadth-title">STRENGTH</div>
-                            <div class="breadth-sublabel">RS 80-89 (스트롱)</div>
-                            <div class="breadth-count">328개</div>
-                            <div class="strength-dots">● ●</div>
+
+                        <!-- SETUP: 8/8 통과 비중 -->
+                        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-md);">
+                                <div>
+                                    <div style="font-size: 0.7rem; color: #0c4a6e; text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-xs);">SETUP</div>
+                                    <div style="font-size: 0.9rem; color: #0c4a6e; font-weight: 600;">8/8 통과 비중</div>
+                                </div>
+                                <div style="font-size: 20px;">🟢</div>
+                            </div>
+                            <div style="font-size: 1.75rem; font-weight: 700; color: #0c4a6e;">58.7<span style="font-size: 0.9rem; color: #0c4a6e;">%</span></div>
                         </div>
-                        <div class="breadth-box strength">
-                            <div class="breadth-title">STRENGTH</div>
-                            <div class="breadth-sublabel">RS 랭크</div>
-                            <div class="breadth-count">88</div>
-                            <div class="strength-dots">● ●</div>
+
+                        <!-- SETUP: 7-/8 파차리스트 -->
+                        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-md);">
+                                <div>
+                                    <div style="font-size: 0.7rem; color: #0c4a6e; text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-xs);">SETUP</div>
+                                    <div style="font-size: 0.9rem; color: #0c4a6e; font-weight: 600;">7-/8 파차리스트</div>
+                                </div>
+                                <div style="font-size: 20px;">🟢</div>
+                            </div>
+                            <div style="font-size: 1.75rem; font-weight: 700; color: #0c4a6e;">829<span style="font-size: 0.9rem; color: #0c4a6e;">개</span></div>
                         </div>
+
+                        <!-- STRENGTH: RS 90+ 종목 -->
+                        <div style="background: #fefce8; border: 1px solid #fef3c7; border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-md);">
+                                <div>
+                                    <div style="font-size: 0.7rem; color: #713f12; text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-xs);">STRENGTH</div>
+                                    <div style="font-size: 0.9rem; color: #713f12; font-weight: 600;">RS 90+ 종목</div>
+                                </div>
+                                <div style="font-size: 20px;">🟢</div>
+                            </div>
+                            <div style="font-size: 1.75rem; font-weight: 700; color: #713f12;">494<span style="font-size: 0.9rem; color: #713f12;">개</span></div>
+                        </div>
+
+                        <!-- STRENGTH: RS 80-89 -->
+                        <div style="background: #fefce8; border: 1px solid #fef3c7; border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-md);">
+                                <div>
+                                    <div style="font-size: 0.7rem; color: #713f12; text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-xs);">STRENGTH</div>
+                                    <div style="font-size: 0.9rem; color: #713f12; font-weight: 600;">RS 80-89 (스트롱)</div>
+                                </div>
+                                <div style="font-size: 20px;">🟢</div>
+                            </div>
+                            <div style="font-size: 1.75rem; font-weight: 700; color: #713f12;">328<span style="font-size: 0.9rem; color: #713f12;">개</span></div>
+                        </div>
+
+                        <!-- STRENGTH: RS 랭크 -->
+                        <div style="background: #fefce8; border: 1px solid #fef3c7; border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-md);">
+                                <div>
+                                    <div style="font-size: 0.7rem; color: #713f12; text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-xs);">STRENGTH</div>
+                                    <div style="font-size: 0.9rem; color: #713f12; font-weight: 600;">RS 랭크</div>
+                                </div>
+                                <div style="font-size: 20px;">🟢</div>
+                            </div>
+                            <div style="font-size: 1.75rem; font-weight: 700; color: #713f12;">88</div>
+                        </div>
+
                     </div>
+                </div>
+
+                <!-- 다음 섹션 플레이스홀더 -->
+                <div style="text-align: center; padding: var(--spacing-2xl); color: var(--color-text-tertiary); font-size: 0.8rem; border: 1px dashed var(--color-border-light); border-radius: 8px; background: var(--color-bg-main);">
+                    <p style="margin: 0;">다음 섹션 (③ 섹터별 분석 등) 준비 중...</p>
                 </div>
 
                 <!-- 섹터별 분석 테이블 -->
@@ -607,6 +681,23 @@
                 content.style.display = 'none';
                 toggle.textContent = '▼';
             }
+        }
+
+        // 📰 Daily Briefing 함수들
+        function expandAll() {
+            console.log('모두 펼치기 클릭');
+            alert('기능 준비 중입니다.');
+        }
+
+        function collapseAll() {
+            console.log('모두 접기 클릭');
+            alert('기능 준비 중입니다.');
+        }
+
+        function refreshBriefing() {
+            console.log('새로고침 클릭');
+            // 실제로는 데이터 재로드
+            location.reload();
         }
 
         // 🔄 수동 분석 실행 함수
