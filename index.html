@@ -7,8 +7,8 @@
     
     <!-- 시스템 폰트 스택 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/dashboard.css?v=20260619d">
-    <link rel="stylesheet" href="css/responsive.css?v=20260619d">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260619e">
+    <link rel="stylesheet" href="css/responsive.css?v=20260619e">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
@@ -466,102 +466,155 @@
             <!-- TAB 7: 전략실 -->
             <div id="strategy-tab" class="tab-pane">
                 <div class="content-header">
-                    <h2>🏛️ 전략실 — g3+g1+g2 paper-trade</h2>
-                    <div class="header-meta">5-Gate Funnel · 여자 38 (혹은 hold 40 + earnings guard + sell signal)</div>
+                    <h2>🏛️ 전략실 — IBD/O'Neil Paper-Trade</h2>
+                    <div class="header-meta">5-Gate Funnel · Lock Ratchet Stop · 동시보유 12 · 매일 진입/스위칭/청산</div>
                 </div>
 
-                <!-- 포트폴리오 통계 -->
-                <div class="portfolio-stats grid-4">
+                <!-- ===== B. 포트폴리오 요약 카드 (6개) ===== -->
+                <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--spacing-md); margin-bottom: var(--spacing-2xl);">
                     <div class="stat-box">
                         <div class="stat-label">NAV</div>
                         <div id="strategy-nav" class="stat-value" style="color: #10b981;">$100,000</div>
-                        <div class="stat-unit">포트폴리오 가치</div>
+                        <div id="strategy-nav-return" class="stat-unit">+0.00%</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-label">Cash</div>
-                        <div id="strategy-cash" class="stat-value">$1,145.95</div>
+                        <div id="strategy-cash" class="stat-value">$100,000</div>
                         <div class="stat-unit">현금</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-label">Holdings Value</div>
-                        <div id="strategy-holdings-value" class="stat-value" style="color: #10b981;">$98,854</div>
+                        <div class="stat-label">Holdings</div>
+                        <div id="strategy-holdings-value" class="stat-value" style="color: #10b981;">$0</div>
                         <div class="stat-unit">보유 자산</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-label">Active Positions</div>
-                        <div class="stat-value">5</div>
+                        <div class="stat-label">Positions</div>
+                        <div id="strategy-positions" class="stat-value">0 / 12</div>
                         <div class="stat-unit">포지션</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">미실현 손익</div>
+                        <div id="strategy-unrealized" class="stat-value">$0</div>
+                        <div class="stat-unit">Unrealized P&L</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">승률</div>
+                        <div id="strategy-winrate" class="stat-value" style="color: #10b981;">0.0%</div>
+                        <div id="strategy-trades-count" class="stat-unit">0건</div>
                     </div>
                 </div>
 
-                <!-- 현재 보유 종목 -->
+                <!-- ===== C. NAV 곡선 차트 ===== -->
                 <div class="card">
                     <div class="card-header">
-                        <h3>📊 현재 보유 종목</h3>
+                        <h3>📈 NAV 곡선 (전략실 누적 수익)</h3>
                     </div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Ticker</th>
-                                <th>Entry</th>
-                                <th>Shares</th>
-                                <th>Cost</th>
-                                <th>Phase</th>
-                                <th>RS</th>
-                                <th>P&L</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="strategy-holdings-table">
-                            <!-- JS에서 동적으로 생성됨 -->
-                        </tbody>
-                    </table>
+                    <div style="padding: var(--spacing-lg);">
+                        <div style="position: relative; height: 240px;">
+                            <canvas id="strategy-nav-chart"></canvas>
+                        </div>
+                        <div id="strategy-nav-empty" style="display: none; text-align: center; padding: var(--spacing-2xl); color: var(--color-text-tertiary); font-size: 0.85rem;">
+                            데이터가 쌓이는 중입니다. 매일 워크플로우가 실행되며 곡선이 그려집니다.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== A. 현재 보유 종목 (고도화) ===== -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📊 현재 보유 종목 <span id="strategy-holdings-count" style="font-size: 0.8rem; color: var(--color-text-tertiary); font-weight: 400;"></span></h3>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" style="font-size: 0.8rem;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">Ticker</th>
+                                    <th style="text-align: left;">진입일</th>
+                                    <th style="text-align: right;">보유일</th>
+                                    <th style="text-align: right;">진입가</th>
+                                    <th style="text-align: right;">현재가</th>
+                                    <th style="text-align: right;">P&L %</th>
+                                    <th style="text-align: right;">Max %</th>
+                                    <th style="text-align: right;">Stop</th>
+                                    <th style="text-align: center;">Phase</th>
+                                    <th style="text-align: center;">RS</th>
+                                    <th style="text-align: center;">플래그</th>
+                                </tr>
+                            </thead>
+                            <tbody id="strategy-holdings-table">
+                                <tr><td colspan="11" style="text-align:center; padding: var(--spacing-lg); color: var(--color-text-tertiary);">데이터 로드 중...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- 종료된 거래 -->
                 <div class="card">
                     <div class="card-header">
-                        <h3>📋 종료된 거래 (Closed Trades)</h3>
+                        <h3>📋 청산 이력 (Closed Trades) <span id="strategy-closed-count" style="font-size: 0.8rem; color: var(--color-text-tertiary); font-weight: 400;"></span></h3>
                     </div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Ticker</th>
-                                <th>Entry</th>
-                                <th>Exit</th>
-                                <th>Shares</th>
-                                <th>P&L %</th>
-                                <th>P&L $</th>
-                                <th>Reason</th>
-                            </tr>
-                        </thead>
-                        <tbody id="strategy-closed-trades-table">
-                            <!-- JS에서 동적으로 생성됨 -->
-                        </tbody>
-                    </table>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" style="font-size: 0.8rem;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">Ticker</th>
+                                    <th style="text-align: left;">진입일</th>
+                                    <th style="text-align: left;">청산일</th>
+                                    <th style="text-align: right;">진입가</th>
+                                    <th style="text-align: right;">청산가</th>
+                                    <th style="text-align: right;">P&L %</th>
+                                    <th style="text-align: right;">P&L $</th>
+                                    <th style="text-align: left;">청산 사유</th>
+                                </tr>
+                            </thead>
+                            <tbody id="strategy-closed-trades-table">
+                                <tr><td colspan="8" style="text-align:center; padding: var(--spacing-lg); color: var(--color-text-tertiary);">종료된 거래가 없습니다</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <!-- 거래 통계 -->
-                <div class="portfolio-stats grid-4" style="margin-top: var(--spacing-2xl);">
-                    <div class="stat-box">
-                        <div class="stat-label">총 거래</div>
-                        <div id="strategy-stat-total-trades" class="stat-value">62</div>
-                        <div class="stat-unit">거래</div>
+                <!-- ===== D. 위험지표 패널 ===== -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📐 수익 · 위험 지표</h3>
                     </div>
-                    <div class="stat-box">
-                        <div class="stat-label">승률</div>
-                        <div id="strategy-stat-win-rate" class="stat-value" style="color: #10b981;">48.4%</div>
-                        <div class="stat-unit">수익률</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">평균 수익</div>
-                        <div id="strategy-stat-avg-win" class="stat-value">$1,234.56</div>
-                        <div class="stat-unit">수익</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">누적 수익</div>
-                        <div id="strategy-stat-cumulative-return" class="stat-value" style="color: #10b981;">+12.34%</div>
-                        <div class="stat-unit">수익률</div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-md); padding: var(--spacing-lg);">
+                        <div class="stat-box">
+                            <div class="stat-label">누적 수익률</div>
+                            <div id="strategy-stat-cumulative-return" class="stat-value" style="color: #10b981;">+0.00%</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">MDD</div>
+                            <div id="strategy-stat-mdd" class="stat-value" style="color: #ef4444;">0.0%</div>
+                            <div class="stat-unit">최대 낙폭</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Sharpe</div>
+                            <div id="strategy-stat-sharpe" class="stat-value">0.00</div>
+                            <div class="stat-unit">연율화</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">총 거래</div>
+                            <div id="strategy-stat-total-trades" class="stat-value">0</div>
+                            <div class="stat-unit">건</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">평균 수익</div>
+                            <div id="strategy-stat-avg-win" class="stat-value" style="color: #10b981;">$0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">평균 손실</div>
+                            <div id="strategy-stat-avg-loss" class="stat-value" style="color: #ef4444;">$0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">최고 거래</div>
+                            <div id="strategy-stat-best" class="stat-value" style="color: #10b981;">+0.0%</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">최악 거래</div>
+                            <div id="strategy-stat-worst" class="stat-value" style="color: #ef4444;">0.0%</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -921,16 +974,16 @@
     </script>
 
     <!-- Daily Briefing 데이터 바인딩 -->
-    <script src="js/briefing.js?v=20260619d"></script>
+    <script src="js/briefing.js?v=20260619e"></script>
 
     <!-- Market Pulse 데이터 바인딩 -->
-    <script src="js/market-pulse.js?v=20260619d"></script>
+    <script src="js/market-pulse.js?v=20260619e"></script>
 
     <!-- Strategy Room v5 데이터 바인딩 -->
-    <script src="js/strategy-room.js?v=20260619d"></script>
+    <script src="js/strategy-room.js?v=20260619e"></script>
 
     <!-- 섹터 ETF 스크리너 -->
-    <script src="js/sectors-etf.js?v=20260619d"></script>
+    <script src="js/sectors-etf.js?v=20260619e"></script>
 
 </body>
 </html>
