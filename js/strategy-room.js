@@ -11,31 +11,201 @@ class StrategyRoomBinder {
         this.closedTrades = [];
         this.statistics = {};
         this.navHistory = [];
+        this.entrySignals = [];
         this.navChart = null;
         this.maxPositions = 12;
     }
 
     async loadAndRender() {
         try {
-            const response = await fetch('results/strategy_room_portfolio.json');
-            if (!response.ok) throw new Error('전략실 포트폴리오 로드 실패');
+            const [portfolioRes, signalsRes] = await Promise.all([
+                fetch('results/strategy_room_portfolio.json'),
+                fetch('results/entry_signals.json').catch(() => null)
+            ]);
 
-            this.portfolio = await response.json();
+            if (!portfolioRes.ok) throw new Error('전략실 포트폴리오 로드 실패');
+
+            this.portfolio = await portfolioRes.json();
             this.holdings = this.portfolio.holdings || [];
             this.closedTrades = this.portfolio.closed_trades || [];
             this.statistics = this.portfolio.statistics || {};
             this.navHistory = this.portfolio.nav_history || [];
 
-            console.log(`✅ Strategy Room v6 로드: 보유 ${this.holdings.length}개, 청산 ${this.closedTrades.length}건, NAV포인트 ${this.navHistory.length}개`);
+            // 진입 신호 (있으면)
+            if (signalsRes && signalsRes.ok) {
+                const sig = await signalsRes.json();
+                this.entrySignals = sig.signals || [];
+                this.signalsDate = sig.timestamp ? sig.timestamp.split(' ')[0] : '';
+            }
 
-            this.renderSummary();        // B
-            this.renderNavChart();       // C
-            this.renderHoldingsTable();  // A
+            console.log(`✅ Strategy Room v6 로드: 보유 ${this.holdings.length}개, 청산 ${this.closedTrades.length}건, 신호 ${this.entrySignals.length}개, NAV포인트 ${this.navHistory.length}개`);
+
+            // 상단 블록 (스크린샷 순서)
+            this.renderOOS();              // 1. 전방향 검증
+            this.renderEntrySignals();     // 3. 진입 조건
+            this.renderSwitching();        // 4. 종목 스위칭
+            this.renderPositionCap();      // 5. Position Cap
+            // 하단 블록
+            this.renderSummary();          // B
+            this.renderNavChart();         // C
+            this.renderHoldingsTable();    // A
             this.renderClosedTradesTable();
-            this.renderRiskMetrics();    // D
+            this.renderRiskMetrics();      // D
         } catch (error) {
             console.error(`❌ Strategy Room 로드 실패: ${error.message}`);
         }
+    }
+
+    // ===== 1. 전방향 검증 (OOS) =====
+    renderOOS() {
+        // OOS는 청산 거래 기반. inception 이후 첫 청산부터 N건 집계.
+        const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+        const setWidth = (id, pct) => { const el = document.getElementById(id); if (el) el.style.width = `${Math.min(pct, 100)}%`; };
+
+        const N = this.closedTrades.length;
+        const targetN = 30;
+        setText('oos-sample-count', N);
+        setWidth('oos-sample-bar', (N / targetN) * 100);
+
+        // 기간 진행: NAV 히스토리 첫 날짜 ~ 오늘 (6개월=180일 기준)
+        let periodMonths = 0;
+        if (this.navHistory.length >= 1) {
+            const first = new Date(this.navHistory[0].date);
+            const last = new Date(this.navHistory[this.navHistory.length - 1].date);
+            periodMonths = (last - first) / (1000 * 60 * 60 * 24 * 30);
+        }
+        setText('oos-period', periodMonths.toFixed(1));
+        setWidth('oos-period-bar', (periodMonths / 6) * 100);
+
+        // 상태 텍스트
+        const statusEl = document.getElementById('oos-status');
+        if (statusEl) {
+            if (N === 0) statusEl.textContent = '🔵 검증 시작 — 표본 수집 중 (N=0)';
+            else if (N < targetN) statusEl.textContent = `🔵 표본 수집 중 (N=${N} / ${targetN})`;
+            else {
+                const avgPct = this.closedTrades.reduce((s, t) => s + (t.profit_pct || 0), 0) / N;
+                statusEl.textContent = `✅ 검증 진행 (N=${N}) · 기대값 ${avgPct >= 0 ? '+' : ''}${avgPct.toFixed(1)}%`;
+            }
+        }
+
+        // seed (개발용 in-sample = 현재까지 누적 거래)
+        const seedEl = document.getElementById('oos-seed');
+        if (seedEl) {
+            if (N === 0) seedEl.textContent = '집계 대기';
+            else {
+                const avgPct = this.closedTrades.reduce((s, t) => s + (t.profit_pct || 0), 0) / N;
+                const winRate = this.statistics.win_rate || 0;
+                seedEl.textContent = `${N}건 · 기대값 ${avgPct >= 0 ? '+' : ''}${avgPct.toFixed(1)}% · 승률 ${winRate.toFixed(0)}%`;
+            }
+        }
+    }
+
+    // ===== 3. 진입 조건 (신규 시그널) =====
+    renderEntrySignals() {
+        const container = document.getElementById('entry-signals-table-body');
+        const countEl = document.getElementById('entry-signals-count');
+        const dateEl = document.getElementById('entry-signals-date');
+        if (!container) return;
+
+        if (dateEl && this.signalsDate) dateEl.textContent = `— ${this.signalsDate} 기준`;
+        if (countEl) countEl.textContent = `신규 시그널 ${this.entrySignals.length}건`;
+
+        if (this.entrySignals.length === 0) {
+            container.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:var(--spacing-lg); color:var(--color-text-tertiary);">진입 신호가 없습니다</td></tr>`;
+            return;
+        }
+
+        // total_score 내림차순
+        const sorted = [...this.entrySignals].sort((a, b) =>
+            (b.total_score || 0) - (a.total_score || 0));
+
+        let html = '';
+        sorted.forEach(s => {
+            const pivotPct = s.dist_pivot_pct != null ? s.dist_pivot_pct : null;
+            const pivotStr = pivotPct != null
+                ? `<span style="color:${pivotPct <= 0 ? '#10b981' : '#6b7280'};">${pivotPct >= 0 ? '+' : ''}${pivotPct.toFixed(1)}%</span>`
+                : '–';
+            html += `
+                <tr style="border-bottom:1px solid var(--color-border-light);">
+                    <td style="text-align:left; font-weight:600; color:#2563eb;">${s.ticker}</td>
+                    <td style="text-align:left; font-size:0.75rem;">${s.top_pattern ? 'Top Pattern' : (s.breakout ? 'Breakout' : '–')}</td>
+                    <td style="text-align:right;">$${(s.close || 0).toFixed(2)}</td>
+                    <td style="text-align:right; font-size:0.75rem;">${pivotStr}</td>
+                    <td style="text-align:center; font-weight:600; color:#fbbf24;">${s.ibd_rs_rating || 0}</td>
+                    <td style="text-align:right;">${(s.total_score || 0).toFixed(1)}</td>
+                    <td style="text-align:right; color:#6b7280;">${(s.theme_score || 0).toFixed(1)}</td>
+                    <td style="text-align:right; color:#6b7280;">${(s.ad_score || 0).toFixed(1)}</td>
+                </tr>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // ===== 4. 종목 스위칭 =====
+    renderSwitching() {
+        const container = document.getElementById('switching-table-body');
+        const countEl = document.getElementById('switching-count');
+        if (!container) return;
+
+        // 청산이력 중 스위칭(🔄) 사유만 추출
+        const switches = this.closedTrades.filter(t =>
+            (t.exit_reason || '').includes('스위칭') || (t.exit_reason || '').includes('🔄'));
+
+        if (countEl) countEl.textContent = `${switches.length}건`;
+
+        if (switches.length === 0) {
+            container.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:var(--spacing-lg); color:var(--color-text-tertiary);">스위칭 내역이 없습니다</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        switches.reverse().forEach(t => {
+            // exit_reason 예: "🔄 스위칭→BHE"
+            const target = (t.exit_reason || '').split('→')[1] || '?';
+            const pnl = t.profit_pct || 0;
+            html += `
+                <tr style="border-bottom:1px solid var(--color-border-light);">
+                    <td style="text-align:left; font-weight:600;">${t.ticker} <span style="font-size:0.7rem; color:${pnl >= 0 ? '#10b981' : '#ef4444'};">(${pnl >= 0 ? '+' : ''}${pnl.toFixed(1)}%)</span></td>
+                    <td style="text-align:center; color:var(--color-text-tertiary);">→</td>
+                    <td style="text-align:left; font-weight:600; color:#2563eb;">${target}</td>
+                    <td style="text-align:left; font-size:0.75rem;">${t.pattern || '–'}</td>
+                    <td style="text-align:right; color:#10b981; font-weight:600;">강신호 교체</td>
+                </tr>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // ===== 5. Position Cap (초과 skip) =====
+    renderPositionCap() {
+        const container = document.getElementById('poscap-table-body');
+        const countEl = document.getElementById('poscap-count');
+        if (!container) return;
+
+        // 슬롯이 가득 찼을 때만 skip이 발생. 신호 중 미보유 종목 = skip 후보
+        const heldTickers = new Set(this.holdings.map(h => h.ticker));
+        const slotsFull = this.holdings.length >= this.maxPositions;
+        const skipped = slotsFull
+            ? this.entrySignals.filter(s => !heldTickers.has(s.ticker))
+                .sort((a, b) => (a.total_score || 0) - (b.total_score || 0))
+            : [];
+
+        if (countEl) countEl.textContent = `${skipped.length}건`;
+
+        if (skipped.length === 0) {
+            container.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:var(--spacing-lg); color:var(--color-text-tertiary);">초과 skip 종목이 없습니다</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        skipped.forEach(s => {
+            html += `
+                <tr style="border-bottom:1px solid var(--color-border-light);">
+                    <td style="text-align:left; font-weight:600; color:#2563eb;">${s.ticker}</td>
+                    <td style="text-align:left; font-size:0.75rem;">${s.top_pattern ? 'Top Pattern' : '–'}</td>
+                    <td style="text-align:right;">${(s.total_score || 0).toFixed(1)}</td>
+                    <td style="text-align:center; font-weight:600; color:#fbbf24;">${s.ibd_rs_rating || 0}</td>
+                </tr>`;
+        });
+        container.innerHTML = html;
     }
 
     // ===== B. 요약 카드 (NAV 배수 표시) =====
