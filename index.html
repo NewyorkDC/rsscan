@@ -5,351 +5,509 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RSSCAN v3 - IBD RS Line 스크리너 대시보드</title>
     
-    <!-- 시스템 폰트 + Google Fonts -->
+    <!-- 시스템 폰트 스택 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/responsive.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
         
-        <!-- ===== 좌측 사이드바 ===== -->
+        <!-- ===== 좌측 사이드바 (240px, 고정) ===== -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>RSSCAN v3</h2>
-                <span class="hamburger-toggle" id="hamburgerBtn">☰</span>
+                <h1>RSSCAN v3</h1>
+                <button class="hamburger-toggle" id="hamburgerBtn" aria-label="메뉴 토글">☰</button>
             </div>
 
             <!-- Market Regime 카드 -->
-            <div class="card market-regime-card">
+            <div class="card sidebar-card">
                 <h3>Market Regime</h3>
-                <div class="regime-badge" id="regimeBadge">
-                    <span class="regime-icon">🟢</span>
-                    <span class="regime-label">Uptrend Resumed</span>
+                <div class="regime-badge uptrend">
+                    <span class="regime-dot">●</span>
+                    <span class="regime-text">Uptrend Resumed</span>
                 </div>
-                <div class="regime-percentage">투자 비중 <strong id="investmentRatio">75-95%</strong></div>
+                <div class="regime-detail">
+                    <div class="detail-label">투자 비중</div>
+                    <div class="detail-value" style="color: #10b981;">75-95%</div>
+                </div>
                 <div class="regime-conditions">
                     <div class="condition-row">
                         <span>DD Count</span>
-                        <strong id="ddCount">3</strong>
+                        <strong>3</strong>
                     </div>
                     <div class="condition-row">
                         <span>Breadth</span>
-                        <strong id="breadthPct">58%</strong>
+                        <strong>58%</strong>
                     </div>
                 </div>
             </div>
 
             <!-- Market Pulse 카드 -->
-            <div class="card market-pulse-card">
+            <div class="card sidebar-card">
                 <h3>Market Pulse</h3>
-                <div class="pulse-items">
-                    <div class="pulse-item">
-                        <span>Stage 2</span>
-                        <strong id="stage2Count">113</strong>
+                <div class="pulse-grid">
+                    <div class="pulse-stat">
+                        <div class="pulse-label">Stage 2</div>
+                        <div class="pulse-value">113</div>
                     </div>
-                    <div class="pulse-item">
-                        <span>Stage 3</span>
-                        <strong id="stage3Count">45</strong>
+                    <div class="pulse-stat">
+                        <div class="pulse-label">Stage 3</div>
+                        <div class="pulse-value">45</div>
                     </div>
-                    <div class="pulse-item">
-                        <span>Stage 4</span>
-                        <strong id="stage4Count">12</strong>
+                    <div class="pulse-stat">
+                        <div class="pulse-label">Stage 4</div>
+                        <div class="pulse-value" style="color: #10b981;">12</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Phase 분포 -->
-            <div class="card">
-                <h3>Phase 분포</h3>
+            <!-- Phase 분포 카드 -->
+            <div class="card sidebar-card">
+                <h3>Phase Distribution</h3>
                 <div class="phase-bars">
-                    <div class="phase-bar">
-                        <div class="bar-label">P4+</div>
-                        <div class="bar-container">
-                            <div class="bar-fill" style="width: 8%; background: #10b981;"></div>
+                    <div class="phase-bar-row">
+                        <span class="phase-label">P4+</span>
+                        <div class="phase-bar-container">
+                            <div class="phase-bar-fill" style="width: 12%; background: #10b981;"></div>
                         </div>
-                        <span class="bar-count">49</span>
+                        <span class="phase-count">49</span>
                     </div>
-                    <div class="phase-bar">
-                        <div class="bar-label">P4</div>
-                        <div class="bar-container">
-                            <div class="bar-fill" style="width: 12%; background: #3b82f6;"></div>
+                    <div class="phase-bar-row">
+                        <span class="phase-label">P4</span>
+                        <div class="phase-bar-container">
+                            <div class="phase-bar-fill" style="width: 18%; background: #3b82f6;"></div>
                         </div>
-                        <span class="bar-count">80</span>
+                        <span class="phase-count">80</span>
                     </div>
-                    <div class="phase-bar">
-                        <div class="bar-label">P3</div>
-                        <div class="bar-container">
-                            <div class="bar-fill" style="width: 20%; background: #8b5cf6;"></div>
+                    <div class="phase-bar-row">
+                        <span class="phase-label">P3</span>
+                        <div class="phase-bar-container">
+                            <div class="phase-bar-fill" style="width: 28%; background: #8b5cf6;"></div>
                         </div>
-                        <span class="bar-count">197</span>
+                        <span class="phase-count">197</span>
                     </div>
-                    <div class="phase-bar">
-                        <div class="bar-label">P6/7</div>
-                        <div class="bar-container">
-                            <div class="bar-fill" style="width: 15%; background: #ef4444;"></div>
+                    <div class="phase-bar-row">
+                        <span class="phase-label">P6/7</span>
+                        <div class="phase-bar-container">
+                            <div class="phase-bar-fill" style="width: 22%; background: #ef4444;"></div>
                         </div>
-                        <span class="bar-count">160</span>
+                        <span class="phase-count">160</span>
                     </div>
                 </div>
             </div>
 
             <!-- Watchlist -->
-            <div class="card">
+            <div class="card sidebar-card">
                 <h3>⭐ Watchlist</h3>
-                <div style="text-align: center; padding: 20px 0;">
-                    <div style="font-size: 32px; font-weight: 700; color: #10b981;">0</div>
-                    <div style="font-size: 12px; color: #6b7280; margin-top: 8px;">종목</div>
+                <div class="watchlist-empty">
+                    <div class="empty-icon">📌</div>
+                    <div class="empty-count">0</div>
+                    <div class="empty-text">종목</div>
                 </div>
             </div>
 
-            <!-- 마지막 업데이트 -->
-            <div style="padding: 16px; text-align: center; border-top: 1px solid #e5e7eb; margin-top: 20px;">
-                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;" id="updateTime">2026-06-19 기준</div>
-                <div style="font-size: 12px; font-weight: 600; color: #4b5563;">v3.0</div>
+            <!-- 업데이트 정보 -->
+            <div class="sidebar-footer">
+                <div class="update-time" id="updateTime">2026-06-19 기준</div>
+                <div class="version">v3.0.0</div>
             </div>
         </aside>
 
         <!-- ===== 상단 탭 네비게이션 ===== -->
         <nav class="tab-navigation">
-            <button class="tab-btn active" data-tab="briefing">📰 Daily Briefing</button>
-            <button class="tab-btn" data-tab="market-pulse">📊 Market Pulse</button>
-            <button class="tab-btn" data-tab="sector">🏭 섹터 분석</button>
-            <button class="tab-btn" data-tab="screener">🔍 스크리너</button>
-            <button class="tab-btn" data-tab="patterns">📈 패턴 감지</button>
-            <button class="tab-btn" data-tab="momentum">⚡ RS 모멘텀</button>
-            <button class="tab-btn" data-tab="strategy-room">🏛 전략실</button>
+            <button class="tab-btn active" data-tab="briefing">
+                <span class="tab-icon">📰</span>
+                <span class="tab-label">Daily Briefing</span>
+            </button>
+            <button class="tab-btn" data-tab="market-pulse">
+                <span class="tab-icon">📊</span>
+                <span class="tab-label">Market Pulse</span>
+            </button>
+            <button class="tab-btn" data-tab="sector">
+                <span class="tab-icon">🏭</span>
+                <span class="tab-label">섹터 분석</span>
+            </button>
+            <button class="tab-btn" data-tab="etf">
+                <span class="tab-icon">🔷</span>
+                <span class="tab-label">섹터 ETF</span>
+            </button>
+            <button class="tab-btn" data-tab="patterns">
+                <span class="tab-icon">📈</span>
+                <span class="tab-label">패턴 감지</span>
+            </button>
+            <button class="tab-btn" data-tab="momentum">
+                <span class="tab-icon">⚡</span>
+                <span class="tab-label">RS 모멘텀</span>
+            </button>
+            <button class="tab-btn" data-tab="strategy">
+                <span class="tab-icon">🏛️</span>
+                <span class="tab-label">전략실</span>
+            </button>
         </nav>
 
-        <!-- ===== 메인 콘텐츠 ===== -->
+        <!-- ===== 메인 콘텐츠 영역 ===== -->
         <main class="main-content">
-            <div class="tab-content">
+            
+            <!-- TAB 1: Daily Briefing -->
+            <div id="briefing-tab" class="tab-pane active">
+                <div class="content-header">
+                    <h2>📰 Daily Briefing</h2>
+                    <div class="header-meta">2026-06-19 (금) · 다음날 장 시작 전 의사결정 보조</div>
+                </div>
 
-                <!-- ===== TAB 1: Daily Briefing ===== -->
-                <div id="briefing-tab" class="tab-pane active">
-                    <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px;">📰 Daily Briefing</h2>
-
-                    <!-- 상태 알림 -->
-                    <div class="alert warning">
-                        <strong>⚠️ 주의:</strong> AI가 생성한 분석입니다. 투자 결정의 유일한 근거로 사용하지 마세요.
+                <!-- 경고 알림 박스 -->
+                <div class="alert alert-warning">
+                    <div class="alert-icon">⚠️</div>
+                    <div class="alert-content">
+                        <strong>운용 철칙:</strong> 이 자료는 "AI가 정성 추천"이 아니라 "사용자 결정을 위한 정성 정보"입니다. 결정은 사용자.
                     </div>
+                </div>
 
-                    <!-- 시장 상태 카드 -->
-                    <div class="card">
+                <!-- 시장 상태 섹션 -->
+                <div class="card">
+                    <div class="card-header">
                         <h3>① 오늘의 시장 상태</h3>
-                        <div class="grid-3">
-                            <div class="stat-box">
-                                <div class="stat-label">마켓 레짐</div>
-                                <div style="margin: 12px 0;">
-                                    <span class="badge green">🟢 Uptrend</span>
-                                </div>
-                                <div class="stat-value" style="color: #10b981;">Ready</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-label">S&P 500</div>
-                                <div class="stat-value price-up">+1.65%</div>
-                                <div class="stat-unit">상승률</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-label">Breadth</div>
-                                <div class="stat-value">58%</div>
-                                <div class="stat-unit">양호</div>
-                            </div>
+                        <div class="header-status uptrend">● Uptrend Resumed</div>
+                    </div>
+
+                    <div class="market-overview grid-3">
+                        <div class="stat-card">
+                            <div class="stat-label">S&P 500</div>
+                            <div class="stat-value price-up">+1.65%</div>
+                            <div class="stat-unit">상승률</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">NASDAQ</div>
+                            <div class="stat-value price-up">+3.07%</div>
+                            <div class="stat-unit">상승률</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Russell</div>
+                            <div class="stat-value price-up">+0.72%</div>
+                            <div class="stat-unit">상승률</div>
                         </div>
                     </div>
 
-                    <!-- 섹터 강도 -->
-                    <div class="card">
-                        <h3>② 섹터별 상대강도 (RS Line)</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>섹터</th>
-                                    <th>RS Score</th>
-                                    <th>상태</th>
-                                    <th>추세</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="ticker-cell">Technology</td>
-                                    <td><span class="price-up">92</span></td>
-                                    <td><span class="badge green">Strong</span></td>
-                                    <td>📈 상승</td>
-                                </tr>
-                                <tr>
-                                    <td class="ticker-cell">Semiconductor</td>
-                                    <td><span class="price-up">88</span></td>
-                                    <td><span class="badge green">Strong</span></td>
-                                    <td>📈 상승</td>
-                                </tr>
-                                <tr>
-                                    <td class="ticker-cell">Energy</td>
-                                    <td><span class="price-down">45</span></td>
-                                    <td><span class="badge red">Weak</span></td>
-                                    <td>📉 하락</td>
-                                </tr>
-                                <tr>
-                                    <td class="ticker-cell">Healthcare</td>
-                                    <td>72</td>
-                                    <td><span class="badge blue">Neutral</span></td>
-                                    <td>➡️ 보합</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- ===== TAB 2: Market Pulse ===== -->
-                <div id="market-pulse-tab" class="tab-pane">
-                    <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px;">📊 Market Pulse</h2>
-                    
-                    <div class="grid-2">
-                        <div class="card">
-                            <h3>Stage 분포</h3>
-                            <div class="grid-2">
-                                <div class="stat-box">
-                                    <div class="stat-label">Stage 2</div>
-                                    <div class="stat-value">113</div>
-                                </div>
-                                <div class="stat-box">
-                                    <div class="stat-label">Stage 3</div>
-                                    <div class="stat-value">45</div>
-                                </div>
-                                <div class="stat-box">
-                                    <div class="stat-label">Stage 4</div>
-                                    <div class="stat-value" style="color: #10b981;">12</div>
-                                </div>
-                                <div class="stat-box">
-                                    <div class="stat-label">Stage 6/7</div>
-                                    <div class="stat-value" style="color: #ef4444;">28</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <h3>Breadth Index</h3>
-                            <div class="stat-box" style="margin-bottom: 16px;">
-                                <div class="stat-label">Advancing / Declining</div>
-                                <div class="stat-value">58.3%</div>
-                            </div>
-                            <div class="progress">
-                                <div class="progress-bar" style="width: 58.3%;"></div>
-                            </div>
-                            <div style="font-size: 12px; color: #6b7280; margin-top: 8px; text-align: center;">
-                                상승장 신호 강함 📈
-                            </div>
+                    <div class="breadth-info">
+                        <div class="breadth-item">
+                            <span class="breadth-label">S&P DD: 3</span>
+                            <span class="breadth-label">NASDAQ DD: 3</span>
+                            <span class="breadth-label">Breadth (50MA ▼): 68%</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- ===== TAB 7: 전략실 ===== -->
-                <div id="strategy-room-tab" class="tab-pane">
-                    <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px;">🏛 전략실 — g3+g1+g2 paper-trade</h2>
-
-                    <div class="alert info">
-                        <strong>ℹ️ 5-Gate Funnel:</strong> 여자 38 (혹은 hold 40 + earnings guard + sell signal)
+                <!-- 시장 환경 평가 섹션 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>② 시장 환경 평가 (Universe Breadth)</h3>
                     </div>
 
-                    <!-- 포트폴리오 통계 -->
-                    <div class="grid-4">
-                        <div class="stat-box">
-                            <div class="stat-label">NAV</div>
-                            <div class="stat-value" style="color: #10b981;">1.0000</div>
-                            <div class="stat-unit">시작가</div>
+                    <div class="breadth-grid grid-3">
+                        <div class="breadth-box">
+                            <div class="breadth-title">SETUP</div>
+                            <div class="breadth-sublabel">8/8 통과 증폭</div>
+                            <div class="breadth-count">620개</div>
+                            <div class="breadth-indicator positive">✓ 정상</div>
                         </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Active Positions</div>
-                            <div class="stat-value">5</div>
-                            <div class="stat-unit">포지션</div>
+                        <div class="breadth-box">
+                            <div class="breadth-title">SETUP</div>
+                            <div class="breadth-sublabel">8/8 통과 버짐</div>
+                            <div class="breadth-count">58.7%</div>
+                            <div class="breadth-indicator positive">✓ 정상</div>
                         </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Win Rate</div>
-                            <div class="stat-value" style="color: #10b981;">48.4%</div>
-                            <div class="stat-unit">수익률</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Closed Trades</div>
-                            <div class="stat-value">62</div>
-                            <div class="stat-unit">거래</div>
+                        <div class="breadth-box">
+                            <div class="breadth-title">SETUP</div>
+                            <div class="breadth-sublabel">7-/8 파차리스트</div>
+                            <div class="breadth-count">829개</div>
+                            <div class="breadth-indicator positive">✓ 정상</div>
                         </div>
                     </div>
 
-                    <!-- 진입 신호 테이블 -->
-                    <div class="card">
-                        <h3>📊 Entry Signals (5-Gate 통과)</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Ticker</th>
-                                    <th>Price</th>
-                                    <th>RS Score</th>
-                                    <th>Phase</th>
-                                    <th>Pattern</th>
-                                    <th>Weight</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="ticker-cell">NVMI</td>
-                                    <td>$619.07</td>
-                                    <td><span class="price-up">92</span></td>
-                                    <td><span class="badge green">4</span></td>
-                                    <td><span class="badge gray">Ascending Base</span></td>
-                                    <td><strong>1.0</strong></td>
-                                    <td><span class="badge green">1순위</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="ticker-cell">STX</td>
-                                    <td>$1,018.80</td>
-                                    <td><span class="price-up">88</span></td>
-                                    <td><span class="badge green">4</span></td>
-                                    <td><span class="badge gray">HT Flag</span></td>
-                                    <td><strong>0.9</strong></td>
-                                    <td><span class="badge green">2순위</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="ticker-cell">BHE</td>
-                                    <td>$91.31</td>
-                                    <td><span class="price-up">86</span></td>
-                                    <td><span class="badge green">4</span></td>
-                                    <td><span class="badge gray">HT Flag</span></td>
-                                    <td><strong>0.9</strong></td>
-                                    <td><span class="badge blue">Hold</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="ticker-cell">PRM</td>
-                                    <td>$36.36</td>
-                                    <td><span class="price-up">84</span></td>
-                                    <td><span class="badge blue">3</span></td>
-                                    <td><span class="badge gray">HT Flag</span></td>
-                                    <td><strong>0.6</strong></td>
-                                    <td><span class="badge gray">Watch</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="ticker-cell">TVTX</td>
-                                    <td>$53.80</td>
-                                    <td><span class="price-up">82</span></td>
-                                    <td><span class="badge green">4</span></td>
-                                    <td><span class="badge gray">HT Flag</span></td>
-                                    <td><strong>0.9</strong></td>
-                                    <td><span class="badge green">Active</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="breadth-grid grid-3">
+                        <div class="breadth-box strength">
+                            <div class="breadth-title">STRENGTH</div>
+                            <div class="breadth-sublabel">RS 90+ 종목</div>
+                            <div class="breadth-count">494개</div>
+                            <div class="strength-dots">● ●</div>
+                        </div>
+                        <div class="breadth-box strength">
+                            <div class="breadth-title">STRENGTH</div>
+                            <div class="breadth-sublabel">RS 80-89 (스트롱)</div>
+                            <div class="breadth-count">328개</div>
+                            <div class="strength-dots">● ●</div>
+                        </div>
+                        <div class="breadth-box strength">
+                            <div class="breadth-title">STRENGTH</div>
+                            <div class="breadth-sublabel">RS 랭크</div>
+                            <div class="breadth-count">88</div>
+                            <div class="strength-dots">● ●</div>
+                        </div>
                     </div>
                 </div>
 
+                <!-- 섹터별 분석 테이블 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>③ 섹터별 RS Line 지표</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>섹터</th>
+                                <th>현재가</th>
+                                <th>RS Score</th>
+                                <th>Phase</th>
+                                <th>패턴</th>
+                                <th>IBD RS</th>
+                                <th>1주 변화</th>
+                                <th>3주 변화</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="ticker-cell">NVMI</td>
+                                <td>$619.07</td>
+                                <td><span class="score-badge green">92</span></td>
+                                <td><span class="badge badge-green">4+</span></td>
+                                <td><span class="badge badge-gray">Ascending Base</span></td>
+                                <td><span class="score-badge gold">93</span></td>
+                                <td class="price-up">+2.10%</td>
+                                <td class="price-up">+1.70%</td>
+                            </tr>
+                            <tr>
+                                <td class="ticker-cell">STX</td>
+                                <td>$1,018.80</td>
+                                <td><span class="score-badge green">88</span></td>
+                                <td><span class="badge badge-green">4</span></td>
+                                <td><span class="badge badge-gray">HT Flag</span></td>
+                                <td><span class="score-badge gold">99</span></td>
+                                <td class="price-up">+1.80%</td>
+                                <td class="price-up">+1.30%</td>
+                            </tr>
+                            <tr>
+                                <td class="ticker-cell">BHE</td>
+                                <td>$91.31</td>
+                                <td><span class="score-badge green">86</span></td>
+                                <td><span class="badge badge-green">4</span></td>
+                                <td><span class="badge badge-gray">HT Flag</span></td>
+                                <td><span class="score-badge gold">96</span></td>
+                                <td class="price-up">+1.50%</td>
+                                <td class="price-up">+1.10%</td>
+                            </tr>
+                            <tr>
+                                <td class="ticker-cell">PRM</td>
+                                <td>$36.36</td>
+                                <td><span class="score-badge orange">84</span></td>
+                                <td><span class="badge badge-blue">3</span></td>
+                                <td><span class="badge badge-gray">HT Flag</span></td>
+                                <td><span class="score-badge gold">95</span></td>
+                                <td class="price-up">+1.20%</td>
+                                <td class="price-up">+0.90%</td>
+                            </tr>
+                            <tr>
+                                <td class="ticker-cell">TVTX</td>
+                                <td>$53.80</td>
+                                <td><span class="score-badge orange">82</span></td>
+                                <td><span class="badge badge-green">4</span></td>
+                                <td><span class="badge badge-gray">HT Flag</span></td>
+                                <td><span class="score-badge gold">95</span></td>
+                                <td class="price-up">+1.00%</td>
+                                <td class="price-up">+0.80%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
+            <!-- TAB 2: Market Pulse -->
+            <div id="market-pulse-tab" class="tab-pane">
+                <div class="content-header">
+                    <h2>📊 Market Pulse</h2>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3>Stage 분포</h3>
+                        <div class="stat-grid grid-2">
+                            <div class="stat-mini">
+                                <div class="stat-label">Stage 2</div>
+                                <div class="stat-value">113</div>
+                            </div>
+                            <div class="stat-mini">
+                                <div class="stat-label">Stage 3</div>
+                                <div class="stat-value">45</div>
+                            </div>
+                            <div class="stat-mini">
+                                <div class="stat-label">Stage 4</div>
+                                <div class="stat-value" style="color: #10b981;">12</div>
+                            </div>
+                            <div class="stat-mini">
+                                <div class="stat-label">Stage 6/7</div>
+                                <div class="stat-value" style="color: #ef4444;">28</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Breadth Index</h3>
+                        <div class="breadth-meter">
+                            <div class="meter-label">Advancing / Declining</div>
+                            <div class="meter-value">58.3%</div>
+                            <div class="meter-bar">
+                                <div class="meter-fill" style="width: 58.3%;"></div>
+                            </div>
+                            <div class="meter-note">상승장 신호 강함 📈</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 7: 전략실 -->
+            <div id="strategy-tab" class="tab-pane">
+                <div class="content-header">
+                    <h2>🏛️ 전략실 — g3+g1+g2 paper-trade</h2>
+                    <div class="header-meta">5-Gate Funnel · 여자 38 (혹은 hold 40 + earnings guard + sell signal)</div>
+                </div>
+
+                <!-- 포트폴리오 통계 -->
+                <div class="portfolio-stats grid-4">
+                    <div class="stat-box">
+                        <div class="stat-label">NAV</div>
+                        <div class="stat-value" style="color: #10b981;">1.0000</div>
+                        <div class="stat-unit">시작가</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Active Positions</div>
+                        <div class="stat-value">5</div>
+                        <div class="stat-unit">포지션</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Win Rate</div>
+                        <div class="stat-value" style="color: #10b981;">48.4%</div>
+                        <div class="stat-unit">수익률</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Closed Trades</div>
+                        <div class="stat-value">62</div>
+                        <div class="stat-unit">거래</div>
+                    </div>
+                </div>
+
+                <!-- Entry Signals 테이블 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📊 Entry Signals (5-Gate 통과)</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Ticker</th>
+                                <th>Price</th>
+                                <th>RS Score</th>
+                                <th>Phase</th>
+                                <th>Pattern</th>
+                                <th>Weight</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="ticker-cell">NVMI</td>
+                                <td>$619.07</td>
+                                <td><span class="score-badge green">92</span></td>
+                                <td><span class="badge badge-green">4</span></td>
+                                <td><span class="badge badge-gray">Ascending Base</span></td>
+                                <td><strong>1.0</strong></td>
+                                <td><span class="badge badge-green">1순위</span></td>
+                            </tr>
+                            <tr>
+                                <td class="ticker-cell">STX</td>
+                                <td>$1,018.80</td>
+                                <td><span class="score-badge green">88</span></td>
+                                <td><span class="badge badge-green">4</span></td>
+                                <td><span class="badge badge-gray">HT Flag</span></td>
+                                <td><strong>0.9</strong></td>
+                                <td><span class="badge badge-green">2순위</span></td>
+                            </tr>
+                            <tr>
+                                <td class="ticker-cell">BHE</td>
+                                <td>$91.31</td>
+                                <td><span class="score-badge green">86</span></td>
+                                <td><span class="badge badge-green">4</span></td>
+                                <td><span class="badge badge-gray">HT Flag</span></td>
+                                <td><strong>0.9</strong></td>
+                                <td><span class="badge badge-blue">Hold</span></td>
+                            </tr>
+                            <tr>
+                                <td class="ticker-cell">PRM</td>
+                                <td>$36.36</td>
+                                <td><span class="score-badge orange">84</span></td>
+                                <td><span class="badge badge-blue">3</span></td>
+                                <td><span class="badge badge-gray">HT Flag</span></td>
+                                <td><strong>0.6</strong></td>
+                                <td><span class="badge badge-gray">Watch</span></td>
+                            </tr>
+                            <tr>
+                                <td class="ticker-cell">TVTX</td>
+                                <td>$53.80</td>
+                                <td><span class="score-badge orange">82</span></td>
+                                <td><span class="badge badge-green">4</span></td>
+                                <td><span class="badge badge-gray">HT Flag</span></td>
+                                <td><strong>0.9</strong></td>
+                                <td><span class="badge badge-green">Active</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 전략 트랙 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📋 Track g3+g1+g2</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Ticker</th>
+                                <th>Sector</th>
+                                <th>Pattern</th>
+                                <th>Pivot</th>
+                                <th>RS</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="ticker-cell">STX</td>
+                                <td>Computer Hardware</td>
+                                <td><span class="badge badge-gray">HT Flag</span></td>
+                                <td>1018.80</td>
+                                <td>1037</td>
+                                <td><strong>📊</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="ticker-cell">BHE</td>
+                                <td>Electronic Components</td>
+                                <td><span class="badge badge-gray">HT Flag</span></td>
+                                <td>91.31</td>
+                                <td>92</td>
+                                <td><strong>📊</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </main>
     </div>
 
     <!-- 스크립트 -->
     <script>
-        // 탭 네비게이션
+        // 탭 네비게이션 로직
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const tabName = this.getAttribute('data-tab');
@@ -367,20 +525,24 @@
         // 데이터 로드
         async function loadData() {
             try {
-                const signals = await fetch('results/entry_signals.json').then(r => r.json()).catch(() => null);
-                const portfolio = await fetch('results/strategy_room_portfolio.json').then(r => r.json()).catch(() => null);
+                const signalsRes = await fetch('results/entry_signals.json');
+                const signals = signalsRes.ok ? await signalsRes.json() : null;
+                
+                const portfolioRes = await fetch('results/strategy_room_portfolio.json');
+                const portfolio = portfolioRes.ok ? await portfolioRes.json() : null;
                 
                 if (signals) {
-                    console.log('✅ Entry signals loaded:', signals.signals.length);
+                    console.log('✅ Entry signals loaded:', signals);
                 }
                 if (portfolio) {
-                    console.log('✅ Portfolio loaded:', portfolio.holdings.length);
+                    console.log('✅ Strategy room portfolio loaded:', portfolio);
                 }
             } catch (err) {
                 console.error('Data load error:', err);
             }
         }
 
+        // DOM 로드 완료 시 데이터 로드
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
         });
