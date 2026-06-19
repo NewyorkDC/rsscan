@@ -7,8 +7,8 @@
     
     <!-- 시스템 폰트 스택 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/dashboard.css?v=20260619c">
-    <link rel="stylesheet" href="css/responsive.css?v=20260619c">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260619d">
+    <link rel="stylesheet" href="css/responsive.css?v=20260619d">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
@@ -210,10 +210,10 @@
                             <div style="margin-bottom: var(--spacing-lg);">
                                 <div style="display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);">
                                     <span style="font-size: 20px;">🟢</span>
-                                    <span style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary);">Uptrend Resumed</span>
+                                    <span id="market-regime-label" style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary);">Uptrend Resumed</span>
                                 </div>
                                 <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: var(--spacing-sm);">
-                                    <strong>권장 비중:</strong> <span style="color: var(--color-primary); font-weight: 700;">75~95%</span>
+                                    <strong>권장 비중:</strong> <span id="market-regime-ratio" style="color: var(--color-primary); font-weight: 700;">75~95%</span>
                                 </div>
                                 <div style="font-size: 0.8rem; color: var(--color-text-secondary);">
                                     <strong>전략:</strong> FTD 최종 위권 구간 → 적극 진입
@@ -226,21 +226,21 @@
                             <!-- S&P 500 -->
                             <div style="background: white; padding: var(--spacing-lg); border-radius: 8px; border: 1px solid var(--color-border-light); box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center;">
                                 <div style="font-size: 0.7rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-sm);">S&P 500</div>
-                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary); margin-bottom: var(--spacing-xs);">+1.65%</div>
+                                <div id="market-sp500-change" style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary); margin-bottom: var(--spacing-xs);">+1.65%</div>
                                 <div style="font-size: 0.7rem; color: var(--color-text-tertiary);">상승률</div>
                             </div>
 
                             <!-- NASDAQ -->
                             <div style="background: white; padding: var(--spacing-lg); border-radius: 8px; border: 1px solid var(--color-border-light); box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center;">
                                 <div style="font-size: 0.7rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-sm);">NASDAQ</div>
-                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary); margin-bottom: var(--spacing-xs);">+3.07%</div>
+                                <div id="market-nasdaq-change" style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary); margin-bottom: var(--spacing-xs);">+3.07%</div>
                                 <div style="font-size: 0.7rem; color: var(--color-text-tertiary);">상승률</div>
                             </div>
 
                             <!-- RUSSELL -->
                             <div style="background: white; padding: var(--spacing-lg); border-radius: 8px; border: 1px solid var(--color-border-light); box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center;">
                                 <div style="font-size: 0.7rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-sm);">RUSSELL</div>
-                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary); margin-bottom: var(--spacing-xs);">+0.72%</div>
+                                <div id="market-russell-change" style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary); margin-bottom: var(--spacing-xs);">+0.72%</div>
                                 <div style="font-size: 0.7rem; color: var(--color-text-tertiary);">상승률</div>
                             </div>
                         </div>
@@ -921,16 +921,16 @@
     </script>
 
     <!-- Daily Briefing 데이터 바인딩 -->
-    <script src="js/briefing.js?v=20260619c"></script>
+    <script src="js/briefing.js?v=20260619d"></script>
 
     <!-- Market Pulse 데이터 바인딩 -->
-    <script src="js/market-pulse.js?v=20260619c"></script>
+    <script src="js/market-pulse.js?v=20260619d"></script>
 
     <!-- Strategy Room v5 데이터 바인딩 -->
-    <script src="js/strategy-room.js?v=20260619c"></script>
+    <script src="js/strategy-room.js?v=20260619d"></script>
 
     <!-- 섹터 ETF 스크리너 -->
-    <script src="js/sectors-etf.js?v=20260619c"></script>
+    <script src="js/sectors-etf.js?v=20260619d"></script>
 
 </body>
 </html>
