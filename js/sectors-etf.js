@@ -25,6 +25,7 @@ class SectorsETFBinder {
      */
     async loadAndRender() {
         try {
+            console.log('📥 daily_ibd_scan.json 로드 중...');
             const response = await fetch('results/daily_ibd_scan.json');
             if (!response.ok) throw new Error('daily_ibd_scan.json 로드 실패');
             
@@ -38,6 +39,7 @@ class SectorsETFBinder {
             });
             
             console.log(`✅ ETF 필터링 완료: ${this.allData.length}개 ETF`);
+            console.log('ETF 티커들:', this.allData.map(d => d.ticker).join(', '));
 
             // 이벤트 리스너 등록
             this.attachEventListeners();
@@ -48,7 +50,7 @@ class SectorsETFBinder {
             this.renderTable();
 
         } catch (error) {
-            console.error(`❌ ETF 데이터 로드 실패: ${error.message}`);
+            console.error(`❌ ETF 데이터 로드 실패:`, error);
         }
     }
 
@@ -56,6 +58,8 @@ class SectorsETFBinder {
      * 이벤트 리스너 등록 (정렬, 필터 버튼)
      */
     attachEventListeners() {
+        console.log('🎛️ 이벤트 리스너 등록 중...');
+
         // 정렬 버튼
         document.querySelectorAll('.etf-sort-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -120,6 +124,8 @@ class SectorsETFBinder {
                 console.log('프리셋 클릭됨');
             });
         });
+
+        console.log('✅ 이벤트 리스너 등록 완료');
     }
 
     /**
@@ -181,6 +187,8 @@ class SectorsETFBinder {
             console.error('❌ etf-data-table 컨테이너를 찾을 수 없습니다');
             return;
         }
+
+        console.log('📊 테이블 렌더링 중...');
 
         if (this.filteredData.length === 0) {
             container.innerHTML = `
@@ -366,12 +374,12 @@ class SectorsETFBinder {
 }
 
 /**
- * DOMContentLoaded 이벤트 - 스크립트 자동 실행
+ * ✅ DOMContentLoaded 이벤트 - 스크립트 자동 실행
+ * 이 코드가 없으면 스크립트가 실행되지 않습니다!
  */
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 섹터 ETF 스크리너 초기화 시작...');
+    console.log("🚀 섹터 ETF 스크립트 정상 로드됨!");
     const etfBinder = new SectorsETFBinder();
-    etfBinder.init();
+    etfBinder.loadAndRender();
     window.etfBinder = etfBinder;
-    console.log('✅ 섹터 ETF 스크리너 초기화 완료');
 });
