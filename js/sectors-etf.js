@@ -11,12 +11,12 @@ class SectorsETFBinder {
         this.activeFilters = new Set();
         this.activePhases = new Set();
         
-        // 주요 ETF 티커 목록 (약 36개)
+        // 주요 ETF 티커 목록 (약 40개)
         this.etfTickers = new Set([
             'SMH', 'SOXX', 'QQQ', 'IWM', 'SPLG', 'VTI', 'VOO', 'VGT', 'XLK', 'XLV',
-            'XLF', 'XLI', 'XLY', 'XLE', 'XLRE', 'XLU', 'EEM', 'IEMG', 'TLT', 'IEF',
-            'BOUT', 'QQEW', 'UPRO', 'SPXU', 'XBI', 'IBB', 'XHB', 'XRT', 'ICLN', 'RSP',
-            'QQQE', 'ETSY', 'NOBL', 'SPHD', 'DGRO', 'VONE'
+            'XLF', 'XLI', 'XLY', 'XLE', 'XLRE', 'XLU', 'XLB', 'XLP', 'XLC', 'EEM',
+            'IEMG', 'TLT', 'IEF', 'SPY', 'DIA', 'BOUT', 'QQEW', 'UPRO', 'SPXU', 'XBI',
+            'IBB', 'XHB', 'XRT', 'ICLN', 'RSP', 'QQQE', 'ETSY', 'NOBL', 'SPHD', 'DGRO', 'VONE'
         ]);
     }
 
