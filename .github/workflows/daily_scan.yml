@@ -130,6 +130,7 @@ jobs:
             echo "🚀 저장소에 푸시하는 중..."
             # 원격에 다른 변경(웹 에디터 커밋 등)이 있어도 충돌 없이 push.
             # 최대 3회 재시도: pull --rebase로 원격 변경을 먼저 당겨온 뒤 push.
+            # results/ 충돌 시 우리 새 결과를 우선 채택 (-X theirs: rebase 중엔 "우리" 의미).
             PUSHED=0
             for i in 1 2 3; do
               if git push origin main; then
@@ -138,7 +139,13 @@ jobs:
                 break
               fi
               echo "⚠️ push 거부됨 (시도 $i) — 원격 변경을 rebase로 통합 후 재시도..."
-              git pull --rebase origin main || true
+              # rebase 중 충돌 시 우리 결과 우선. rebase 실패하면 중단 후 정리.
+              if ! git pull --rebase -X theirs origin main; then
+                echo "   rebase 충돌 — 우리 결과 강제 채택"
+                git checkout --theirs results/ 2>/dev/null || true
+                git add results/ 2>/dev/null || true
+                git rebase --continue 2>/dev/null || git rebase --abort 2>/dev/null || true
+              fi
             done
             if [ "$PUSHED" != "1" ]; then
               echo "❌ 3회 시도 후에도 push 실패 — 다음 실행에서 재시도됩니다"
