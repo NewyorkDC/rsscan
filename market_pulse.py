@@ -86,19 +86,88 @@ def count_distribution_days(df):
 
 
 def judge_regime(spy_info, dd_count, breadth):
-    """SPY MA 정배열 + 분산일 + breadth 종합 regime 판정"""
+    """IBD Market School 체계: 분산일(Distribution Day) 중심 판정.
+    - Correction: 분산일 6+ 또는 SPY가 50일 MA 명확 이탈
+    - Under Pressure: 분산일 4~5개 누적
+    - Confirmed/Resumed Uptrend: 분산일 적고 정배열"""
     above50 = spy_info['above_ma50']
     above200 = spy_info['above_ma200']
 
-    if above50 and above200 and dd_count <= 3 and breadth >= 55:
-        return {'label': 'Uptrend Resumed', 'icon': '🟢', 'code': 'uptrend_resumed', 'ratio': '75-95%'}
+    # 🔴 Correction: 분산일 6+ 또는 50일 MA 명확 이탈(장기 추세도 깨짐)
+    if dd_count >= 6 or (not above50 and not above200):
+        return {'label': 'Market in Correction', 'icon': '🔴', 'code': 'correction', 'ratio': '0-20%'}
+
+    # 🔴 50일 MA 아래 (단기 추세 이탈, 장기는 유지) → 조정 진입
+    if not above50 and above200:
+        return {'label': 'Uptrend Under Pressure', 'icon': '🟡', 'code': 'under_pressure', 'ratio': '40-60%'}
+
+    # 🟡 Under Pressure: 분산일 4~5개 누적
+    if dd_count >= 4:
+        return {'label': 'Uptrend Under Pressure', 'icon': '🟡', 'code': 'under_pressure', 'ratio': '40-60%'}
+
+    # 🟢 Uptrend Resumed: 정배열 + 분산일 적음 + breadth 양호
+    if above50 and above200 and dd_count <= 2 and breadth >= 55:
+        return {'label': 'Uptrend Resumed', 'icon': '🟢', 'code': 'uptrend_resumed', 'ratio': '80-100%'}
+
+    # 🟢 Confirmed Uptrend: 정배열 (분산일 3개 이하)
     if above50 and above200:
         return {'label': 'Confirmed Uptrend', 'icon': '🟢', 'code': 'confirmed_uptrend', 'ratio': '60-80%'}
-    if above200 and not above50:
-        return {'label': 'Uptrend Under Pressure', 'icon': '🟡', 'code': 'under_pressure', 'ratio': '30-50%'}
-    if above50 and not above200:
-        return {'label': 'Rally Attempt', 'icon': '🟠', 'code': 'rally_attempt', 'ratio': '20-40%'}
-    return {'label': 'Market in Correction', 'icon': '🔴', 'code': 'correction', 'ratio': '0-25%'}
+
+    # 🟠 Rally Attempt: 50일 위, 200일 아래 (회복 시도)
+    return {'label': 'Rally Attempt', 'icon': '🟠', 'code': 'rally_attempt', 'ratio': '20-40%'}
+
+
+def compute_exposure_count(spy_info, dd_count, breadth):
+    """IBD Market School Exposure Count (0~5단계, 노출도 0~100%).
+    분산일·MA정배열·breadth를 종합한 0~5 카운트."""
+    if spy_info is None:
+        return {'count': 0, 'exposure': '0%', 'label': 'Unknown'}
+
+    above50 = spy_info['above_ma50']
+    above200 = spy_info['above_ma200']
+
+    # 기본 카운트: MA 정배열 상태
+    if not above50 and not above200:
+        count = 0   # 완전 조정
+    elif not above50 and above200:
+        count = 1   # 50일 이탈, 장기 유지
+    elif above50 and not above200:
+        count = 2   # 회복 시도
+    else:
+        count = 4   # 완전 정배열 기본 4
+
+    # 분산일에 따른 감점
+    if dd_count >= 6:
+        count = min(count, 0)
+    elif dd_count >= 4:
+        count = min(count, 2)
+    elif dd_count >= 3:
+        count = min(count, 3)
+
+    # breadth에 따른 가점/감점
+    if count >= 4 and breadth >= 60 and dd_count <= 1:
+        count = 5   # 최대 노출 (강한 상승 + 광범위 참여)
+    elif count >= 3 and breadth < 40:
+        count = max(count - 1, 0)
+
+    count = max(0, min(5, count))
+    exposure_map = {0: '0-20%', 1: '20%', 2: '40%', 3: '60%', 4: '80%', 5: '100%'}
+    label_map = {
+        0: 'Correction (신규 매수 금지)',
+        1: 'FTD 직후 (초기 진입)',
+        2: '상승 지속 확인',
+        3: 'Power Trend 초기',
+        4: '강한 상승 추세',
+        5: 'Full Exposure (최대 노출)',
+    }
+    # 권장 비중 상한(전략실 연동용): count별 최대 노출 비율(0~1)
+    max_ratio_map = {0: 0.20, 1: 0.20, 2: 0.40, 3: 0.60, 4: 0.80, 5: 1.00}
+    return {
+        'count': count,
+        'exposure': exposure_map[count],
+        'label': label_map[count],
+        'max_ratio': max_ratio_map[count],
+    }
 
 
 def calculate_breadth_and_stages():
@@ -171,11 +240,13 @@ def main():
     # 3. Distribution Days
     dd_count = count_distribution_days(spy_df) if spy_df is not None else 0
 
-    # 4. Regime 판정
+    # 4. Regime 판정 + Exposure Count
     if spy_info is None:
         regime = {'label': 'Unknown', 'icon': '⚪', 'code': 'unknown', 'ratio': '—'}
+        exposure = {'count': 0, 'exposure': '—', 'label': 'Unknown', 'max_ratio': 0.20}
     else:
         regime = judge_regime(spy_info, dd_count, breadth)
+        exposure = compute_exposure_count(spy_info, dd_count, breadth)
 
     # 5. 출력 조립
     pulse = {
@@ -185,6 +256,11 @@ def main():
         'regime_icon': regime['icon'],
         'regime_code': regime['code'],
         'investment_ratio': regime['ratio'],
+        # Exposure Count (0~5)
+        'exposure_count': exposure['count'],
+        'exposure_pct': exposure['exposure'],
+        'exposure_label': exposure['label'],
+        'exposure_max_ratio': exposure['max_ratio'],
         'breadth_pct': breadth,
         'dd_count': dd_count,
         'indices': indices_out,
@@ -209,6 +285,7 @@ def main():
 
     print(f"\n{'=' * 60}")
     print(f"✅ Regime: {pulse['regime']} ({pulse['regime_icon']}) / 투자비중 {pulse['investment_ratio']}")
+    print(f"✅ Exposure Count: {pulse['exposure_count']}/5 ({pulse['exposure_pct']}) — {pulse['exposure_label']}")
     print(f"✅ Breadth: {breadth}% / DD Count: {dd_count}")
     for k, v in indices_out.items():
         if v.get('close'):
@@ -228,3 +305,4 @@ if __name__ == '__main__':
         traceback.print_exc()
         # market_pulse 실패해도 전체 파이프라인은 중단하지 않음 (exit 0)
         sys.exit(0)
+    
