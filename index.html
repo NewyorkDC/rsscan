@@ -180,6 +180,21 @@
                             <p style="font-size: 0.8rem; color: #78350f; line-height: 1.6; margin: 0;">이 화면은 "AI가 결정 추천"이 아니라 "사용자 결정을 위한 정보 정리"입니다. 결정은 사용자.</p>
                         </div>
                     </div>
+
+                    <!-- 🔄 수동 분석 실행 버튼 -->
+                    <div style="margin-top: var(--spacing-lg); padding: var(--spacing-lg); background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bfdbfe; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-lg);">
+                        <div>
+                            <h3 style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-primary); margin: 0 0 var(--spacing-sm) 0;">🔄 지금 바로 분석 실행</h3>
+                            <p style="font-size: 0.8rem; color: var(--color-text-tertiary); margin: 0;">GitHub Actions에서 최신 데이터를 수집하고 5-Gate 필터링을 실행합니다</p>
+                        </div>
+                        <button id="triggerAnalysisBtn" onclick="triggerWorkflow()" style="padding: var(--spacing-md) var(--spacing-xl); background: var(--color-secondary); color: white; border: none; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; flex-shrink: 0;">
+                            ▶️ 지금 실행
+                        </button>
+                    </div>
+                    <div id="triggerStatus" style="display: none; margin-top: var(--spacing-sm); padding: var(--spacing-md); background: var(--color-bg-main); border-left: 3px solid var(--color-secondary); border-radius: 4px;">
+                        <div id="statusMessage" style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: var(--spacing-sm);"></div>
+                        <a href="https://github.com/NewyorkDC/rsscan/actions" target="_blank" style="font-size: 0.8rem; color: var(--color-secondary); text-decoration: none; font-weight: 600;">🔗 GitHub Actions 확인 →</a>
+                    </div>
                 </div>
 
                 <!-- ===== 섹션 ① 오늘의 시장 상태 ===== -->
