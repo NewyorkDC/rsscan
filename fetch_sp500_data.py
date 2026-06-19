@@ -34,17 +34,40 @@ HEADERS = {
 }
 
 BENCHMARK = 'SPY'   # 상대강도 기준 벤치마크
-MAX_TICKERS = 500   # 최대 종목 수
+MAX_TICKERS = 2000  # 최대 종목 수 (동적 universe 상한)
 MAX_WORKERS = 20    # 병렬 다운로드 스레드
 
 
 def get_sp500_tickers():
-    """S&P 500 티커 목록 수집 (Wikipedia → GitHub fallback)"""
-    print("📊 S&P 500 티커 목록 수집 중...")
+    """분석 대상 티커 목록 수집.
+    1순위: 동적 universe (results/universe_tickers.json, build_universe.py 생성)
+    2순위 폴백: S&P 500 (Wikipedia → GitHub CSV)
+    """
+    print("📊 분석 대상 티커 목록 수집 중...")
 
+    # ===== 1순위: 동적 universe =====
+    universe_file = 'results/universe_tickers.json'
+    if os.path.exists(universe_file):
+        try:
+            with open(universe_file, encoding='utf-8') as f:
+                uni = json.load(f)
+            tickers = uni.get('tickers', [])
+            if tickers:
+                print(f"✅ 동적 universe 로드: {len(tickers)}개 "
+                      f"(시총>=${uni.get('min_market_cap', 0)/1e8:.0f}억)")
+                # 섹터 ETF는 별도 탭용으로 항상 포함
+                etfs = ['SPY', 'QQQ', 'IWM', 'SMH', 'SOXX',
+                        'XLK', 'XLV', 'XLF', 'XLE', 'XLI', 'XLY',
+                        'XLP', 'XLU', 'XLRE', 'XLB', 'XLC']
+                tickers = sorted(set(tickers + etfs))[:MAX_TICKERS]
+                print(f"✅ 분석 대상 (ETF 포함): {len(tickers)}개\n")
+                return tickers
+        except Exception as e:
+            print(f"⚠️ 동적 universe 로드 실패 ({e}), S&P 500 폴백")
+
+    # ===== 2순위 폴백: S&P 500 =====
+    print("📊 S&P 500 폴백 모드...")
     tickers = []
-
-    # 1차: Wikipedia (User-Agent 헤더)
     try:
         resp = requests.get(
             'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies',
@@ -67,10 +90,7 @@ def get_sp500_tickers():
             print(f"❌ 티커 목록 수집 완전 실패: {e2}")
             sys.exit(1)
 
-    # yfinance 형식으로 정규화 (BRK.B → BRK-B)
     tickers = [str(t).replace('.', '-').strip() for t in tickers if t]
-
-    # 주요 ETF + 테크 종목 추가 (대시보드 섹터 ETF 탭용)
     additional = [
         'NVDA', 'AVGO', 'ASML', 'PLTR', 'COIN',
         'SMH', 'SOXX', 'QQQ', 'IWM', 'XLK', 'XLV', 'XLF', 'XLE', 'XLI', 'XLY',
