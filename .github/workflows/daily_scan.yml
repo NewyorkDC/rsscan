@@ -32,19 +32,19 @@ jobs:
           pip install -r requirements.txt
           echo "✅ Dependencies installed"
 
-      # Step 4: 📊 Investable Universe 갱신 (신규)
-      - name: 📊 Update Investable Universe
-        run: |
-          echo "🔄 우량주 유니버스 갱신 중..."
-          python update_universe.py
-          echo "✅ 유니버스 갱신 완료"
-
-      # Step 4.5: 🌐 동적 Universe 생성 (시총/거래량 필터)
+      # Step 4: 🌐 동적 Universe 생성 (시총/거래량 필터) — 먼저 실행
       - name: 🌐 Build Dynamic Universe
         run: |
           echo "🌐 동적 universe 생성 중 (NASDAQ/NYSE/AMEX 시총 필터)..."
           python build_universe.py
           echo "✅ 동적 universe 생성 완료"
+
+      # Step 4.5: 📊 Investable Universe 저장 (build 결과 변환, yfinance 미사용)
+      - name: 📊 Save Investable Universe
+        run: |
+          echo "🔄 Investable Universe 저장 중..."
+          python update_universe.py
+          echo "✅ 유니버스 저장 완료"
 
       # Step 5: 📈 RS Line 데이터 수집 (동적 universe 기반)
       - name: 📈 Fetch RS Line Data
