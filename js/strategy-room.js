@@ -31,6 +31,12 @@ class StrategyRoomBinder {
             this.statistics = this.portfolio.statistics || {};
             this.navHistory = this.portfolio.nav_history || [];
 
+            // IBD 노출도 (백엔드가 계산한 값)
+            this.exposure = this.portfolio.exposure || null;
+            if (this.exposure && this.exposure.max_positions != null) {
+                this.maxPositions = this.exposure.max_positions;
+            }
+
             // 진입 신호 (있으면)
             if (signalsRes && signalsRes.ok) {
                 const sig = await signalsRes.json();
@@ -41,6 +47,7 @@ class StrategyRoomBinder {
             console.log(`✅ Strategy Room v6 로드: 보유 ${this.holdings.length}개, 청산 ${this.closedTrades.length}건, 신호 ${this.entrySignals.length}개, NAV포인트 ${this.navHistory.length}개`);
 
             // 상단 블록 (스크린샷 순서)
+            this.renderExposureBanner(); // 0. IBD 노출도 배너
             this.renderOOS();              // 1. 전방향 검증
             this.renderEntrySignals();     // 3. 진입 조건
             this.renderSwitching();        // 4. 종목 스위칭
@@ -54,6 +61,32 @@ class StrategyRoomBinder {
         } catch (error) {
             console.error(`❌ Strategy Room 로드 실패: ${error.message}`);
         }
+    }
+
+    // ===== 0. IBD 노출도 배너 =====
+    renderExposureBanner() {
+        const banner = document.getElementById('strategy-exposure-banner');
+        const textEl = document.getElementById('strategy-exposure-text');
+        if (!banner || !textEl || !this.exposure) return;
+
+        const count = this.exposure.count != null ? this.exposure.count : 5;
+        const ratio = this.exposure.max_ratio != null ? Math.round(this.exposure.max_ratio * 100) : 100;
+        const maxPos = this.exposure.max_positions != null ? this.exposure.max_positions : 12;
+
+        const labelMap = {
+            0: 'Correction (신규 매수 중단)', 1: 'FTD 직후 (초기 진입)', 2: '상승 지속 확인',
+            3: 'Power Trend 초기', 4: '강한 상승 추세', 5: 'Full Exposure (최대 노출)',
+        };
+        textEl.textContent = `Count ${count}/5 · 권장 노출 ${ratio}% · 최대 보유 ${maxPos}개 — ${labelMap[count] || ''}`;
+
+        // 색상 (노출도별)
+        const bg = count >= 4 ? '#f0fdf4' : count >= 2 ? '#fffbeb' : '#fef2f2';
+        const border = count >= 4 ? '#bbf7d0' : count >= 2 ? '#fde68a' : '#fecaca';
+        const color = count >= 4 ? '#166534' : count >= 2 ? '#92400e' : '#991b1b';
+        banner.style.background = bg;
+        banner.style.borderColor = border;
+        banner.style.color = color;
+        banner.style.display = 'block';
     }
 
     // ===== 1. 전방향 검증 (OOS) =====
@@ -134,7 +167,7 @@ class StrategyRoomBinder {
             html += `
                 <tr style="border-bottom:1px solid var(--color-border-light);">
                     <td style="text-align:left; font-weight:600;"><span class="ticker-link" style="color:#2563eb;" onclick="window.strategyRoomBinder.openModal('${s.ticker}')">${s.ticker}</span></td>
-                    <td style="text-align:left; font-size:0.75rem;">${s.top_pattern ? 'Top Pattern' : (s.breakout ? 'Breakout' : '–')}</td>
+                    <td style="text-align:left; font-size:0.75rem;">${s.chart_pattern || (s.top_pattern ? 'Top Pattern' : (s.breakout ? 'Breakout' : '–'))}</td>
                     <td style="text-align:right;">$${(s.close || 0).toFixed(2)}</td>
                     <td style="text-align:right; font-size:0.75rem;">${pivotStr}</td>
                     <td style="text-align:center; font-weight:600; color:#fbbf24;">${s.ibd_rs_rating || 0}</td>
@@ -437,7 +470,13 @@ class StrategyRoomBinder {
         const close = data.close || (fromHolding ? fromHolding.current_price || fromHolding.entry_price : 0) || 0;
         const pivot = data.dist_pivot_pct;
         const chg6w = data.rs_6w_change;
-        const pattern = data.top_pattern ? 'Top Pattern' : (data.breakout ? 'Breakout' : (fromHolding ? fromHolding.pattern : '—'));
+        // A그룹 지표
+        const comp = data.composite_rating || 0;
+        const accGrade = data.acc_dis_grade || '—';
+        const chartPattern = data.chart_pattern || null;
+        const patternScore = data.pattern_score || 0;
+        const supplyAbove = data.supply_above_pct;
+        const pattern = chartPattern || (data.top_pattern ? 'Top Pattern' : (data.breakout ? 'Breakout' : (fromHolding ? fromHolding.pattern : null)));
 
         setText('modal-ticker', ticker);
         setText('modal-price', `$${close.toFixed(2)}`);
@@ -445,31 +484,38 @@ class StrategyRoomBinder {
         setText('modal-phase', `P${phase}`);
         setText('modal-pivot', pivot != null ? `${pivot >= 0 ? '+' : ''}${pivot.toFixed(1)}%` : '—');
         setText('modal-chg', chg6w != null ? `${chg6w >= 0 ? '+' : ''}${chg6w.toFixed(1)}%` : '—');
+        // A그룹 지표 표시
+        setText('modal-comp', comp || '—');
+        setText('modal-accdis', accGrade);
+        setText('modal-supply', supplyAbove != null ? `${supplyAbove.toFixed(0)}%` : '—');
 
         // Phase 뱃지 색
         const phaseColor = phase >= 5 ? '#10b981' : phase === 4 ? '#059669' : phase === 3 ? '#3b82f6' : phase >= 6 ? '#ef4444' : '#9ca3af';
         const badge = document.getElementById('modal-phase-badge');
         if (badge) { badge.textContent = `P${phase}`; badge.style.background = phaseColor; }
 
-        // 패턴 뱃지
-        setHTML('modal-pattern', pattern && pattern !== '—'
-            ? `<span style="display:inline-block; padding:2px 8px; background:#fef3c7; color:#92400e; border-radius:4px; font-size:0.7rem; font-weight:600;">${pattern}</span>`
+        // 패턴 뱃지 (실제 차트 패턴 + 점수)
+        setHTML('modal-pattern', pattern
+            ? `<span style="display:inline-block; padding:2px 8px; background:#fef3c7; color:#92400e; border-radius:4px; font-size:0.7rem; font-weight:600;">${pattern}${patternScore ? ` ${patternScore}점` : ''}</span>`
             : '');
 
         // 종목명 (있으면)
         setText('modal-name', data.name || ticker);
 
-        // 선정 이유 생성
+        // 선정 이유 생성 (A그룹 반영)
         const reasons = [];
         if (rs >= 90) reasons.push(`IBD RS ${rs} (상위 ${100 - rs}%)`);
         else if (rs >= 80) reasons.push(`IBD RS ${rs} (강세)`);
+        if (comp >= 90) reasons.push(`Composite ${comp}`);
         if (phase >= 5) reasons.push('Phase 5+ 완숙 리더 (강한 정배열)');
         else if (phase === 4) reasons.push('Phase 4 돌파 임박');
+        if (chartPattern) reasons.push(`${chartPattern} 패턴 (${patternScore}점)`);
         if (data.rs_new_high) reasons.push('RS 신고가');
         if (data.rs_accelerating_strong) reasons.push('가속 추세');
         if (data.breakout) reasons.push('피벗 돌파');
         else if (pivot != null && pivot >= -3) reasons.push('피벗 근접 (3% 이내)');
-        if (data.entry_reason) reasons.push(data.entry_reason);
+        if (accGrade && ['A+', 'A', 'B+'].includes(accGrade)) reasons.push(`기관 매집 ${accGrade}`);
+        if (supplyAbove != null && supplyAbove < 15) reasons.push(`위 매물 적음 (${supplyAbove.toFixed(0)}%)`);
         setText('modal-reason', reasons.length ? reasons.join(' · ') : '5-Gate Funnel 통과 종목');
 
         // 모달 표시
