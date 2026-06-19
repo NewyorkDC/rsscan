@@ -445,7 +445,7 @@
                     </div>
 
                     <!-- 현재 시장 상태 카드 -->
-                    <div style="background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 10px; padding: var(--spacing-2xl); display: grid; grid-template-columns: 1fr auto; gap: var(--spacing-2xl); align-items: center;">
+                    <div class="market-status-hero" style="background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 10px; padding: var(--spacing-2xl); display: grid; grid-template-columns: 1fr auto; gap: var(--spacing-2xl); align-items: center;">
                         <div>
                             <div style="display: flex; align-items: center; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
                                 <span style="font-size: 48px;">🟢</span>
@@ -498,85 +498,13 @@
                         <div style="display: flex; align-items: flex-start; gap: var(--spacing-md); margin-bottom: var(--spacing-md);"><span style="color: var(--color-primary); font-weight: 700;">✓</span><div><div style="font-size: 0.85rem; font-weight: 600; color: var(--color-text-primary);">FTD active (S&P or NASDAQ)</div></div></div>
                         <div style="display: flex; align-items: flex-start; gap: var(--spacing-md);"><span style="color: var(--color-primary); font-weight: 700;">✓</span><div><div style="font-size: 0.85rem; font-weight: 600; color: var(--color-text-primary);">FTD 밀동 30일 이내</div></div></div>
                     </div>
-                    <div style="display: grid; gap: var(--spacing-sm);">
-                        <div style="background: white; border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                            <div style="display: flex; align-items: center; gap: var(--spacing-md); cursor: pointer;"><span style="font-weight: 600;">▶</span><span style="color: #dc2626;">●</span><h5 style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-primary); margin: 0;">Market in Correction</h5></div>
-                        </div>
-                        <div style="background: white; border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                            <div style="display: flex; align-items: center; gap: var(--spacing-md); cursor: pointer;"><span style="font-weight: 600;">▶</span><span style="color: #f97316;">●</span><h5 style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-primary); margin: 0;">Rally Attempt</h5></div>
-                        </div>
-                        <div style="background: white; border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                            <div style="display: flex; align-items: center; gap: var(--spacing-md); cursor: pointer;"><span style="font-weight: 600;">▶</span><span style="color: #f59e0b;">●</span><h5 style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-primary); margin: 0;">Uptrend Under Pressure</h5></div>
-                        </div>
-                        <div style="background: white; border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                            <div style="display: flex; align-items: center; gap: var(--spacing-md); cursor: pointer;"><span style="font-weight: 600;">▶</span><span style="color: var(--color-primary);">●</span><h5 style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-primary); margin: 0;">Confirmed Uptrend</h5></div>
-                        </div>
-                    </div>
+                    <div class="ibd-diagnosis-list" style="display: grid; gap: var(--spacing-sm);">
                 </div>
 
                 <!-- ===== 주요 지수 현황 ===== -->
                 <div>
                     <h3 style="font-size: 1rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--spacing-lg);">📈 주요 지수 현황</h3>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg);">
-                        
-                        <!-- S&P 500 -->
-                        <div style="background: white; border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-md);">
-                                <div><div style="font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600;">S&P 500</div><div style="font-size: 1.25rem; font-weight: 700; color: var(--color-text-primary); margin-top: 4px;">7,554.29</div></div>
-                                <div style="text-align: right;"><div style="font-size: 1.1rem; font-weight: 700; color: var(--color-primary);">+1.65%</div></div>
-                            </div>
-                            <div style="height: 60px; background: var(--color-bg-main); border-radius: 6px; margin-bottom: var(--spacing-md); border: 1px dashed var(--color-border-light);"></div>
-                            <div style="display: flex; gap: var(--spacing-sm); margin-bottom: var(--spacing-md);">
-                                <span style="padding: 4px 8px; background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; font-size: 0.65rem; font-weight: 600; color: var(--color-primary);">✓ 21MA</span>
-                                <span style="padding: 4px 8px; background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; font-size: 0.65rem; font-weight: 600; color: var(--color-primary);">✓ 50MA</span>
-                                <span style="padding: 4px 8px; background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; font-size: 0.65rem; font-weight: 600; color: var(--color-primary);">✓ 200MA</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-md);">
-                                <span style="font-size: 0.75rem; font-weight: 600;">DD 25일:</span>
-                                <div style="display: flex; gap: 2px;"><div style="width: 12px; height: 16px; background: #dc2626;"></div><div style="width: 12px; height: 16px; background: #dc2626;"></div><div style="width: 12px; height: 16px; background: #dc2626;"></div></div>
-                            </div>
-                            <div style="padding: var(--spacing-sm) var(--spacing-md); background: var(--color-primary); color: white; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-align: center;">✓ FTD 활성</div>
-                        </div>
-
-                        <!-- NASDAQ -->
-                        <div style="background: white; border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-md);">
-                                <div><div style="font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600;">NASDAQ</div><div style="font-size: 1.25rem; font-weight: 700; color: var(--color-text-primary); margin-top: 4px;">26,683.94</div></div>
-                                <div style="text-align: right;"><div style="font-size: 1.1rem; font-weight: 700; color: var(--color-primary);">+3.07%</div></div>
-                            </div>
-                            <div style="height: 60px; background: var(--color-bg-main); border-radius: 6px; margin-bottom: var(--spacing-md); border: 1px dashed var(--color-border-light);"></div>
-                            <div style="display: flex; gap: var(--spacing-sm); margin-bottom: var(--spacing-md);">
-                                <span style="padding: 4px 8px; background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; font-size: 0.65rem; font-weight: 600; color: var(--color-primary);">✓ 21MA</span>
-                                <span style="padding: 4px 8px; background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; font-size: 0.65rem; font-weight: 600; color: var(--color-primary);">✓ 50MA</span>
-                                <span style="padding: 4px 8px; background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; font-size: 0.65rem; font-weight: 600; color: var(--color-primary);">✓ 200MA</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-md);">
-                                <span style="font-size: 0.75rem; font-weight: 600;">DD 25일:</span>
-                                <div style="display: flex; gap: 2px;"><div style="width: 12px; height: 16px; background: #dc2626;"></div><div style="width: 12px; height: 16px; background: #dc2626;"></div><div style="width: 12px; height: 16px; background: #fca5a5;"></div></div>
-                            </div>
-                            <div style="padding: var(--spacing-sm) var(--spacing-md); background: var(--color-primary); color: white; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-align: center;">✓ FTD 활성</div>
-                        </div>
-
-                        <!-- Russell 2000 -->
-                        <div style="background: white; border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-md);">
-                                <div><div style="font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600;">Russell 2000</div><div style="font-size: 1.25rem; font-weight: 700; color: var(--color-text-primary); margin-top: 4px;">2,965.09</div></div>
-                                <div style="text-align: right;"><div style="font-size: 1.1rem; font-weight: 700; color: var(--color-primary);">+0.72%</div></div>
-                            </div>
-                            <div style="height: 60px; background: var(--color-bg-main); border-radius: 6px; margin-bottom: var(--spacing-md); border: 1px dashed var(--color-border-light);"></div>
-                            <div style="display: flex; gap: var(--spacing-sm); margin-bottom: var(--spacing-md);">
-                                <span style="padding: 4px 8px; background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; font-size: 0.65rem; font-weight: 600; color: var(--color-primary);">✓ 21MA</span>
-                                <span style="padding: 4px 8px; background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; font-size: 0.65rem; font-weight: 600; color: var(--color-primary);">✓ 50MA</span>
-                                <span style="padding: 4px 8px; background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; font-size: 0.65rem; font-weight: 600; color: var(--color-primary);">✓ 200MA</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-md);">
-                                <span style="font-size: 0.75rem; font-weight: 600;">DD 25일:</span>
-                                <div style="display: flex; gap: 2px;"><div style="width: 12px; height: 16px; background: #dc2626;"></div><div style="width: 12px; height: 16px; background: #fca5a5;"></div></div>
-                            </div>
-                            <div style="padding: var(--spacing-sm) var(--spacing-md); background: var(--color-primary); color: white; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-align: center;">✓ FTD 활성</div>
-                        </div>
-
-                    </div>
+                    <div class="indices-cards" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg);">
                 </div>
 
             </div>
@@ -592,84 +520,95 @@
                 <div class="portfolio-stats grid-4">
                     <div class="stat-box">
                         <div class="stat-label">NAV</div>
-                        <div class="stat-value" style="color: #10b981;">1.0000</div>
-                        <div class="stat-unit">시작가</div>
+                        <div id="strategy-nav" class="stat-value" style="color: #10b981;">$100,000</div>
+                        <div class="stat-unit">포트폴리오 가치</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Cash</div>
+                        <div id="strategy-cash" class="stat-value">$1,145.95</div>
+                        <div class="stat-unit">현금</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Holdings Value</div>
+                        <div id="strategy-holdings-value" class="stat-value" style="color: #10b981;">$98,854</div>
+                        <div class="stat-unit">보유 자산</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-label">Active Positions</div>
                         <div class="stat-value">5</div>
                         <div class="stat-unit">포지션</div>
                     </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Win Rate</div>
-                        <div class="stat-value" style="color: #10b981;">48.4%</div>
-                        <div class="stat-unit">수익률</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Closed Trades</div>
-                        <div class="stat-value">62</div>
-                        <div class="stat-unit">거래</div>
-                    </div>
                 </div>
 
-                <!-- Entry Signals 테이블 -->
+                <!-- 현재 보유 종목 -->
                 <div class="card">
                     <div class="card-header">
-                        <h3>📊 Entry Signals (5-Gate 통과)</h3>
+                        <h3>📊 현재 보유 종목</h3>
                     </div>
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Ticker</th>
-                                <th>Price</th>
-                                <th>RS Score</th>
+                                <th>Entry</th>
+                                <th>Shares</th>
+                                <th>Cost</th>
                                 <th>Phase</th>
-                                <th>Pattern</th>
-                                <th>Weight</th>
+                                <th>RS</th>
+                                <th>P&L</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
-                        <tbody id="entry-signals-table">
+                        <tbody id="strategy-holdings-table">
                             <!-- JS에서 동적으로 생성됨 -->
                         </tbody>
                     </table>
                 </div>
 
-                <!-- 전략 트랙 -->
+                <!-- 종료된 거래 -->
                 <div class="card">
                     <div class="card-header">
-                        <h3>📋 Track g3+g1+g2</h3>
+                        <h3>📋 종료된 거래 (Closed Trades)</h3>
                     </div>
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Ticker</th>
-                                <th>Sector</th>
-                                <th>Pattern</th>
-                                <th>Pivot</th>
-                                <th>RS</th>
-                                <th>Total</th>
+                                <th>Entry</th>
+                                <th>Exit</th>
+                                <th>Shares</th>
+                                <th>P&L %</th>
+                                <th>P&L $</th>
+                                <th>Reason</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td class="ticker-cell">STX</td>
-                                <td>Computer Hardware</td>
-                                <td><span class="badge badge-gray">HT Flag</span></td>
-                                <td>1018.80</td>
-                                <td>1037</td>
-                                <td><strong>📊</strong></td>
-                            </tr>
-                            <tr>
-                                <td class="ticker-cell">BHE</td>
-                                <td>Electronic Components</td>
-                                <td><span class="badge badge-gray">HT Flag</span></td>
-                                <td>91.31</td>
-                                <td>92</td>
-                                <td><strong>📊</strong></td>
-                            </tr>
+                        <tbody id="strategy-closed-trades-table">
+                            <!-- JS에서 동적으로 생성됨 -->
                         </tbody>
                     </table>
+                </div>
+
+                <!-- 거래 통계 -->
+                <div class="portfolio-stats grid-4" style="margin-top: var(--spacing-2xl);">
+                    <div class="stat-box">
+                        <div class="stat-label">총 거래</div>
+                        <div id="strategy-stat-total-trades" class="stat-value">62</div>
+                        <div class="stat-unit">거래</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">승률</div>
+                        <div id="strategy-stat-win-rate" class="stat-value" style="color: #10b981;">48.4%</div>
+                        <div class="stat-unit">수익률</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">평균 수익</div>
+                        <div id="strategy-stat-avg-win" class="stat-value">$1,234.56</div>
+                        <div class="stat-unit">수익</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">누적 수익</div>
+                        <div id="strategy-stat-cumulative-return" class="stat-value" style="color: #10b981;">+12.34%</div>
+                        <div class="stat-unit">수익률</div>
+                    </div>
                 </div>
             </div>
 
@@ -906,6 +845,12 @@
 
     <!-- Daily Briefing 데이터 바인딩 -->
     <script src="js/briefing.js"></script>
+
+    <!-- Market Pulse 데이터 바인딩 -->
+    <script src="js/market-pulse.js"></script>
+
+    <!-- Strategy Room v5 데이터 바인딩 -->
+    <script src="js/strategy-room.js"></script>
 
 </body>
 </html>
