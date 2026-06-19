@@ -101,27 +101,39 @@ def get_sp500_tickers():
     return tickers
 
 
-def compute_phase(close, ma50, ma200):
-    """이동평균 정배열 기반 Stage/Phase 판정 (Weinstein 단순화)"""
-    if np.isnan(ma50) or np.isnan(ma200):
+def compute_phase(close, ma50, ma200, ma150=None):
+    """이동평균 정배열 기반 Stage/Phase 판정 (Weinstein 단순화)
+    ma200이 없으면(데이터 부족) ma150/ma50으로 폴백 판정."""
+    # ma200 없으면 더 짧은 장기 MA로 대체
+    long_ma = ma200
+    if np.isnan(long_ma) if long_ma is not None else True:
+        long_ma = ma150
+    if long_ma is None or (np.isnan(long_ma)):
+        # 장기 MA 자체가 없으면 ma50 기준 단순 판정
+        if not np.isnan(ma50):
+            return 4 if close > ma50 else 6
         return 3
-    # Phase 5: 강한 정배열 (close > MA50 > MA200, MA50 상승)
-    if close > ma50 > ma200:
+
+    if np.isnan(ma50):
+        return 4 if close > long_ma else 6
+
+    # Phase 5: 강한 정배열 (close > MA50 > 장기MA)
+    if close > ma50 > long_ma:
         return 5 if close > ma50 * 1.05 else 4
-    # Phase 4: close > MA200 이지만 MA50 근처
-    if close > ma200:
+    # Phase 4: close > 장기MA 이지만 MA50 근처
+    if close > long_ma:
         return 4
-    # Phase 3: MA200 부근 (전환 구간)
-    if close > ma200 * 0.95:
+    # Phase 3: 장기MA 부근 (전환 구간)
+    if close > long_ma * 0.95:
         return 3
-    # Phase 6/7: MA200 하회 (하락/조정)
-    return 6 if close > ma200 * 0.85 else 7
+    # Phase 6/7: 장기MA 하회 (하락/조정)
+    return 6 if close > long_ma * 0.85 else 7
 
 
 def fetch_one(ticker, bench_perf):
     """단일 종목 분석. 실패 시 None 반환."""
     try:
-        df = yf.Ticker(ticker).history(period='1y', auto_adjust=True)
+        df = yf.Ticker(ticker).history(period='2y', auto_adjust=True)
         if df is None or len(df) < 60:
             return None
 
@@ -133,6 +145,7 @@ def fetch_one(ticker, bench_perf):
 
         # 이동평균
         ma50 = float(close.rolling(50).mean().iloc[-1]) if len(close) >= 50 else np.nan
+        ma150 = float(close.rolling(150).mean().iloc[-1]) if len(close) >= 150 else np.nan
         ma200 = float(close.rolling(200).mean().iloc[-1]) if len(close) >= 200 else np.nan
 
         # 가격 모멘텀 (거래일 기준: 6주≈30일, 10주≈50일, 3주≈15일)
@@ -149,8 +162,9 @@ def fetch_one(ticker, bench_perf):
         lookback = min(len(close) - 1, 252)
         perf_252 = (last / float(close.iloc[-lookback - 1]) - 1) if lookback > 0 else 0.0
 
-        # 신고가 여부 (최근 종가가 1년 최고가의 95% 이상)
-        high_1y = float(close.max())
+        # 신고가 여부 (최근 1년 고점 기준; 2년치 받아도 252일만)
+        recent_252 = close.iloc[-252:] if len(close) >= 252 else close
+        high_1y = float(recent_252.max())
         dist_from_high = (last / high_1y - 1) * 100 if high_1y > 0 else -100
         rs_new_high = dist_from_high >= -2.0      # 신고가 2% 이내
         breakout = dist_from_high >= -0.5         # 사실상 신고가 돌파
@@ -169,7 +183,7 @@ def fetch_one(ticker, bench_perf):
         return {
             'ticker': ticker,
             'close': round(last, 2),
-            'phase': compute_phase(last, ma50, ma200),
+            'phase': compute_phase(last, ma50, ma200, ma150),
             'rs_6w_change': chg_6w,
             'rs_10w_change': chg_10w,
             'rs_3w_change': chg_3w,
@@ -191,17 +205,22 @@ def main():
 
     tickers = get_sp500_tickers()
 
-    # 벤치마크(SPY) 성과 먼저 수집
+    # 벤치마크(SPY) 성과 먼저 수집 (재시도 포함)
     bench_perf = 0.0
-    try:
-        bdf = yf.Ticker(BENCHMARK).history(period='1y', auto_adjust=True)
-        if bdf is not None and len(bdf) > 60:
-            bclose = bdf['Close']
-            lb = min(len(bclose) - 1, 252)
-            bench_perf = bclose.iloc[-1] / bclose.iloc[-lb - 1] - 1
-            print(f"📈 벤치마크({BENCHMARK}) 252일 수익률: {bench_perf * 100:.1f}%\n")
-    except Exception as e:
-        print(f"⚠️ 벤치마크 수집 실패 ({e}), RS는 절대 모멘텀 기준으로 계산\n")
+    for attempt in range(4):
+        try:
+            bdf = yf.Ticker(BENCHMARK).history(period='2y', auto_adjust=True)
+            if bdf is not None and len(bdf) > 60:
+                bclose = bdf['Close']
+                lb = min(len(bclose) - 1, 252)
+                bench_perf = bclose.iloc[-1] / bclose.iloc[-lb - 1] - 1
+                print(f"📈 벤치마크({BENCHMARK}) 252일 수익률: {bench_perf * 100:.1f}%\n")
+                break
+        except Exception as e:
+            print(f"⚠️ 벤치마크 시도 {attempt+1}/4 실패 ({e})")
+        time.sleep(3)
+    else:
+        print(f"⚠️ 벤치마크 수집 실패 — RS는 종목간 백분위로 계산(영향 없음)\n")
 
     # 병렬 수집
     results = []
@@ -340,4 +359,3 @@ if __name__ == '__main__':
         import traceback
         traceback.print_exc()
         sys.exit(1)
-    
