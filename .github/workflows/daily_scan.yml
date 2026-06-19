@@ -144,3 +144,14 @@ jobs:
           echo "Repository: ${{ github.repository }}"
           echo "Run ID: ${{ github.run_id }}"
           echo "See details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      # Step 13: 🚀 Vercel 강제 배포 트리거 (Deploy Hook)
+      - name: 🚀 Trigger Vercel Deployment
+        if: success()
+        run: |
+          echo "📢 Vercel 배포 트리거 중..."
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            "${{ secrets.VERCEL_DEPLOY_HOOK }}"
+          echo ""
+          echo "✅ Vercel 배포 요청 완료!"
+          echo "🔗 대시보드: https://rsscan.vercel.app"
