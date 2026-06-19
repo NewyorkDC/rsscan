@@ -101,8 +101,16 @@ def get_sp500_tickers():
         return sorted(tickers)
     
     except Exception as e:
-        print(f"❌ 오류: {e}")
-        return []
+        print(f"\n{'='*60}")
+        print(f"❌ 치명적 오류: S&P 500 티커 수집 실패")
+        print(f"{'='*60}")
+        print(f"오류 메시지: {str(e)}")
+        print(f"\n📦 필요한 패키지: lxml, html5lib")
+        print(f"💾 설치 방법: pip install lxml html5lib")
+        print(f"또는 requirements.txt에 추가")
+        print(f"{'='*60}\n")
+        import sys
+        sys.exit(1)
 
 def fetch_ticker_info(ticker):
     """개별 종목의 기본 정보 수집 (가격, 시가총액, 거래량)"""
@@ -299,34 +307,56 @@ def main():
     
     start_time = time.time()
     
-    # Step 1: 초기 티커 수집
-    all_tickers = get_sp500_tickers()
+    try:
+        # Step 1: 초기 티커 수집
+        all_tickers = get_sp500_tickers()
+        
+        if not all_tickers:
+            raise Exception("❌ 티커 수집 실패: 종목 리스트가 비어있습니다")
+        
+        # Step 2: 기본 정보 수집 (가격, 시가총액, ADV)
+        print(f"\n🔄 {len(all_tickers)}개 종목의 기본 정보 수집 중... (병렬 처리)")
+        
+        with ThreadPoolExecutor(max_workers=30) as executor:
+            ticker_info_list = list(executor.map(fetch_ticker_info, all_tickers))
+        
+        # Step 3: 필터링 (3가지 하드 룰)
+        filtered_universe = filter_universe(ticker_info_list)
+        
+        if not filtered_universe:
+            raise Exception("❌ 필터링 실패: 조건을 통과한 종목이 없습니다")
+        
+        # Step 4: OHLCV 데이터 수집 (멀티스레딩)
+        filtered_tickers = [item['ticker'] for item in filtered_universe]
+        ohlcv_data = fetch_ohlcv_parallel(filtered_tickers)
+        
+        if not ohlcv_data:
+            raise Exception("❌ OHLCV 수집 실패: 데이터가 없습니다")
+        
+        # Step 5: 저장 (GICS 매핑 포함)
+        final_universe = save_universe(filtered_universe, ohlcv_data)
+        
+        if not final_universe:
+            raise Exception("❌ 저장 실패: 최종 유니버스가 비어있습니다")
+        
+        elapsed_time = time.time() - start_time
+        
+        print("\n" + "=" * 60)
+        print(f"✅ 성공! (소요시간: {elapsed_time:.1f}초)")
+        print("=" * 60)
     
-    if not all_tickers:
-        print("❌ 티커 수집 실패!")
-        return
-    
-    # Step 2: 기본 정보 수집 (가격, 시가총액, ADV)
-    print(f"\n🔄 {len(all_tickers)}개 종목의 기본 정보 수집 중... (병렬 처리)")
-    
-    with ThreadPoolExecutor(max_workers=30) as executor:
-        ticker_info_list = list(executor.map(fetch_ticker_info, all_tickers))
-    
-    # Step 3: 필터링 (3가지 하드 룰)
-    filtered_universe = filter_universe(ticker_info_list)
-    
-    # Step 4: OHLCV 데이터 수집 (멀티스레딩)
-    filtered_tickers = [item['ticker'] for item in filtered_universe]
-    ohlcv_data = fetch_ohlcv_parallel(filtered_tickers)
-    
-    # Step 5: 저장 (GICS 매핑 포함)
-    final_universe = save_universe(filtered_universe, ohlcv_data)
-    
-    elapsed_time = time.time() - start_time
-    
-    print("\n" + "=" * 60)
-    print(f"✅ 완료! (소요시간: {elapsed_time:.1f}초)")
-    print("=" * 60)
+    except Exception as e:
+        elapsed_time = time.time() - start_time
+        
+        print("\n" + "=" * 60)
+        print("❌ RSSCAN Investable Universe Builder 실패")
+        print("=" * 60)
+        print(f"오류: {str(e)}")
+        print(f"소요시간: {elapsed_time:.1f}초")
+        print("=" * 60 + "\n")
+        
+        import sys
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
