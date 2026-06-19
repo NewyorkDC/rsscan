@@ -7,8 +7,8 @@
     
     <!-- 시스템 폰트 스택 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/dashboard.css?v=20260619g">
-    <link rel="stylesheet" href="css/responsive.css?v=20260619g">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260619h">
+    <link rel="stylesheet" href="css/responsive.css?v=20260619h">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
@@ -584,15 +584,15 @@
                     </div>
                 </div>
 
-                <!-- ===== 5. Position Cap ===== -->
+                <!-- ===== 5. 차순위 후보 ===== -->
                 <div class="card">
                     <div class="card-header">
-                        <h3>🚧 Position Cap <span style="font-size:0.75rem; color:var(--color-text-tertiary); font-weight:400;">동시 보유 12 제한 초과 skip</span></h3>
+                        <h3>📋 차순위 후보 <span style="font-size:0.75rem; color:var(--color-text-tertiary); font-weight:400;">우선순위 다음 대기 종목</span></h3>
                         <span id="poscap-count" style="font-size:0.78rem; color:var(--color-text-tertiary);">0건</span>
                     </div>
                     <div style="padding:0 var(--spacing-lg);">
                         <div style="font-size:0.72rem; color:var(--color-text-secondary); margin:var(--spacing-sm) 0;">
-                            게이트 + 실적 buffer 모두 통과했지만 보유 slot 가득(12/12)으로 진입 보류. total_score 내림차순 우선이라 score 낮은 종목부터 skip.
+                            5-Gate 통과 종목 중 우선순위 10위 다음의 차순위 후보. 우선순위 종목이 청산되거나 슬롯이 비면 이 순서대로 편입 대기.
                         </div>
                     </div>
                     <div style="overflow-x:auto;">
@@ -1106,16 +1106,16 @@
     </script>
 
     <!-- Daily Briefing 데이터 바인딩 -->
-    <script src="js/briefing.js?v=20260619g"></script>
+    <script src="js/briefing.js?v=20260619h"></script>
 
     <!-- Market Pulse 데이터 바인딩 -->
-    <script src="js/market-pulse.js?v=20260619g"></script>
+    <script src="js/market-pulse.js?v=20260619h"></script>
 
     <!-- Strategy Room v5 데이터 바인딩 -->
-    <script src="js/strategy-room.js?v=20260619g"></script>
+    <script src="js/strategy-room.js?v=20260619h"></script>
 
     <!-- 섹터 ETF 스크리너 -->
-    <script src="js/sectors-etf.js?v=20260619g"></script>
+    <script src="js/sectors-etf.js?v=20260619h"></script>
 
 </body>
 </html>
