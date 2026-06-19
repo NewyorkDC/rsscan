@@ -852,3 +852,58 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* ===== 전략실 압축 모드 (스크린샷 스타일 고밀도) ===== */
+#strategy-tab .card {
+    padding: 10px 12px;
+    margin-bottom: 10px;
+}
+#strategy-tab .card-header {
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+}
+#strategy-tab .card-header h3 {
+    font-size: 0.82rem;
+}
+#strategy-tab .content-header {
+    margin-bottom: 12px;
+}
+#strategy-tab .content-header h2 {
+    font-size: 1.15rem;
+    margin-bottom: 4px;
+}
+#strategy-tab .data-table {
+    margin-top: 4px;
+}
+#strategy-tab .data-table th {
+    padding: 5px 8px;
+    font-size: 0.62rem;
+    letter-spacing: 0.2px;
+}
+#strategy-tab .data-table td {
+    padding: 5px 8px;
+    font-size: 0.74rem;
+}
+#strategy-tab .stat-box {
+    padding: 8px 10px;
+}
+#strategy-tab .stat-label {
+    font-size: 0.62rem;
+    margin-bottom: 2px;
+}
+#strategy-tab .stat-value {
+    font-size: 1.05rem;
+}
+/* 요약카드 4개 간격 압축 */
+#strategy-tab > div[style*="repeat(4"] {
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+}
+/* 티커 클릭 가능 표시 */
+#strategy-tab .data-table td.clickable-ticker,
+#strategy-tab .data-table td .ticker-link {
+    cursor: pointer;
+}
+#strategy-tab .data-table td .ticker-link:hover {
+    text-decoration: underline;
+}
