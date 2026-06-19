@@ -1,41 +1,29 @@
-name: 🚀 Daily RSSCAN Analysis (5-Gate + Strategy Room)
+name: 🚀 Daily RSSCAN Analysis (5-Gate + Strategy Room + Universe Update)
 
-# 트리거 설정
 on:
-  # Cron 스케줄 (매일 자동 실행)
   schedule:
-    # UTC 20:00 = EDT 16:00 (미국 동부 여름시간)
-    # UTC 21:00 = EST 16:00 (미국 동부 겨울시간)
-    # 한국 시간: 오전 5시(서머타임) 또는 오전 6시(정규장)
-    - cron: '0 20,21 * * *'
-  
-  # 수동 실행 버튼 (GitHub 웹사이트에서 클릭 가능)
-  workflow_dispatch:
+    - cron: '0 20,21 * * *'  # UTC 기준 (한국시간 오전 5~6시, 미국 장 마감 후)
+  workflow_dispatch:  # 수동 실행
 
-# 권한 설정 (git push를 위해 필요)
 permissions:
   contents: write
   actions: read
 
 jobs:
-  daily-analysis:
-    name: 📊 Daily Analysis Pipeline
+  daily_analysis:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     steps:
       # Step 1: 저장소 체크아웃
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
+      - name: ✅ Checkout repository
+        uses: actions/checkout@v3
 
-      # Step 2: Python 설정
-      - name: 🐍 Set up Python
+      # Step 2: Python 3.10 설정
+      - name: 🐍 Set up Python 3.10
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-          cache: 'pip'
 
       # Step 3: 의존성 설치
       - name: 📦 Install dependencies
@@ -44,107 +32,86 @@ jobs:
           pip install -r requirements.txt
           echo "✅ Dependencies installed"
 
-      # Step 4: S&P 500 RS Line 데이터 수집
-      - name: 📊 Fetch S&P 500 RS Line Data
+      # Step 4: 📊 Investable Universe 갱신 (신규)
+      - name: 📊 Update Investable Universe
         run: |
-          echo "🚀 Starting: fetch_sp500_data.py"
-          python fetch_sp500_data.py
-          echo "✅ S&P 500 data fetch complete"
-        env:
-          PYTHONUNBUFFERED: 1
-        timeout-minutes: 15
+          echo "🔄 우량주 유니버스 갱신 중..."
+          python update_universe.py
+          echo "✅ 유니버스 갱신 완료"
 
-      # Step 5: 5-Gate 필터링 실행
+      # Step 5: 📈 S&P 500 RS Line 데이터 수집
+      - name: 📈 Fetch S&P 500 RS Line Data
+        run: |
+          echo "📊 S&P 500 기초 데이터 수집 중..."
+          python fetch_sp500_data.py
+          echo "✅ S&P 500 데이터 수집 완료"
+
+      # Step 6: 🔍 5-Gate Funnel 분석 실행
       - name: 🔍 Run 5-Gate Funnel Analysis
         run: |
-          echo "🚀 Starting: generate_rsscan_daily.py"
+          echo "🔧 5-Gate Funnel 필터링 중..."
           python generate_rsscan_daily.py
-          echo "✅ 5-Gate Funnel analysis complete"
-        env:
-          PYTHONUNBUFFERED: 1
+          echo "✅ 5-Gate 분석 완료"
 
-      # Step 6: Strategy Room (v5 Paper-Trade) 실행
-      - name: 🏛️  Run Strategy Room v5 Paper-Trade
+      # Step 7: 🏛️ Strategy Room v5 Paper-Trade 실행
+      - name: 🏛️ Run Strategy Room v5 Paper-Trade
         run: |
-          echo "🚀 Starting: strategy_room.py"
+          echo "📊 포트폴리오 시뮬레이션 중..."
           python strategy_room.py
-          echo "✅ Strategy Room analysis complete"
-        env:
-          PYTHONUNBUFFERED: 1
+          echo "✅ Strategy Room 완료"
 
-      # Step 7: 결과 파일 확인
-      - name: 📊 Verify output files
+      # Step 8: ✔️ 출력 파일 검증
+      - name: ✔️ Verify output files
         run: |
-          echo "📂 Checking results/ directory..."
+          echo "📁 생성된 파일 확인 중..."
           ls -lh results/
           echo ""
-          echo "📋 Checking file contents..."
-          if [ -f results/entry_signals.json ]; then
-            echo "✅ entry_signals.json exists"
-            head -20 results/entry_signals.json
-          else
-            echo "❌ entry_signals.json not found"
-            exit 1
-          fi
+          echo "파일 목록:"
+          echo "  - investable_universe.json: $(wc -l < results/investable_universe.json) 줄"
+          echo "  - daily_ibd_scan.json: $([ -f results/daily_ibd_scan.json ] && echo '✅ 있음' || echo '❌ 없음')"
+          echo "  - entry_signals.json: $([ -f results/entry_signals.json ] && echo '✅ 있음' || echo '❌ 없음')"
+          echo "  - strategy_room_portfolio.json: $([ -f results/strategy_room_portfolio.json ] && echo '✅ 있음' || echo '❌ 없음')"
 
-      # Step 8: Git 설정
-      - name: ⚙️  Configure Git
+      # Step 9: 🔧 Git 설정
+      - name: 🔧 Configure Git
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-      # Step 9: 변경사항 확인
-      - name: 📝 Check changes
+      # Step 10: ✏️ 변경사항 확인
+      - name: ✏️ Check Git status
         run: |
-          echo "📊 Git status:"
-          git status
+          echo "Git 상태:"
+          git status --short
           echo ""
-          echo "📝 Diff summary:"
-          git diff --stat || echo "No changes"
+          echo "변경된 파일들:"
+          git diff --name-only
 
-      # Step 10: 변경사항 커밋 & 푸시
+      # Step 11: 💾 결과 커밋 & 푸시
       - name: 💾 Commit and push results
         run: |
-          # 변경사항이 있는지 확인
-          if git diff-index --quiet HEAD --; then
-            echo "✅ No changes to commit (working directory clean)"
-          else
-            echo "📝 Staging changes..."
-            git add results/
+          # results 폴더가 존재하고 변경사항이 있는지 확인
+          if [ -d "results" ] && [ -n "$(git status --porcelain results/)" ]; then
+            echo "🚀 분석 결과를 커밋하는 중..."
             
             # 커밋 메시지에 타임스탬프 추가
             TIMESTAMP=$(date -u +'%Y-%m-%d %H:%M:%S UTC')
+            git add results/
+            
+            echo "커밋 메시지:"
+            echo "🔄 Auto-update: Daily analysis results [$TIMESTAMP]"
+            echo ""
+            
             git commit -m "🔄 Auto-update: Daily analysis results [$TIMESTAMP]"
             
-            echo "🚀 Pushing to repository..."
+            echo "🚀 저장소에 푸시하는 중..."
             git push origin main
-            echo "✅ Results pushed successfully"
+            echo "✅ 결과 푸시 완료"
+          else
+            echo "⚠️ 변경사항이 없거나 results 폴더가 없습니다"
           fi
 
-      # Step 11: 완료 알림
-      - name: ✅ Workflow complete
-        run: |
-          echo "=========================================="
-          echo "✅ RSSCAN Daily Analysis Complete"
-          echo "=========================================="
-          echo "📊 Analysis Timestamp: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "📁 Results location: results/"
-          echo "📋 Files updated:"
-          echo "   - results/daily_ibd_scan.json"
-          echo "   - results/entry_signals.json"
-          echo "   - results/strategy_room_portfolio.json"
-          echo "🔗 Dashboard: https://rsscan.vercel.app"
-          echo "=========================================="
-
-      # Step 12: 실패 시 알림 (선택사항)
-      - name: ❌ Notify on failure
-        if: failure()
-        run: |
-          echo "❌ Workflow failed!"
-          echo "Repository: ${{ github.repository }}"
-          echo "Run ID: ${{ github.run_id }}"
-          echo "See details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-      # Step 13: 🚀 Vercel 강제 배포 트리거 (Deploy Hook)
+      # Step 12: 🚀 Vercel 강제 배포 트리거 (Deploy Hook)
       - name: 🚀 Trigger Vercel Deployment
         if: success()
         run: |
@@ -155,3 +122,31 @@ jobs:
           echo ""
           echo "✅ Vercel 배포 요청 완료!"
           echo "🔗 대시보드: https://rsscan.vercel.app"
+
+      # Step 13: ❌ 실패 시 알림
+      - name: ❌ Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Workflow 실패!"
+          echo "Repository: ${{ github.repository }}"
+          echo "Run ID: ${{ github.run_id }}"
+          echo "See details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      # Step 14: 📊 작업 완료 요약
+      - name: 📊 Workflow Summary
+        if: always()
+        run: |
+          echo "=========================================="
+          echo "✅ RSSCAN Daily Analysis Complete"
+          echo "=========================================="
+          echo "📊 Analysis Timestamp: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "📁 Results location: results/"
+          echo "📋 Files generated:"
+          echo "   - investable_universe.json (우량주 유니버스)"
+          echo "   - investable_universe.csv (표 형식)"
+          echo "   - daily_ibd_scan.json (기초 데이터)"
+          echo "   - entry_signals.json (5-Gate 통과 종목)"
+          echo "   - strategy_room_portfolio.json (포트폴리오)"
+          echo "🔗 Dashboard: https://rsscan.vercel.app"
+          echo "📊 GitHub Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "=========================================="
