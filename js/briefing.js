@@ -64,6 +64,83 @@ class BriefingDataBinder {
 
         // 신규 진입 테이블 렌더링
         this.renderEntrySignalsTable();
+
+        // 섹션 ③ 섹터별 RS Line 지표 테이블 렌더링
+        this.renderSectorRSLineTable();
+    }
+
+    /**
+     * 섹션 ③ 섹터별 RS Line 지표 - 상위 RS Score 종목 동적 렌더링
+     */
+    renderSectorRSLineTable() {
+        const tbody = document.getElementById('sector-rs-line-table');
+        if (!tbody) {
+            console.warn('⚠️ sector-rs-line-table ID를 찾을 수 없습니다');
+            return;
+        }
+
+        // total_score 기준 상위 15개 종목 정렬
+        const topStocks = [...this.universeData]
+            .sort((a, b) => (b.total_score || 0) - (a.total_score || 0))
+            .slice(0, 15);
+
+        if (topStocks.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: var(--spacing-lg); color: var(--color-text-tertiary);">데이터가 없습니다</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        topStocks.forEach(stock => {
+            const ticker = stock.ticker || '-';
+            const close = stock.close ? `$${stock.close.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-';
+            const totalScore = stock.total_score || 0;
+            const phase = stock.phase || 0;
+            const ibdRs = stock.ibd_rs_rating || 0;
+            const change1w = stock.rs_6w_change || 0;
+            const change3w = stock.rs_10w_change || 0;
+
+            // RS Score 뱃지 색상 (80+ 초록, 60+ 주황, 그외 회색)
+            const scoreBadgeClass = totalScore >= 80 ? 'green' : totalScore >= 60 ? 'orange' : 'gray';
+
+            // Phase 뱃지 색상 및 라벨
+            const phaseBadge = this.getPhaseBadge(phase);
+
+            // 패턴 라벨
+            const patternLabel = stock.top_pattern ? 'Top Pattern' : (stock.breakout ? 'Breakout' : '—');
+
+            // 변화율 색상
+            const change1wClass = change1w >= 0 ? 'price-up' : 'price-down';
+            const change3wClass = change3w >= 0 ? 'price-up' : 'price-down';
+            const change1wStr = `${change1w >= 0 ? '+' : ''}${change1w.toFixed(2)}%`;
+            const change3wStr = `${change3w >= 0 ? '+' : ''}${change3w.toFixed(2)}%`;
+
+            html += `
+                <tr>
+                    <td class="ticker-cell">${ticker}</td>
+                    <td>${close}</td>
+                    <td><span class="score-badge ${scoreBadgeClass}">${totalScore}</span></td>
+                    <td>${phaseBadge}</td>
+                    <td><span class="badge badge-gray">${patternLabel}</span></td>
+                    <td><span class="score-badge gold">${ibdRs}</span></td>
+                    <td class="${change1wClass}">${change1wStr}</td>
+                    <td class="${change3wClass}">${change3wStr}</td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+        console.log(`✅ 섹터별 RS Line 지표 렌더링 완료: ${topStocks.length}개 종목`);
+    }
+
+    /**
+     * Phase 번호 → 뱃지 HTML
+     */
+    getPhaseBadge(phase) {
+        if (phase >= 5) return `<span class="badge badge-green">${phase}+</span>`;
+        if (phase === 4) return `<span class="badge badge-green">4</span>`;
+        if (phase === 3) return `<span class="badge badge-blue">3</span>`;
+        if (phase === 2) return `<span class="badge badge-gray">2</span>`;
+        return `<span class="badge badge-gray">${phase}</span>`;
     }
 
     /**
