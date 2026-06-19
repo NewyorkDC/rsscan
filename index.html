@@ -7,8 +7,8 @@
     
     <!-- 시스템 폰트 스택 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/dashboard.css?v=20260619f">
-    <link rel="stylesheet" href="css/responsive.css?v=20260619f">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260619g">
+    <link rel="stylesheet" href="css/responsive.css?v=20260619g">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
@@ -468,6 +468,148 @@
                 <div class="content-header">
                     <h2>🏛️ 전략실 — IBD/O'Neil Paper-Trade</h2>
                     <div class="header-meta">5-Gate Funnel · Lock Ratchet Stop · 동시보유 12 · 매일 진입/스위칭/청산</div>
+                </div>
+
+                <!-- ===== 1. 전방향 검증 (OOS) ===== -->
+                <div class="card" style="background: #f0f9ff; border: 1px solid #bae6fd;">
+                    <div class="card-header">
+                        <h3>⚖️ 전방향 검증 (OOS)</h3>
+                        <span id="oos-meta" style="font-size: 0.75rem; color: var(--color-text-tertiary);">inception 이후 첫 청산부터 집계</span>
+                    </div>
+                    <div style="padding: var(--spacing-lg);">
+                        <div style="font-size: 0.95rem; font-weight: 600; color: #0369a1; margin-bottom: var(--spacing-sm);">
+                            <span id="oos-status">🔵 검증 시작 — 표본 수집 중 (N=0)</span>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: var(--spacing-md);">
+                            동결 완료. inception 이후 첫 청산부터 집계. 목표 30건 / 6개월.
+                        </div>
+                        <!-- 표본 진행바 -->
+                        <div style="margin-bottom: var(--spacing-sm);">
+                            <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:var(--color-text-tertiary); margin-bottom:2px;">
+                                <span>표본 진행 <span id="oos-sample-count">0</span> / 30건</span>
+                            </div>
+                            <div style="height:8px; background:#e0f2fe; border-radius:4px; overflow:hidden;">
+                                <div id="oos-sample-bar" style="height:100%; width:0%; background:#0ea5e9; transition:width .3s;"></div>
+                            </div>
+                        </div>
+                        <!-- 기간 진행바 -->
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:var(--color-text-tertiary); margin-bottom:2px;">
+                                <span>기간 진행 <span id="oos-period">0.0</span> / 6개월</span>
+                            </div>
+                            <div style="height:8px; background:#e0f2fe; border-radius:4px; overflow:hidden;">
+                                <div id="oos-period-bar" style="height:100%; width:0%; background:#38bdf8; transition:width .3s;"></div>
+                            </div>
+                        </div>
+                        <div style="font-size:0.72rem; color:var(--color-text-tertiary); margin-top:var(--spacing-md); padding-top:var(--spacing-sm); border-top:1px dashed #bae6fd;">
+                            🔬 seed(개발/in-sample, 검증 아님): <span id="oos-seed">집계 대기</span> — 백필은 룰 튜닝에 쓰여 편향. 위 OOS만 정직한 검증.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== 2. 장중 시그널 후보 (intraday G3 proxy) ===== -->
+                <div class="card" style="background: #fffbeb; border: 1px solid #fde68a;">
+                    <div class="card-header">
+                        <h3>🔒 장중 시그널 후보 <span style="font-size:0.75rem; color:var(--color-text-tertiary); font-weight:400;">(intraday G3 proxy) — 종가 확정 전 미리보기</span></h3>
+                    </div>
+                    <div style="padding: var(--spacing-lg);">
+                        <div id="intraday-meta" style="font-size:0.78rem; color:var(--color-text-secondary); margin-bottom:var(--spacing-sm);">
+                            장중 스캔 데이터가 아직 없습니다. 종가 기준 진입 조건은 아래 표를 참고하세요.
+                        </div>
+                        <div id="intraday-candidates" style="text-align:center; padding:var(--spacing-lg); color:var(--color-text-tertiary); font-size:0.8rem; border:1px dashed #fde68a; border-radius:6px; background:#fffef5;">
+                            🕐 장중 스캔 기능은 준비 중입니다 (매일 워크플로우로 자동 채워질 예정)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== 3. 진입 조건 (신규 시그널) ===== -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🎯 진입 조건 <span id="entry-signals-date" style="font-size:0.78rem; color:var(--color-text-tertiary); font-weight:400;"></span></h3>
+                        <span id="entry-signals-count" style="font-size:0.78rem; color:var(--color-text-tertiary);">신규 시그널 0건</span>
+                    </div>
+                    <div style="padding: 0 var(--spacing-lg) var(--spacing-sm);">
+                        <div style="font-size:0.72rem; color:var(--color-text-secondary); margin:var(--spacing-sm) 0;">
+                            Track g3+g0+g1+g2:
+                            <span style="display:inline-block; padding:2px 8px; margin:0 2px; background:#dbeafe; color:#1e40af; border-radius:10px; font-weight:600;">G3 Trigger</span>
+                            <span style="display:inline-block; padding:2px 8px; margin:0 2px; background:#dcfce7; color:#15803d; border-radius:10px; font-weight:600;">G4 Guard</span>
+                            <span style="display:inline-block; padding:2px 8px; margin:0 2px; background:#fef3c7; color:#92400e; border-radius:10px; font-weight:600;">G0 Market</span>
+                            <span style="display:inline-block; padding:2px 8px; margin:0 2px; background:#fce7f3; color:#9d174d; border-radius:10px; font-weight:600;">G1 Theme</span>
+                            <span style="display:inline-block; padding:2px 8px; margin:0 2px; background:#ede9fe; color:#6d28d9; border-radius:10px; font-weight:600;">G2 Pattern</span>
+                            <span style="color:var(--color-text-tertiary);"> 모든 게이트 AND 통과 시 진입</span>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="data-table" style="font-size:0.8rem;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:left;">티커</th>
+                                    <th style="text-align:left;">패턴</th>
+                                    <th style="text-align:right;">시그널 종가</th>
+                                    <th style="text-align:right;">pivot</th>
+                                    <th style="text-align:center;">RS</th>
+                                    <th style="text-align:right;">total</th>
+                                    <th style="text-align:right;">theme</th>
+                                    <th style="text-align:right;">A/D</th>
+                                </tr>
+                            </thead>
+                            <tbody id="entry-signals-table-body">
+                                <tr><td colspan="8" style="text-align:center; padding:var(--spacing-lg); color:var(--color-text-tertiary);">데이터 로드 중...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ===== 4. 종목 스위칭 ===== -->
+                <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0;">
+                    <div class="card-header">
+                        <h3>🔄 종목 스위칭 <span style="font-size:0.75rem; color:var(--color-text-tertiary); font-weight:400;">정체 보유 → 강신호 교체</span></h3>
+                        <span id="switching-count" style="font-size:0.78rem; color:var(--color-text-tertiary);">0건</span>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="data-table" style="font-size:0.8rem;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:left;">편출 (정체)</th>
+                                    <th style="text-align:center;">→</th>
+                                    <th style="text-align:left;">편입 (강신호)</th>
+                                    <th style="text-align:left;">패턴</th>
+                                    <th style="text-align:right;">score 우위</th>
+                                </tr>
+                            </thead>
+                            <tbody id="switching-table-body">
+                                <tr><td colspan="5" style="text-align:center; padding:var(--spacing-lg); color:var(--color-text-tertiary);">스위칭 내역이 없습니다</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ===== 5. Position Cap ===== -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🚧 Position Cap <span style="font-size:0.75rem; color:var(--color-text-tertiary); font-weight:400;">동시 보유 12 제한 초과 skip</span></h3>
+                        <span id="poscap-count" style="font-size:0.78rem; color:var(--color-text-tertiary);">0건</span>
+                    </div>
+                    <div style="padding:0 var(--spacing-lg);">
+                        <div style="font-size:0.72rem; color:var(--color-text-secondary); margin:var(--spacing-sm) 0;">
+                            게이트 + 실적 buffer 모두 통과했지만 보유 slot 가득(12/12)으로 진입 보류. total_score 내림차순 우선이라 score 낮은 종목부터 skip.
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="data-table" style="font-size:0.8rem;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:left;">티커</th>
+                                    <th style="text-align:left;">패턴</th>
+                                    <th style="text-align:right;">total</th>
+                                    <th style="text-align:center;">RS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="poscap-table-body">
+                                <tr><td colspan="4" style="text-align:center; padding:var(--spacing-lg); color:var(--color-text-tertiary);">초과 skip 종목이 없습니다</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- ===== B. 포트폴리오 요약 카드 (4개, 스크린샷 스타일) ===== -->
@@ -964,16 +1106,16 @@
     </script>
 
     <!-- Daily Briefing 데이터 바인딩 -->
-    <script src="js/briefing.js?v=20260619f"></script>
+    <script src="js/briefing.js?v=20260619g"></script>
 
     <!-- Market Pulse 데이터 바인딩 -->
-    <script src="js/market-pulse.js?v=20260619f"></script>
+    <script src="js/market-pulse.js?v=20260619g"></script>
 
     <!-- Strategy Room v5 데이터 바인딩 -->
-    <script src="js/strategy-room.js?v=20260619f"></script>
+    <script src="js/strategy-room.js?v=20260619g"></script>
 
     <!-- 섹터 ETF 스크리너 -->
-    <script src="js/sectors-etf.js?v=20260619f"></script>
+    <script src="js/sectors-etf.js?v=20260619g"></script>
 
 </body>
 </html>
