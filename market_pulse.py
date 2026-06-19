@@ -14,6 +14,7 @@ market_pulse.py - Market Regime 판정 엔진 (yfinance 실데이터)
 import json
 import os
 import sys
+import time
 from datetime import datetime
 
 import yfinance as yf
@@ -33,15 +34,17 @@ INDICES = {
 
 
 def fetch_index(ticker):
-    """단일 지수 6개월 일봉. 실패 시 None."""
-    try:
-        df = yf.Ticker(ticker).history(period='1y', auto_adjust=True)
-        if df is None or len(df) < 50:
-            return None
-        return df
-    except Exception as e:
-        print(f"⚠️ {ticker} 다운로드 실패: {e}")
-        return None
+    """단일 지수 일봉 (rate limit 재시도 포함). 실패 시 None."""
+    for attempt in range(4):
+        try:
+            df = yf.Ticker(ticker).history(period='1y', auto_adjust=True)
+            if df is not None and len(df) >= 50:
+                return df
+        except Exception as e:
+            print(f"⚠️ {ticker} 시도 {attempt+1}/4 실패: {e}")
+        time.sleep(3)
+    print(f"⚠️ {ticker} 다운로드 최종 실패")
+    return None
 
 
 def analyze_index(df):
