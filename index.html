@@ -7,8 +7,8 @@
     
     <!-- 시스템 폰트 스택 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/dashboard.css?v=20260619b">
-    <link rel="stylesheet" href="css/responsive.css?v=20260619b">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260619c">
+    <link rel="stylesheet" href="css/responsive.css?v=20260619c">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
@@ -312,7 +312,7 @@
                                 </div>
                                 <div style="font-size: 20px;">🟢</div>
                             </div>
-                            <div style="font-size: 1.75rem; font-weight: 700; color: #0c4a6e;">829<span style="font-size: 0.9rem; color: #0c4a6e;">개</span></div>
+                            <div id="trend7-count" style="font-size: 1.75rem; font-weight: 700; color: #0c4a6e;">0<span style="font-size: 0.9rem; color: #0c4a6e;">개</span></div>
                         </div>
 
                         <!-- STRENGTH: RS 90+ 종목 -->
@@ -324,7 +324,7 @@
                                 </div>
                                 <div style="font-size: 20px;">🟢</div>
                             </div>
-                            <div style="font-size: 1.75rem; font-weight: 700; color: #713f12;">494<span style="font-size: 0.9rem; color: #713f12;">개</span></div>
+                            <div id="rs90-count" style="font-size: 1.75rem; font-weight: 700; color: #713f12;">0<span style="font-size: 0.9rem; color: #713f12;">개</span></div>
                         </div>
 
                         <!-- STRENGTH: RS 80-89 -->
@@ -452,13 +452,13 @@
                         <div style="display: flex; align-items: flex-start; gap: var(--spacing-md); margin-bottom: var(--spacing-md);"><span style="color: var(--color-primary); font-weight: 700;">✓</span><div><div style="font-size: 0.85rem; font-weight: 600; color: var(--color-text-primary);">FTD active (S&P or NASDAQ)</div></div></div>
                         <div style="display: flex; align-items: flex-start; gap: var(--spacing-md);"><span style="color: var(--color-primary); font-weight: 700;">✓</span><div><div style="font-size: 0.85rem; font-weight: 600; color: var(--color-text-primary);">FTD 밀동 30일 이내</div></div></div>
                     </div>
-                    <div class="ibd-diagnosis-list" style="display: grid; gap: var(--spacing-sm);">
+                    <div class="ibd-diagnosis-list" style="display: grid; gap: var(--spacing-sm);"></div>
                 </div>
 
                 <!-- ===== 주요 지수 현황 ===== -->
                 <div>
                     <h3 style="font-size: 1rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--spacing-lg);">📈 주요 지수 현황</h3>
-                    <div class="indices-cards" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg);">
+                    <div class="indices-cards" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg);"></div>
                 </div>
 
             </div>
@@ -677,6 +677,9 @@
                     <h2>⚡ RS 모멘텀</h2>
                 </div>
                 <p style="text-align: center; padding: var(--spacing-2xl); color: var(--color-text-tertiary);">RS 모멘텀 탭 준비 중...</p>
+            </div>
+
+            <!-- TAB 8: 가이드 -->
             <div id="guide-tab" class="tab-pane">
                 <div class="content-header">
                     <h2>📖 가이드 & 설명서</h2>
@@ -918,16 +921,16 @@
     </script>
 
     <!-- Daily Briefing 데이터 바인딩 -->
-    <script src="js/briefing.js?v=20260619b"></script>
+    <script src="js/briefing.js?v=20260619c"></script>
 
     <!-- Market Pulse 데이터 바인딩 -->
-    <script src="js/market-pulse.js?v=20260619b"></script>
+    <script src="js/market-pulse.js?v=20260619c"></script>
 
     <!-- Strategy Room v5 데이터 바인딩 -->
-    <script src="js/strategy-room.js?v=20260619b"></script>
+    <script src="js/strategy-room.js?v=20260619c"></script>
 
     <!-- 섹터 ETF 스크리너 -->
-    <script src="js/sectors-etf.js?v=20260619b"></script>
+    <script src="js/sectors-etf.js?v=20260619c"></script>
 
 </body>
 </html>
