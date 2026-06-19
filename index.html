@@ -7,8 +7,8 @@
     
     <!-- 시스템 폰트 스택 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/dashboard.css?v=20260619k">
-    <link rel="stylesheet" href="css/responsive.css?v=20260619k">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260619l">
+    <link rel="stylesheet" href="css/responsive.css?v=20260619l">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
@@ -799,7 +799,7 @@
                                 <div id="modal-phase" style="font-size:1.2rem; font-weight:700; color:var(--color-text-primary);">0</div>
                             </div>
                         </div>
-                        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:0 20px 16px;">
+                        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:0 20px 8px;">
                             <div style="text-align:center; padding:8px; background:var(--color-bg-main); border-radius:6px;">
                                 <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">피벗까지</div>
                                 <div id="modal-pivot" style="font-size:1.1rem; font-weight:700; color:var(--color-text-primary);">0%</div>
@@ -811,6 +811,28 @@
                             <div style="text-align:center; padding:8px; background:var(--color-bg-main); border-radius:6px;">
                                 <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">위 매물</div>
                                 <div id="modal-supply" style="font-size:1.1rem; font-weight:700; color:var(--color-text-primary);">—</div>
+                            </div>
+                        </div>
+                        <!-- 재무지표 (B그룹) -->
+                        <div style="padding:0 20px 4px;">
+                            <div style="font-size:0.62rem; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; margin-bottom:4px;">🏦 펀더멘털</div>
+                        </div>
+                        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:0 20px 16px;">
+                            <div style="text-align:center; padding:8px; background:#faf5ff; border-radius:6px;">
+                                <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">EPS Rating</div>
+                                <div id="modal-eps" style="font-size:1.1rem; font-weight:700; color:#7c3aed;">—</div>
+                            </div>
+                            <div style="text-align:center; padding:8px; background:#faf5ff; border-radius:6px;">
+                                <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">SMR</div>
+                                <div id="modal-smr" style="font-size:1.1rem; font-weight:700; color:#7c3aed;">—</div>
+                            </div>
+                            <div style="text-align:center; padding:8px; background:#faf5ff; border-radius:6px;">
+                                <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">매출성장</div>
+                                <div id="modal-sales" style="font-size:1.1rem; font-weight:700; color:var(--color-text-primary);">—</div>
+                            </div>
+                            <div style="text-align:center; padding:8px; background:#faf5ff; border-radius:6px;">
+                                <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">기관보유</div>
+                                <div id="modal-inst" style="font-size:1.1rem; font-weight:700; color:var(--color-text-primary);">—</div>
                             </div>
                         </div>
                         <!-- TradingView 차트 -->
@@ -1177,16 +1199,16 @@
     </script>
 
     <!-- Daily Briefing 데이터 바인딩 -->
-    <script src="js/briefing.js?v=20260619k"></script>
+    <script src="js/briefing.js?v=20260619l"></script>
 
     <!-- Market Pulse 데이터 바인딩 -->
-    <script src="js/market-pulse.js?v=20260619k"></script>
+    <script src="js/market-pulse.js?v=20260619l"></script>
 
     <!-- Strategy Room v5 데이터 바인딩 -->
-    <script src="js/strategy-room.js?v=20260619k"></script>
+    <script src="js/strategy-room.js?v=20260619l"></script>
 
     <!-- 섹터 ETF 스크리너 -->
-    <script src="js/sectors-etf.js?v=20260619k"></script>
+    <script src="js/sectors-etf.js?v=20260619l"></script>
 
 </body>
 </html>
