@@ -91,7 +91,28 @@ function initSidebar() {
 function loadData() {
     console.log('📊 데이터 로드 시작...');
     
-    // 더미 데이터 (실제로는 JSON 불러오기)
+    // 🔄 JSON 파일에서 실제 데이터 로드
+    Promise.all([
+        fetch('results/entry_signals.json').then(r => r.json()).catch(() => null),
+        fetch('results/strategy_room_portfolio.json').then(r => r.json()).catch(() => null)
+    ]).then(([signals, portfolio]) => {
+        if (signals) {
+            console.log(`✅ entry_signals.json 로드: ${signals.signals.length}개 신호`);
+            app.data.screener = signals;
+        }
+        if (portfolio) {
+            console.log(`✅ strategy_room_portfolio.json 로드: ${portfolio.holdings.length}개 포지션`);
+            app.data.strategyRoom = portfolio;
+        }
+        updateUI();
+    }).catch(err => {
+        console.warn('⚠️ JSON 로드 실패, 대시보드 데이터 사용:', err);
+        loadDummyData();
+    });
+}
+
+// 더미 데이터 (JSON 로드 실패 시 사용)
+function loadDummyData() {
     app.data.screener = {
         regime: 'Uptrend Resumed',
         regimeIcon: '🟢',
