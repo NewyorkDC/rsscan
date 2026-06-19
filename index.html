@@ -158,6 +158,23 @@
                     <div class="header-meta">2026-06-19 (금) · 다음날 장 시작 전 의사결정 보조</div>
                 </div>
 
+                <!-- 🔄 수동 분석 실행 버튼 -->
+                <div class="card" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bfdbfe; margin-bottom: var(--spacing-lg); padding: var(--spacing-lg);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-lg);">
+                        <div>
+                            <h3 style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--spacing-sm);">🔄 지금 바로 분석 실행</h3>
+                            <p style="font-size: 0.8rem; color: var(--color-text-tertiary);">GitHub Actions에서 최신 데이터를 수집하고 필터링합니다</p>
+                        </div>
+                        <button id="triggerAnalysisBtn" onclick="triggerWorkflow()" style="padding: var(--spacing-md) var(--spacing-xl); background: var(--color-secondary); color: white; border: none; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
+                            ▶️ 지금 실행
+                        </button>
+                    </div>
+                    <div id="triggerStatus" style="display: none; margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid #bfdbfe;">
+                        <div id="statusMessage" style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: var(--spacing-sm);"></div>
+                        <a href="https://github.com/NewyorkDC/rsscan/actions" target="_blank" style="font-size: 0.8rem; color: var(--color-secondary); text-decoration: none; font-weight: 600;">GitHub Actions 확인 →</a>
+                    </div>
+                </div>
+
                 <!-- 경고 알림 박스 -->
                 <div class="alert alert-warning">
                     <div class="alert-icon">⚠️</div>
@@ -507,6 +524,44 @@
 
     <!-- 스크립트 -->
     <script>
+        // 🔄 수동 분석 실행 함수
+        function triggerWorkflow() {
+            const btn = document.getElementById('triggerAnalysisBtn');
+            const status = document.getElementById('triggerStatus');
+            const msg = document.getElementById('statusMessage');
+            
+            btn.disabled = true;
+            btn.style.opacity = '0.6';
+            msg.textContent = '⏳ 분석 실행 중...';
+            status.style.display = 'block';
+            
+            fetch('/api/trigger-workflow', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => {
+                if (response.ok || response.status === 204) {
+                    btn.style.background = 'var(--color-primary)';
+                    msg.textContent = '✅ 분석 실행 요청 완료! GitHub Actions에서 진행 중입니다...';
+                    
+                    setTimeout(() => {
+                        btn.style.background = '';
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                    }, 5000);
+                } else {
+                    return response.text().then(text => {
+                        throw new Error(text || response.statusText);
+                    });
+                }
+            })
+            .catch(err => {
+                msg.textContent = '❌ 오류: ' + err.message;
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            });
+        }
+
         // 탭 네비게이션 로직
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', function() {
