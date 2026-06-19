@@ -1,0 +1,48 @@
+{
+  "date": "2026-06-19",
+  "timestamp": "2026-06-19 15:01:18",
+  "regime": "Unknown",
+  "regime_icon": "⚪",
+  "regime_code": "unknown",
+  "investment_ratio": "—",
+  "breadth_pct": 100,
+  "dd_count": 0,
+  "indices": {
+    "SP500": {
+      "name": "S&P 500",
+      "close": null,
+      "change_pct": 0.0,
+      "above_ma21": false,
+      "above_ma50": false,
+      "above_ma200": false
+    },
+    "NASDAQ": {
+      "name": "NASDAQ",
+      "close": null,
+      "change_pct": 0.0,
+      "above_ma21": false,
+      "above_ma50": false,
+      "above_ma200": false
+    },
+    "RUSSELL": {
+      "name": "Russell 2000",
+      "close": null,
+      "change_pct": 0.0,
+      "above_ma21": false,
+      "above_ma50": false,
+      "above_ma200": false
+    }
+  },
+  "stages": {
+    "stage2": 1453,
+    "stage3": 2,
+    "stage4": 2
+  },
+  "phase_distribution": {
+    "p4plus": 2,
+    "p4": 2,
+    "p3": 1453,
+    "p67": 0
+  },
+  "total_stocks": 1457
+}
