@@ -7,6 +7,7 @@ class BriefingDataBinder {
     constructor() {
         this.universeData = [];
         this.entrySignals = [];
+        this.marketPulse = null;
         this.isLoading = false;
     }
 
@@ -18,19 +19,22 @@ class BriefingDataBinder {
         this.showLoadingSpinner();
 
         try {
-            // 병렬로 두 파일 로드
-            const [universeData, signalsData] = await Promise.all([
+            // 병렬로 세 파일 로드
+            const [universeData, signalsData, pulseData] = await Promise.all([
                 this.fetchJSON('results/daily_ibd_scan.json'),
-                this.fetchJSON('results/entry_signals.json')
+                this.fetchJSON('results/entry_signals.json'),
+                this.fetchJSON('results/market_pulse.json').catch(() => null)
             ]);
 
             // 데이터 파싱
             this.universeData = Array.isArray(universeData) ? universeData : universeData.universe || [];
             this.entrySignals = signalsData.signals || [];
+            this.marketPulse = pulseData;
 
             console.log(`✅ Daily Briefing 데이터 로드 완료`);
             console.log(`   - Universe: ${this.universeData.length}개 종목`);
             console.log(`   - Entry Signals: ${this.entrySignals.length}개 진입신호`);
+            console.log(`   - Market Pulse: ${this.marketPulse ? '로드됨' : '없음(하드코딩 유지)'}`);
 
             // UI 렌더링
             this.renderBriefing();
@@ -67,6 +71,101 @@ class BriefingDataBinder {
 
         // 섹션 ③ 섹터별 RS Line 지표 테이블 렌더링
         this.renderSectorRSLineTable();
+
+        // Market Pulse 기반: 오늘의 시장 상태 + 사이드바
+        this.renderMarketState();
+        this.renderSidebar();
+    }
+
+    /**
+     * 오늘의 시장 상태 (① 영역) + 지수 등락률 — market_pulse.json 기반
+     */
+    renderMarketState() {
+        const mp = this.marketPulse;
+        if (!mp) return;  // 데이터 없으면 하드코딩 유지
+
+        const setText = (id, text) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text;
+        };
+        const setHTML = (id, html) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = html;
+        };
+
+        // 지수 등락률 (S&P/NASDAQ/Russell)
+        const idx = mp.indices || {};
+        const fmtPct = (v) => {
+            if (v === null || v === undefined) return '—';
+            const sign = v >= 0 ? '+' : '';
+            return `${sign}${v.toFixed(2)}%`;
+        };
+        const pctColor = (v) => (v >= 0 ? 'var(--color-primary)' : '#ef4444');
+
+        [['sp500', 'SP500'], ['nasdaq', 'NASDAQ'], ['russell', 'RUSSELL']].forEach(([domId, key]) => {
+            const d = idx[key];
+            if (!d) return;
+            const el = document.getElementById(`market-${domId}-change`);
+            if (el) {
+                el.textContent = fmtPct(d.change_pct);
+                el.style.color = pctColor(d.change_pct);
+            }
+        });
+
+        // 시장 상태 텍스트 + 투자비중
+        setText('market-regime-label', mp.regime || '');
+        setText('market-regime-ratio', mp.investment_ratio || '');
+
+        console.log(`📈 시장 상태 렌더링: ${mp.regime} / 투자비중 ${mp.investment_ratio}`);
+    }
+
+    /**
+     * 좌측 사이드바 — market_pulse.json 기반 (regime, breadth, DD, Stage/Phase 분포)
+     */
+    renderSidebar() {
+        const mp = this.marketPulse;
+        if (!mp) return;
+
+        const setText = (sel, text) => {
+            const el = document.querySelector(sel);
+            if (el) el.textContent = text;
+        };
+
+        // Market Regime 카드
+        setText('.regime-text', mp.regime || '');
+        const ratioEl = document.querySelector('.regime-detail .detail-value');
+        if (ratioEl) ratioEl.textContent = mp.investment_ratio || '';
+
+        // DD Count / Breadth
+        const condRows = document.querySelectorAll('.regime-conditions .condition-row strong');
+        if (condRows.length >= 2) {
+            condRows[0].textContent = mp.dd_count;
+            condRows[1].textContent = `${mp.breadth_pct}%`;
+        }
+
+        // Market Pulse 카드 (Stage 2/3/4)
+        const stages = mp.stages || {};
+        const pulseVals = document.querySelectorAll('.pulse-grid .pulse-value');
+        if (pulseVals.length >= 3) {
+            pulseVals[0].textContent = stages.stage2 ?? 0;
+            pulseVals[1].textContent = stages.stage3 ?? 0;
+            pulseVals[2].textContent = stages.stage4 ?? 0;
+        }
+
+        // Phase Distribution 막대
+        const pd = mp.phase_distribution || {};
+        const total = mp.total_stocks || 1;
+        const phaseRows = document.querySelectorAll('.phase-bars .phase-bar-row');
+        const phaseVals = [pd.p4plus, pd.p4, pd.p3, pd.p67];
+        phaseRows.forEach((row, i) => {
+            const count = phaseVals[i] ?? 0;
+            const fill = row.querySelector('.phase-bar-fill');
+            const cnt = row.querySelector('.phase-count');
+            if (fill) fill.style.width = `${Math.round(count / total * 100)}%`;
+            if (cnt) cnt.textContent = count;
+        });
+
+        console.log(`📊 사이드바 렌더링: Breadth ${mp.breadth_pct}%, DD ${mp.dd_count}`);
     }
 
     /**
