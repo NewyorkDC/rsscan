@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-19 16:34:29",
+  "timestamp": "2026-06-19 21:15:18",
   "nav": 100000.0,
   "cash": 100000.0,
   "holdings": [],
@@ -27,6 +27,6 @@
     "count": 0,
     "max_ratio": 0.2,
     "max_positions": 2,
-    "regime_code": "correction"
+    "regime_code": "unknown"
   }
 }
