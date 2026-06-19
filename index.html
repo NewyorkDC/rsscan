@@ -99,6 +99,21 @@
                 <button class="btn btn-small" id="showWatchlistBtn">보기</button>
             </div>
 
+            <!-- 🔄 수동 분석 실행 버튼 -->
+            <div class="card manual-trigger-card">
+                <h3>🔄 분석 실행</h3>
+                <p class="trigger-description">GitHub Actions 워크플로우를 수동으로 실행합니다.</p>
+                <button class="btn btn-primary" id="triggerAnalysisBtn" onclick="triggerWorkflow()">
+                    ▶️ 지금 실행
+                </button>
+                <div class="trigger-status" id="triggerStatus" style="display: none; margin-top: 12px;">
+                    <div class="status-message" id="statusMessage"></div>
+                    <a class="github-link" id="githubLink" href="https://github.com/NewyorkDC/rsscan/actions" target="_blank">
+                        GitHub Actions 확인 →
+                    </a>
+                </div>
+            </div>
+
             <!-- 마지막 업데이트 -->
             <div class="update-info">
                 <div class="update-time" id="updateTime">2026-06-16 기준</div>
@@ -1143,6 +1158,102 @@
 
         </main>
     </div>
+
+    <!-- 🔄 GitHub Actions 워크플로우 트리거 함수 -->
+    <script>
+    /**
+     * GitHub Actions 워크플로우 수동 실행 함수
+     */
+    async function triggerWorkflow() {
+        const btn = document.getElementById('triggerAnalysisBtn');
+        const statusDiv = document.getElementById('triggerStatus');
+        const statusMsg = document.getElementById('statusMessage');
+        
+        // 버튼 비활성화
+        btn.disabled = true;
+        btn.textContent = '⏳ 실행 중...';
+        statusDiv.style.display = 'block';
+        statusMsg.innerHTML = '<span style="color: #ff6b00;">⏳ GitHub Actions에 요청 중...</span>';
+        
+        try {
+            // API 호출
+            const response = await fetch('/api/trigger-workflow', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // 성공
+                statusMsg.innerHTML = `
+                    <span style="color: #00a651; font-weight: bold;">✅ ${data.message}</span><br>
+                    <span style="font-size: 12px; color: #666; margin-top: 4px;">
+                        ${data.details}<br>
+                        실행 시간: ${new Date(data.timestamp).toLocaleString('ko-KR')}
+                    </span>
+                `;
+                btn.textContent = '✅ 실행됨';
+                btn.style.background = '#00a651';
+                
+                // 5초 후 버튼 복원
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.textContent = '▶️ 지금 실행';
+                    btn.style.background = '';
+                }, 5000);
+            } else {
+                // 오류
+                statusMsg.innerHTML = `
+                    <span style="color: #d32f2f; font-weight: bold;">❌ 오류</span><br>
+                    <span style="font-size: 12px; color: #666;">
+                        ${data.error}: ${data.message}
+                    </span>
+                `;
+                btn.disabled = false;
+                btn.textContent = '❌ 오류 발생';
+            }
+        } catch (error) {
+            // 네트워크 오류
+            statusMsg.innerHTML = `
+                <span style="color: #d32f2f; font-weight: bold;">❌ 요청 실패</span><br>
+                <span style="font-size: 12px; color: #666;">
+                    ${error.message}
+                </span>
+            `;
+            btn.disabled = false;
+            btn.textContent = '❌ 다시 시도';
+        }
+    }
+    
+    // 페이지 로드 시 GitHub Actions 상태 확인 (선택사항)
+    async function checkWorkflowStatus() {
+        try {
+            const response = await fetch('https://api.github.com/repos/NewyorkDC/rsscan/actions/runs?per_page=1');
+            const data = await response.json();
+            
+            if (data.workflow_runs && data.workflow_runs.length > 0) {
+                const latestRun = data.workflow_runs[0];
+                const statusEl = document.getElementById('workflowStatus');
+                if (statusEl) {
+                    const status = latestRun.status === 'completed' 
+                        ? (latestRun.conclusion === 'success' ? '✅ 성공' : '❌ 실패')
+                        : '⏳ 실행 중';
+                    statusEl.textContent = `마지막 실행: ${status}`;
+                }
+            }
+        } catch (error) {
+            console.log('Workflow status check failed:', error);
+        }
+    }
+    
+    // 페이지 로드 시 상태 확인
+    document.addEventListener('DOMContentLoaded', () => {
+        // checkWorkflowStatus();
+    });
+    </script>
 
     <!-- 유틸리티 스크립트 -->
     <script src="js/screener-functions.js"></script>
