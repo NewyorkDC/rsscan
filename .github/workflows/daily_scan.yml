@@ -53,6 +53,13 @@ jobs:
           python generate_rsscan_daily.py
           echo "✅ 5-Gate 분석 완료"
 
+      # Step 6.5: 📊 Market Pulse 분석 (지수/Regime/Breadth)
+      - name: 📊 Run Market Pulse Analysis
+        run: |
+          echo "📈 시장 지수 및 Regime 분석 중..."
+          python market_pulse.py
+          echo "✅ Market Pulse 완료"
+
       # Step 7: 🏛️ Strategy Room v5 Paper-Trade 실행
       - name: 🏛️ Run Strategy Room v5 Paper-Trade
         run: |
