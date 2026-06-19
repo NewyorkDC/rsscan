@@ -1,0 +1,135 @@
+name: 🚀 Daily RSSCAN Analysis (5-Gate + Strategy Room)
+
+# 트리거 설정
+on:
+  # Cron 스케줄 (매일 자동 실행)
+  schedule:
+    # UTC 20:00 = EDT 16:00 (미국 동부 여름시간)
+    # UTC 21:00 = EST 16:00 (미국 동부 겨울시간)
+    # 한국 시간: 오전 5시(서머타임) 또는 오전 6시(정규장)
+    - cron: '0 20,21 * * *'
+  
+  # 수동 실행 버튼 (GitHub 웹사이트에서 클릭 가능)
+  workflow_dispatch:
+
+# 권한 설정 (git push를 위해 필요)
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  daily-analysis:
+    name: 📊 Daily Analysis Pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # Step 1: 저장소 체크아웃
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # Step 2: Python 설정
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      # Step 3: 의존성 설치
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          echo "✅ Dependencies installed"
+
+      # Step 4: 5-Gate 필터링 실행
+      - name: 🔍 Run 5-Gate Funnel Analysis
+        run: |
+          echo "🚀 Starting: generate_rsscan_daily.py"
+          python generate_rsscan_daily.py
+          echo "✅ 5-Gate Funnel analysis complete"
+        env:
+          PYTHONUNBUFFERED: 1
+
+      # Step 5: Strategy Room (v5 Paper-Trade) 실행
+      - name: 🏛️  Run Strategy Room v5 Paper-Trade
+        run: |
+          echo "🚀 Starting: strategy_room.py"
+          python strategy_room.py
+          echo "✅ Strategy Room analysis complete"
+        env:
+          PYTHONUNBUFFERED: 1
+
+      # Step 6: 결과 파일 확인
+      - name: 📊 Verify output files
+        run: |
+          echo "📂 Checking results/ directory..."
+          ls -lh results/
+          echo ""
+          echo "📋 Checking file contents..."
+          if [ -f results/entry_signals.json ]; then
+            echo "✅ entry_signals.json exists"
+            head -20 results/entry_signals.json
+          else
+            echo "❌ entry_signals.json not found"
+            exit 1
+          fi
+
+      # Step 7: Git 설정
+      - name: ⚙️  Configure Git
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      # Step 8: 변경사항 확인
+      - name: 📝 Check changes
+        run: |
+          echo "📊 Git status:"
+          git status
+          echo ""
+          echo "📝 Diff summary:"
+          git diff --stat || echo "No changes"
+
+      # Step 9: 변경사항 커밋 & 푸시
+      - name: 💾 Commit and push results
+        run: |
+          # 변경사항이 있는지 확인
+          if git diff-index --quiet HEAD --; then
+            echo "✅ No changes to commit (working directory clean)"
+          else
+            echo "📝 Staging changes..."
+            git add results/
+            
+            # 커밋 메시지에 타임스탬프 추가
+            TIMESTAMP=$(date -u +'%Y-%m-%d %H:%M:%S UTC')
+            git commit -m "🔄 Auto-update: Daily analysis results [$TIMESTAMP]"
+            
+            echo "🚀 Pushing to repository..."
+            git push origin main
+            echo "✅ Results pushed successfully"
+          fi
+
+      # Step 10: 완료 알림
+      - name: ✅ Workflow complete
+        run: |
+          echo "=========================================="
+          echo "✅ RSSCAN Daily Analysis Complete"
+          echo "=========================================="
+          echo "📊 Analysis Timestamp: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "📁 Results location: results/"
+          echo "📋 Files updated:"
+          echo "   - results/entry_signals.json"
+          echo "   - results/strategy_room_portfolio.json"
+          echo "🔗 Dashboard: https://rsscan.vercel.app"
+          echo "=========================================="
+
+      # Step 11: 실패 시 알림 (선택사항)
+      - name: ❌ Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Workflow failed!"
+          echo "Repository: ${{ github.repository }}"
+          echo "Run ID: ${{ github.run_id }}"
+          echo "See details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
