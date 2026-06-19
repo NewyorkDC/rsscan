@@ -28,10 +28,12 @@ class StrategyRoomV6:
         self.signals_file = 'results/entry_signals.json'
         self.scan_file = 'results/daily_ibd_scan.json'
         self.portfolio_file = 'results/strategy_room_portfolio.json'
+        self.market_pulse_file = 'results/market_pulse.json'
 
         # ===== 운용 파라미터 =====
         self.initial_capital = 100000.0
-        self.max_positions = 12          # 동시 보유 한도 (스크린샷 CAP 12)
+        self.base_max_positions = 12     # 기본 동시 보유 한도 (노출도 100% 기준)
+        self.max_positions = 12          # 노출도에 따라 동적 조정됨
         self.stop_loss_pct = -7.0        # 초기 손절 -7%
         self.be_trigger_pct = 8.0        # +8% 도달 시 브레이크이븐(BE)으로 스탑 상향
         self.lock_trigger_pct = 20.0     # +20% 도달 시 Lock 스탑 활성
@@ -39,6 +41,11 @@ class StrategyRoomV6:
         self.max_hold_days = 56          # 최대 보유 8주(56일)
         self.stale_days = 21             # 21일 이상 보유 + 저성과 → 스위칭 후보
         self.stale_profit_pct = 3.0      # 보유 21일+ 인데 +3% 미만이면 정체로 간주
+
+        # ===== IBD Market Exposure 연동 =====
+        self.exposure_max_ratio = 1.0    # 시장 노출도 상한 (0~1), market_pulse에서 로드
+        self.exposure_count = 5          # 0~5 Exposure Count
+        self.regime_code = 'unknown'
 
         self.today = datetime.now().strftime('%Y-%m-%d')
 
@@ -53,6 +60,30 @@ class StrategyRoomV6:
 
         # 포트폴리오 (기존 상태 로드 또는 초기화)
         self.portfolio = self.load_portfolio()
+
+        # IBD 시장 노출도 로드 및 포지션 한도 조정
+        self.load_market_exposure()
+
+    def load_market_exposure(self):
+        """market_pulse.json에서 IBD Exposure를 읽어 포지션 한도/비중 조정.
+        노출도가 낮으면(조정장) 최대 보유종목 수와 종목당 비중을 줄임."""
+        try:
+            if os.path.exists(self.market_pulse_file):
+                with open(self.market_pulse_file, encoding='utf-8') as f:
+                    mp = json.load(f)
+                self.exposure_max_ratio = float(mp.get('exposure_max_ratio', 1.0))
+                self.exposure_count = int(mp.get('exposure_count', 5))
+                self.regime_code = mp.get('regime_code', 'unknown')
+        except Exception as e:
+            print(f"⚠️ market_pulse 로드 실패 ({e}) — 노출도 100% 기본 적용")
+            self.exposure_max_ratio = 1.0
+
+        # CANSLIM 권장 최대 7개 기준으로 노출도 적용 (기본 12 → 노출도 곱)
+        # 노출도 100%=12개, 80%=9~10개, 60%=7개, 40%=5개, 20%=2~3개, 0%=0개
+        adjusted = round(self.base_max_positions * self.exposure_max_ratio)
+        self.max_positions = max(0, min(self.base_max_positions, adjusted))
+        print(f"📊 IBD 노출도: {int(self.exposure_max_ratio*100)}% (Count {self.exposure_count}/5) "
+              f"→ 최대 보유 {self.max_positions}개")
 
     # ---------- 데이터 로드 ----------
     def load_portfolio(self):
@@ -208,6 +239,10 @@ class StrategyRoomV6:
         """청산 조건 검사. 해당하면 dict, 아니면 None"""
         entry = pos['entry_price']
 
+        # 진입 당일(보유 0일)은 청산하지 않음 (진입가=현재가, 같은 날 손절 비현실적)
+        if held <= 0:
+            return None
+
         # 1. 스탑 히트 (Lock Ratchet 포함)
         if cur <= stop_price:
             reason = '🔴 손절' if stop_price <= entry else '🔒 Lock 청산'
@@ -267,6 +302,9 @@ class StrategyRoomV6:
     # ---------- 신규 진입 ----------
     def enter_position(self, signal):
         """빈 슬롯에 신규 진입"""
+        # Correction(노출도 0~20%)에서는 신규 진입 중단
+        if self.exposure_count <= 0:
+            return False
         if len(self.portfolio['holdings']) >= self.max_positions:
             return False
 
@@ -274,12 +312,15 @@ class StrategyRoomV6:
         if any(h['ticker'] == ticker for h in self.portfolio['holdings']):
             return False  # 이미 보유
 
-        close = signal.get('close', 0)
+        # 진입가: daily_ibd_scan(price_map) 우선 — 이후 현재가 갱신과 출처 통일
+        # (entry_signals와 daily_ibd_scan의 close가 다르면 즉시 손절 오류 발생하므로)
+        close = self.price_map.get(ticker, signal.get('close', 0))
         if close <= 0:
             return False
 
-        # 포지션 사이즈: NAV / max_positions
-        position_size = self.portfolio['nav'] / self.max_positions
+        # 포지션 사이즈: NAV / base_max_positions (종목당 비중 일정 유지, O'Neil 10~15% 원칙)
+        # 노출도는 max_positions(종목 수)로 조절하므로 종목당 비중은 고정
+        position_size = self.portfolio['nav'] / self.base_max_positions
         shares = int(position_size / close)
         if shares <= 0:
             return False
@@ -324,8 +365,12 @@ class StrategyRoomV6:
     def fill_empty_slots(self):
         """빈 슬롯을 강신호 순으로 채움"""
         held_tickers = {h['ticker'] for h in self.portfolio['holdings']}
+        # 오늘 청산된 종목은 같은 날 재진입 금지 (당일 진입→청산→재진입 루프 방지)
+        closed_today = {t['ticker'] for t in self.portfolio['closed_trades']
+                        if t.get('exit_date') == self.today}
+        excluded = held_tickers | closed_today
         candidates = sorted(
-            [s for s in self.signals if s.get('ticker') not in held_tickers],
+            [s for s in self.signals if s.get('ticker') not in excluded],
             key=lambda s: s.get('total_score', s.get('momentum_score_v2', 0)),
             reverse=True
         )
@@ -424,6 +469,13 @@ class StrategyRoomV6:
         self.calculate_statistics()
 
         self.portfolio['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        # IBD 노출도 정보 저장 (대시보드 표시용)
+        self.portfolio['exposure'] = {
+            'count': self.exposure_count,
+            'max_ratio': self.exposure_max_ratio,
+            'max_positions': self.max_positions,
+            'regime_code': self.regime_code,
+        }
 
         os.makedirs('results', exist_ok=True)
         with open(self.portfolio_file, 'w', encoding='utf-8') as f:
