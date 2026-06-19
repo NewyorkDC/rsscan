@@ -1,519 +1,604 @@
-#!/usr/bin/env python3
-"""
-Strategy Room - v6 Paper-Trade 시뮬레이션 (Stateful / 매일 누적)
+/**
+ * RSSCAN v3 - Strategy Room v6 데이터 바인딩
+ * strategy_room_portfolio.json (stateful paper-trade) 렌더링
+ * A: 보유종목 고도화 / B: 요약카드 / C: NAV곡선 / D: 위험지표
+ */
 
-핵심 변경 (v5 → v6):
-- 상태 누적(stateful): 기존 portfolio.json을 읽어 어제 보유를 이어받음
-- 현재가 갱신: daily_ibd_scan.json에서 보유종목 최신 종가를 받아 실시간 P&L 계산
-- Lock Ratchet stop: 수익 구간별로 손절선을 끌어올림
-- 플래그: BE(브레이크이븐), Lock(락스탑), Bw(추세이탈경고)
-- max% 추적: 보유 중 최고 도달 수익률
-- 종목 스위칭: 정체 종목을 강신호로 교체
-- 위험지표: NAV 히스토리, 누적수익률, MDD, Sharpe(근사)
+class StrategyRoomBinder {
+    constructor() {
+        this.portfolio = null;
+        this.holdings = [];
+        this.closedTrades = [];
+        this.statistics = {};
+        this.navHistory = [];
+        this.entrySignals = [];
+        this.navChart = null;
+        this.maxPositions = 12;
+    }
 
-입력: results/entry_signals.json, results/daily_ibd_scan.json
-출력: results/strategy_room_portfolio.json
-"""
+    async loadAndRender() {
+        try {
+            const [portfolioRes, signalsRes] = await Promise.all([
+                fetch('results/strategy_room_portfolio.json'),
+                fetch('results/entry_signals.json').catch(() => null)
+            ]);
 
-import json
-import os
-import sys
-import math
-from datetime import datetime
-from copy import deepcopy
+            if (!portfolioRes.ok) throw new Error('전략실 포트폴리오 로드 실패');
 
+            this.portfolio = await portfolioRes.json();
+            this.holdings = this.portfolio.holdings || [];
+            this.closedTrades = this.portfolio.closed_trades || [];
+            this.statistics = this.portfolio.statistics || {};
+            this.navHistory = this.portfolio.nav_history || [];
 
-class StrategyRoomV6:
-    def __init__(self):
-        self.signals_file = 'results/entry_signals.json'
-        self.scan_file = 'results/daily_ibd_scan.json'
-        self.portfolio_file = 'results/strategy_room_portfolio.json'
-        self.market_pulse_file = 'results/market_pulse.json'
+            // IBD 노출도 (백엔드가 계산한 값)
+            this.exposure = this.portfolio.exposure || null;
+            if (this.exposure && this.exposure.max_positions != null) {
+                this.maxPositions = this.exposure.max_positions;
+            }
 
-        # ===== 운용 파라미터 =====
-        self.initial_capital = 100000.0
-        self.base_max_positions = 12     # 기본 동시 보유 한도 (노출도 100% 기준)
-        self.max_positions = 12          # 노출도에 따라 동적 조정됨
-        self.stop_loss_pct = -7.0        # 초기 손절 -7%
-        self.be_trigger_pct = 8.0        # +8% 도달 시 브레이크이븐(BE)으로 스탑 상향
-        self.lock_trigger_pct = 20.0     # +20% 도달 시 Lock 스탑 활성
-        self.lock_giveback = 0.5         # Lock 시 최고수익의 50% 반납하면 청산
-        self.max_hold_days = 56          # 최대 보유 8주(56일)
-        self.stale_days = 21             # 21일 이상 보유 + 저성과 → 스위칭 후보
-        self.stale_profit_pct = 3.0      # 보유 21일+ 인데 +3% 미만이면 정체로 간주
+            // 진입 신호 (있으면)
+            if (signalsRes && signalsRes.ok) {
+                const sig = await signalsRes.json();
+                this.entrySignals = sig.signals || [];
+                this.signalsDate = sig.timestamp ? sig.timestamp.split(' ')[0] : '';
+            }
 
-        # ===== IBD Market Exposure 연동 =====
-        self.exposure_max_ratio = 1.0    # 시장 노출도 상한 (0~1), market_pulse에서 로드
-        self.exposure_count = 5          # 0~5 Exposure Count
-        self.regime_code = 'unknown'
+            console.log(`✅ Strategy Room v6 로드: 보유 ${this.holdings.length}개, 청산 ${this.closedTrades.length}건, 신호 ${this.entrySignals.length}개, NAV포인트 ${this.navHistory.length}개`);
 
-        self.today = datetime.now().strftime('%Y-%m-%d')
+            // 상단 블록 (스크린샷 순서)
+            this.renderExposureBanner(); // 0. IBD 노출도 배너
+            this.renderOOS();              // 1. 전방향 검증
+            this.renderEntrySignals();     // 3. 진입 조건
+            this.renderSwitching();        // 4. 종목 스위칭
+            this.renderPositionCap();      // 5. Position Cap
+            // 하단 블록
+            this.renderSummary();          // B
+            this.renderNavChart();         // C
+            this.renderHoldingsTable();    // A
+            this.renderClosedTradesTable();
+            this.renderRiskMetrics();      // D
+        } catch (error) {
+            console.error(`❌ Strategy Room 로드 실패: ${error.message}`);
+        }
+    }
 
-        # 현재가 조회용 맵
-        self.price_map = {}      # ticker -> close
-        self.phase_map = {}      # ticker -> phase
-        self.rs_map = {}         # ticker -> ibd_rs_rating
-        self.score_map = {}      # ticker -> total_score
+    // ===== 0. IBD 노출도 배너 =====
+    renderExposureBanner() {
+        const banner = document.getElementById('strategy-exposure-banner');
+        const textEl = document.getElementById('strategy-exposure-text');
+        if (!banner || !textEl || !this.exposure) return;
 
-        # 신규 진입 후보
-        self.signals = []
+        const count = this.exposure.count != null ? this.exposure.count : 5;
+        const ratio = this.exposure.max_ratio != null ? Math.round(this.exposure.max_ratio * 100) : 100;
+        const maxPos = this.exposure.max_positions != null ? this.exposure.max_positions : 12;
 
-        # 포트폴리오 (기존 상태 로드 또는 초기화)
-        self.portfolio = self.load_portfolio()
+        const labelMap = {
+            0: 'Correction (신규 매수 중단)', 1: 'FTD 직후 (초기 진입)', 2: '상승 지속 확인',
+            3: 'Power Trend 초기', 4: '강한 상승 추세', 5: 'Full Exposure (최대 노출)',
+        };
+        textEl.textContent = `Count ${count}/5 · 권장 노출 ${ratio}% · 최대 보유 ${maxPos}개 — ${labelMap[count] || ''}`;
 
-        # IBD 시장 노출도 로드 및 포지션 한도 조정
-        self.load_market_exposure()
+        // 색상 (노출도별)
+        const bg = count >= 4 ? '#f0fdf4' : count >= 2 ? '#fffbeb' : '#fef2f2';
+        const border = count >= 4 ? '#bbf7d0' : count >= 2 ? '#fde68a' : '#fecaca';
+        const color = count >= 4 ? '#166534' : count >= 2 ? '#92400e' : '#991b1b';
+        banner.style.background = bg;
+        banner.style.borderColor = border;
+        banner.style.color = color;
+        banner.style.display = 'block';
+    }
 
-    def load_market_exposure(self):
-        """market_pulse.json에서 IBD Exposure를 읽어 포지션 한도/비중 조정.
-        노출도가 낮으면(조정장) 최대 보유종목 수와 종목당 비중을 줄임."""
-        try:
-            if os.path.exists(self.market_pulse_file):
-                with open(self.market_pulse_file, encoding='utf-8') as f:
-                    mp = json.load(f)
-                self.exposure_max_ratio = float(mp.get('exposure_max_ratio', 1.0))
-                self.exposure_count = int(mp.get('exposure_count', 5))
-                self.regime_code = mp.get('regime_code', 'unknown')
-        except Exception as e:
-            print(f"⚠️ market_pulse 로드 실패 ({e}) — 노출도 100% 기본 적용")
-            self.exposure_max_ratio = 1.0
+    // ===== 1. 전방향 검증 (OOS) =====
+    renderOOS() {
+        // OOS는 청산 거래 기반. inception 이후 첫 청산부터 N건 집계.
+        const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+        const setWidth = (id, pct) => { const el = document.getElementById(id); if (el) el.style.width = `${Math.min(pct, 100)}%`; };
 
-        # CANSLIM 권장 최대 7개 기준으로 노출도 적용 (기본 12 → 노출도 곱)
-        # 노출도 100%=12개, 80%=9~10개, 60%=7개, 40%=5개, 20%=2~3개, 0%=0개
-        adjusted = round(self.base_max_positions * self.exposure_max_ratio)
-        self.max_positions = max(0, min(self.base_max_positions, adjusted))
-        print(f"📊 IBD 노출도: {int(self.exposure_max_ratio*100)}% (Count {self.exposure_count}/5) "
-              f"→ 최대 보유 {self.max_positions}개")
+        const N = this.closedTrades.length;
+        const targetN = 30;
+        setText('oos-sample-count', N);
+        setWidth('oos-sample-bar', (N / targetN) * 100);
 
-    # ---------- 데이터 로드 ----------
-    def load_portfolio(self):
-        """기존 포트폴리오 상태를 읽어 이어받음. 없으면 초기화.
-        오염 데이터(같은 날 진입=청산된 비현실적 거래)가 다수면 자동 리셋."""
-        if os.path.exists(self.portfolio_file):
-            try:
-                with open(self.portfolio_file, encoding='utf-8') as f:
-                    p = json.load(f)
-                p.setdefault('nav_history', [])
-                p.setdefault('closed_trades', [])
-                p.setdefault('holdings', [])
+        // 기간 진행: NAV 히스토리 첫 날짜 ~ 오늘 (6개월=180일 기준)
+        let periodMonths = 0;
+        if (this.navHistory.length >= 1) {
+            const first = new Date(this.navHistory[0].date);
+            const last = new Date(this.navHistory[this.navHistory.length - 1].date);
+            periodMonths = (last - first) / (1000 * 60 * 60 * 24 * 30);
+        }
+        setText('oos-period', periodMonths.toFixed(1));
+        setWidth('oos-period-bar', (periodMonths / 6) * 100);
 
-                # 오염 검사: 같은 날 진입=청산된 거래 비율
-                closed = p.get('closed_trades', [])
-                same_day = [t for t in closed
-                            if t.get('entry_date') and t.get('exit_date')
-                            and t['entry_date'] == t['exit_date']]
-                # 같은 날 진입/청산이 절반 이상이면 오염으로 판단 → 리셋
-                if closed and len(same_day) >= len(closed) * 0.5:
-                    print(f"⚠️ 오염 감지: 청산 {len(closed)}건 중 {len(same_day)}건이 "
-                          f"같은 날 진입/청산 → 포트폴리오 리셋")
-                    return self._fresh_portfolio()
-
-                print(f"📂 기존 포트폴리오 로드: 보유 {len(p.get('holdings', []))}개, "
-                      f"청산 {len(closed)}건")
-                return p
-            except Exception as e:
-                print(f"⚠️ 포트폴리오 로드 실패 ({e}), 새로 초기화")
-
-        print("🆕 신규 포트폴리오 초기화")
-        return self._fresh_portfolio()
-
-    def _fresh_portfolio(self):
-        return {
-            'timestamp': '',
-            'nav': self.initial_capital,
-            'cash': self.initial_capital,
-            'holdings': [],
-            'closed_trades': [],
-            'nav_history': [],
-            'statistics': {},
+        // 상태 텍스트
+        const statusEl = document.getElementById('oos-status');
+        if (statusEl) {
+            if (N === 0) statusEl.textContent = '🔵 검증 시작 — 표본 수집 중 (N=0)';
+            else if (N < targetN) statusEl.textContent = `🔵 표본 수집 중 (N=${N} / ${targetN})`;
+            else {
+                const avgPct = this.closedTrades.reduce((s, t) => s + (t.profit_pct || 0), 0) / N;
+                statusEl.textContent = `✅ 검증 진행 (N=${N}) · 기대값 ${avgPct >= 0 ? '+' : ''}${avgPct.toFixed(1)}%`;
+            }
         }
 
-    def load_market_data(self):
-        """현재가/Phase/RS 맵 + 신규 진입 신호 로드"""
-        # 스캔 데이터 (현재가 소스)
-        if os.path.exists(self.scan_file):
-            with open(self.scan_file, encoding='utf-8') as f:
-                scan = json.load(f)
-            for d in scan:
-                t = d.get('ticker')
-                if not t:
-                    continue
-                self.price_map[t] = d.get('close', 0)
-                self.phase_map[t] = d.get('phase', 0)
-                self.rs_map[t] = d.get('ibd_rs_rating', 0)
-                self.score_map[t] = d.get('total_score', 0)
-            print(f"✅ 현재가 데이터: {len(self.price_map)}개 종목")
-        else:
-            print(f"⚠️ {self.scan_file} 없음 — 현재가 갱신 불가")
-
-        # 진입 신호
-        if os.path.exists(self.signals_file):
-            with open(self.signals_file, encoding='utf-8') as f:
-                sig = json.load(f)
-            self.signals = sig.get('signals', [])
-            print(f"✅ 진입 신호: {len(self.signals)}개")
-        else:
-            print(f"⚠️ {self.signals_file} 없음 — 신규 진입 불가")
-
-    # ---------- 유틸 ----------
-    def days_held(self, position):
-        """진입일부터 오늘까지 보유일"""
-        try:
-            d0 = datetime.strptime(position['entry_date'], '%Y-%m-%d')
-            d1 = datetime.strptime(self.today, '%Y-%m-%d')
-            return (d1 - d0).days
-        except Exception:
-            return 0
-
-    def get_current_price(self, ticker, fallback):
-        """현재가 조회 (없으면 fallback=진입가 또는 직전가)"""
-        return self.price_map.get(ticker, fallback)
-
-    # ---------- 보유종목 일일 갱신 ----------
-    def update_holdings(self):
-        """보유종목 현재가 갱신 + 청산 판정 + 플래그/스탑 갱신"""
-        still_holding = []
-
-        for pos in self.portfolio['holdings']:
-            if pos.get('status') != 'ACTIVE':
-                continue
-
-            ticker = pos['ticker']
-            entry = pos['entry_price']
-            prev_price = pos.get('current_price', entry)
-            cur = self.get_current_price(ticker, prev_price)
-            pos['current_price'] = round(cur, 2)
-
-            # 실시간 P&L
-            profit_pct = (cur / entry - 1) * 100
-            pos['profit_pct'] = round(profit_pct, 2)
-            pos['profit_usd'] = round((cur - entry) * pos['shares'], 2)
-
-            # max% (보유 중 최고 도달 수익률) 갱신
-            pos['max_pct'] = round(max(pos.get('max_pct', 0.0), profit_pct), 2)
-
-            # 보유일
-            held = self.days_held(pos)
-            pos['days_held'] = held
-
-            # Phase/RS 최신화
-            pos['phase'] = self.phase_map.get(ticker, pos.get('phase', 0))
-            pos['rs_score'] = self.rs_map.get(ticker, pos.get('rs_score', 0))
-
-            # ===== Lock Ratchet 스탑 계산 =====
-            stop_price, flags = self.compute_stop_and_flags(pos)
-            pos['stop_price'] = round(stop_price, 2)
-            pos['stop_pct'] = round((stop_price / entry - 1) * 100, 1)
-            pos['flags'] = flags
-
-            # ===== 청산 판정 =====
-            exit_info = self.check_exit(pos, cur, profit_pct, held, stop_price)
-            if exit_info:
-                pos['status'] = 'CLOSED'
-                pos['exit_date'] = self.today
-                pos['exit_price'] = round(exit_info['exit_price'], 2)
-                pos['exit_reason'] = exit_info['reason']
-                pos['profit_pct'] = round((exit_info['exit_price'] / entry - 1) * 100, 2)
-                pos['profit_usd'] = round((exit_info['exit_price'] - entry) * pos['shares'], 2)
-                self.portfolio['cash'] += exit_info['exit_price'] * pos['shares']
-                self.portfolio['closed_trades'].append(deepcopy(pos))
-                print(f"  🔚 청산 {ticker}: {pos['profit_pct']:+.1f}% ({exit_info['reason']})")
-            else:
-                still_holding.append(pos)
-
-        self.portfolio['holdings'] = still_holding
-
-    def compute_stop_and_flags(self, pos):
-        """Lock Ratchet 스탑 가격 + 상태 플래그 산출"""
-        entry = pos['entry_price']
-        max_pct = pos.get('max_pct', 0.0)
-        cur_phase = pos.get('phase', 0)
-        flags = []
-
-        # 기본 스탑: -7%
-        stop_price = entry * (1 + self.stop_loss_pct / 100)
-
-        # BE: +8% 도달했었으면 손절선을 본전으로
-        if max_pct >= self.be_trigger_pct:
-            stop_price = max(stop_price, entry)  # 브레이크이븐
-            flags.append('BE')
-
-        # Lock: +20% 도달했었으면 최고수익의 일부를 보호하는 스탑
-        if max_pct >= self.lock_trigger_pct:
-            locked_pct = max_pct * self.lock_giveback   # 최고수익의 50% 지점
-            stop_price = max(stop_price, entry * (1 + locked_pct / 100))
-            flags.append(f'Lock')
-
-        # Bw(Below weakness): Phase가 6/7로 떨어지면 추세이탈 경고
-        if cur_phase >= 6:
-            flags.append('Bw')
-
-        return stop_price, flags
-
-    def check_exit(self, pos, cur, profit_pct, held, stop_price):
-        """청산 조건 검사. 해당하면 dict, 아니면 None"""
-        entry = pos['entry_price']
-
-        # 진입 당일(보유 0일)은 청산하지 않음 (진입가=현재가, 같은 날 손절 비현실적)
-        if held <= 0:
-            return None
-
-        # 1. 스탑 히트 (Lock Ratchet 포함)
-        if cur <= stop_price:
-            reason = '🔴 손절' if stop_price <= entry else '🔒 Lock 청산'
-            return {'exit_price': stop_price, 'reason': reason}
-
-        # 2. 추세 이탈: Phase 7(분배의심)이면 청산
-        if pos.get('phase', 0) >= 7:
-            return {'exit_price': cur, 'reason': '📉 추세이탈(P7)'}
-
-        # 3. Max Hold 도달
-        if held >= self.max_hold_days:
-            return {'exit_price': cur, 'reason': '⏰ Max Hold(8주)'}
-
-        return None
-
-    # ---------- 종목 스위칭 ----------
-    def switch_stale_positions(self):
-        """정체 종목(오래 보유 + 저성과)을 강한 신규 신호로 교체"""
-        if not self.signals:
-            return
-
-        held_tickers = {h['ticker'] for h in self.portfolio['holdings']}
-        # 보유 중이 아닌 강신호 후보 (total_score 높은 순)
-        candidates = sorted(
-            [s for s in self.signals if s.get('ticker') not in held_tickers],
-            key=lambda s: s.get('total_score', s.get('momentum_score_v2', 0)),
-            reverse=True
-        )
-        if not candidates:
-            return
-
-        for pos in list(self.portfolio['holdings']):
-            held = pos.get('days_held', 0)
-            pnl = pos.get('profit_pct', 0)
-            if held >= self.stale_days and pnl < self.stale_profit_pct:
-                # 정체 → 가장 강한 후보와 비교
-                if not candidates:
-                    break
-                cand = candidates[0]
-                cand_score = cand.get('total_score', cand.get('momentum_score_v2', 0))
-                pos_score = pos.get('rs_score', 0)
-                if cand_score > pos_score + 5:  # 충분히 강해야 교체
-                    # 정체 종목 청산
-                    cur = pos.get('current_price', pos['entry_price'])
-                    pos['status'] = 'CLOSED'
-                    pos['exit_date'] = self.today
-                    pos['exit_price'] = round(cur, 2)
-                    pos['exit_reason'] = f"🔄 스위칭→{cand['ticker']}"
-                    self.portfolio['cash'] += cur * pos['shares']
-                    self.portfolio['closed_trades'].append(deepcopy(pos))
-                    self.portfolio['holdings'].remove(pos)
-                    print(f"  🔄 스위칭: {pos['ticker']}({pnl:+.1f}%) → {cand['ticker']}")
-                    # 신규 진입
-                    self.enter_position(cand)
-                    candidates.pop(0)
-
-    # ---------- 신규 진입 ----------
-    def enter_position(self, signal):
-        """빈 슬롯에 신규 진입"""
-        # Correction(노출도 0~20%)에서는 신규 진입 중단
-        if self.exposure_count <= 0:
-            return False
-        if len(self.portfolio['holdings']) >= self.max_positions:
-            return False
-
-        ticker = signal.get('ticker')
-        if any(h['ticker'] == ticker for h in self.portfolio['holdings']):
-            return False  # 이미 보유
-
-        # 진입가: daily_ibd_scan(price_map) 우선 — 이후 현재가 갱신과 출처 통일
-        # (entry_signals와 daily_ibd_scan의 close가 다르면 즉시 손절 오류 발생하므로)
-        close = self.price_map.get(ticker, signal.get('close', 0))
-        if close <= 0:
-            return False
-
-        # 포지션 사이즈: NAV / base_max_positions (종목당 비중 일정 유지, O'Neil 10~15% 원칙)
-        # 노출도는 max_positions(종목 수)로 조절하므로 종목당 비중은 고정
-        position_size = self.portfolio['nav'] / self.base_max_positions
-        shares = int(position_size / close)
-        if shares <= 0:
-            return False
-        entry_cost = shares * close
-
-        if entry_cost > self.portfolio['cash']:
-            # 현금 부족분만큼 축소
-            shares = int(self.portfolio['cash'] / close)
-            if shares <= 0:
-                return False
-            entry_cost = shares * close
-
-        position = {
-            'ticker': ticker,
-            'entry_date': signal.get('date', self.today),
-            'entry_price': round(close, 2),
-            'current_price': round(close, 2),
-            'shares': shares,
-            'entry_cost': round(entry_cost, 2),
-            'entry_weight': signal.get('entry_weight', 1.0),
-            'entry_reason': signal.get('entry_reason', ''),
-            'phase': signal.get('phase', self.phase_map.get(ticker, 0)),
-            'rs_score': signal.get('ibd_rs_rating', self.rs_map.get(ticker, 0)),
-            'pattern': 'HT Flag' if signal.get('top_pattern') else 'Base',
-            'status': 'ACTIVE',
-            'profit_pct': 0.0,
-            'profit_usd': 0.0,
-            'max_pct': 0.0,
-            'days_held': 0,
-            'stop_price': round(close * (1 + self.stop_loss_pct / 100), 2),
-            'stop_pct': self.stop_loss_pct,
-            'flags': [],
-            'exit_date': None,
-            'exit_price': None,
-            'exit_reason': None,
+        // seed (개발용 in-sample = 현재까지 누적 거래)
+        const seedEl = document.getElementById('oos-seed');
+        if (seedEl) {
+            if (N === 0) seedEl.textContent = '집계 대기';
+            else {
+                const avgPct = this.closedTrades.reduce((s, t) => s + (t.profit_pct || 0), 0) / N;
+                const winRate = this.statistics.win_rate || 0;
+                seedEl.textContent = `${N}건 · 기대값 ${avgPct >= 0 ? '+' : ''}${avgPct.toFixed(1)}% · 승률 ${winRate.toFixed(0)}%`;
+            }
         }
-        self.portfolio['cash'] -= entry_cost
-        self.portfolio['holdings'].append(position)
-        print(f"  ✅ 진입 {ticker}: {shares}주 @ ${close:.2f}")
-        return True
+    }
 
-    def fill_empty_slots(self):
-        """빈 슬롯을 강신호 순으로 채움"""
-        held_tickers = {h['ticker'] for h in self.portfolio['holdings']}
-        # 오늘 청산된 종목은 같은 날 재진입 금지 (당일 진입→청산→재진입 루프 방지)
-        closed_today = {t['ticker'] for t in self.portfolio['closed_trades']
-                        if t.get('exit_date') == self.today}
-        excluded = held_tickers | closed_today
-        candidates = sorted(
-            [s for s in self.signals if s.get('ticker') not in excluded],
-            key=lambda s: s.get('total_score', s.get('momentum_score_v2', 0)),
-            reverse=True
-        )
-        for cand in candidates:
-            if len(self.portfolio['holdings']) >= self.max_positions:
-                break
-            self.enter_position(cand)
+    // ===== 3. 진입 조건 (신규 시그널) =====
+    renderEntrySignals() {
+        const container = document.getElementById('entry-signals-table-body');
+        const countEl = document.getElementById('entry-signals-count');
+        const dateEl = document.getElementById('entry-signals-date');
+        if (!container) return;
 
-    # ---------- NAV & 통계 ----------
-    def calculate_nav(self):
-        holdings_value = sum(
-            h.get('current_price', h['entry_price']) * h['shares']
-            for h in self.portfolio['holdings'] if h['status'] == 'ACTIVE'
-        )
-        nav = self.portfolio['cash'] + holdings_value
-        self.portfolio['nav'] = round(nav, 2)
+        if (dateEl && this.signalsDate) dateEl.textContent = `— ${this.signalsDate} 기준`;
 
-        # NAV 히스토리 (날짜별 1포인트, 중복 날짜는 갱신)
-        hist = self.portfolio['nav_history']
-        nav_ratio = round(nav / self.initial_capital, 4)
-        if hist and hist[-1]['date'] == self.today:
-            hist[-1]['nav'] = nav_ratio
-        else:
-            hist.append({'date': self.today, 'nav': nav_ratio})
-        # 최근 500포인트만 유지
-        self.portfolio['nav_history'] = hist[-500:]
-
-    def calculate_statistics(self):
-        closed = self.portfolio['closed_trades']
-        nav = self.portfolio['nav']
-        stats = {
-            'total_trades': len(closed),
-            'winning_trades': 0,
-            'losing_trades': 0,
-            'win_rate': 0.0,
-            'avg_win': 0.0,
-            'avg_loss': 0.0,
-            'cumulative_return': round((nav / self.initial_capital - 1) * 100, 2),
-            'mdd': 0.0,
-            'sharpe': 0.0,
-            'best_trade': 0.0,
-            'worst_trade': 0.0,
+        if (this.entrySignals.length === 0) {
+            if (countEl) countEl.textContent = `신규 시그널 0건`;
+            container.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:var(--spacing-lg); color:var(--color-text-tertiary);">진입 신호가 없습니다</td></tr>`;
+            return;
         }
 
-        if closed:
-            winners = [t for t in closed if t.get('profit_usd', 0) >= 0]
-            losers = [t for t in closed if t.get('profit_usd', 0) < 0]
-            stats['winning_trades'] = len(winners)
-            stats['losing_trades'] = len(losers)
-            stats['win_rate'] = round(len(winners) / len(closed) * 100, 1)
-            stats['avg_win'] = round(sum(t['profit_usd'] for t in winners) / len(winners), 2) if winners else 0.0
-            stats['avg_loss'] = round(sum(t['profit_usd'] for t in losers) / len(losers), 2) if losers else 0.0
-            pcts = [t.get('profit_pct', 0) for t in closed]
-            stats['best_trade'] = round(max(pcts), 1) if pcts else 0.0
-            stats['worst_trade'] = round(min(pcts), 1) if pcts else 0.0
+        // 우선순위 정렬: total_score 우선, 없으면 RS Rating
+        const score = (s) => (s.total_score || 0) * 100 + (s.ibd_rs_rating || 0);
+        const sorted = [...this.entrySignals].sort((a, b) => score(b) - score(a));
 
-        # MDD / Sharpe (NAV 히스토리 기반 근사)
-        hist = [h['nav'] for h in self.portfolio['nav_history']]
-        if len(hist) >= 2:
-            peak = hist[0]
-            max_dd = 0.0
-            for v in hist:
-                peak = max(peak, v)
-                dd = (v / peak - 1) * 100
-                max_dd = min(max_dd, dd)
-            stats['mdd'] = round(max_dd, 1)
+        // 우선순위 상위 10개만 진입 조건에 표시
+        const TOP_N = 10;
+        const topSignals = sorted.slice(0, TOP_N);
 
-            # 일별 수익률 표준편차로 Sharpe 근사 (연율화)
-            rets = [hist[i] / hist[i - 1] - 1 for i in range(1, len(hist))]
-            if len(rets) >= 2:
-                mean = sum(rets) / len(rets)
-                var = sum((r - mean) ** 2 for r in rets) / len(rets)
-                std = math.sqrt(var)
-                if std > 0:
-                    stats['sharpe'] = round((mean / std) * math.sqrt(252), 2)
+        if (countEl) countEl.textContent = `전체 ${this.entrySignals.length}건 중 우선순위 ${topSignals.length}건`;
 
-        self.portfolio['statistics'] = stats
+        let html = '';
+        topSignals.forEach(s => {
+            const pivotPct = s.dist_pivot_pct != null ? s.dist_pivot_pct : null;
+            const pivotStr = pivotPct != null
+                ? `<span style="color:${pivotPct <= 0 ? '#10b981' : '#6b7280'};">${pivotPct >= 0 ? '+' : ''}${pivotPct.toFixed(1)}%</span>`
+                : '–';
+            html += `
+                <tr style="border-bottom:1px solid var(--color-border-light);">
+                    <td style="text-align:left; font-weight:600;"><span class="ticker-link" style="color:#2563eb;" onclick="window.strategyRoomBinder.openModal('${s.ticker}')">${s.ticker}</span></td>
+                    <td style="text-align:left; font-size:0.75rem;">${s.chart_pattern || (s.top_pattern ? 'Top Pattern' : (s.breakout ? 'Breakout' : '–'))}</td>
+                    <td style="text-align:right;">$${(s.close || 0).toFixed(2)}</td>
+                    <td style="text-align:right; font-size:0.75rem;">${pivotStr}</td>
+                    <td style="text-align:center; font-weight:600; color:#fbbf24;">${s.ibd_rs_rating || 0}</td>
+                    <td style="text-align:right;">${(s.total_score || 0).toFixed(1)}</td>
+                    <td style="text-align:right; color:#6b7280;">${(s.theme_score || 0).toFixed(1)}</td>
+                    <td style="text-align:right; color:#6b7280;">${(s.ad_score || 0).toFixed(1)}</td>
+                </tr>`;
+        });
+        container.innerHTML = html;
 
-    # ---------- 실행 ----------
-    def run(self):
-        print("\n🏛️  STRATEGY ROOM v6 — Stateful Paper-Trade")
-        print("=" * 60)
+        // 차순위(11~20위)를 Position Cap에 넘기기 위해 저장
+        this._nextTier = sorted.slice(TOP_N, TOP_N + 10);
+    }
 
-        self.load_market_data()
+    // ===== 4. 종목 스위칭 =====
+    renderSwitching() {
+        const container = document.getElementById('switching-table-body');
+        const countEl = document.getElementById('switching-count');
+        if (!container) return;
 
-        print("\n📊 보유종목 일일 갱신...")
-        self.update_holdings()
+        // 청산이력 중 스위칭(🔄) 사유만 추출
+        const switches = this.closedTrades.filter(t =>
+            (t.exit_reason || '').includes('스위칭') || (t.exit_reason || '').includes('🔄'));
 
-        print("\n🔄 정체 종목 스위칭 검토...")
-        self.switch_stale_positions()
+        if (countEl) countEl.textContent = `${switches.length}건`;
 
-        print("\n➕ 빈 슬롯 채우기...")
-        self.fill_empty_slots()
-
-        self.calculate_nav()
-        self.calculate_statistics()
-
-        self.portfolio['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        # IBD 노출도 정보 저장 (대시보드 표시용)
-        self.portfolio['exposure'] = {
-            'count': self.exposure_count,
-            'max_ratio': self.exposure_max_ratio,
-            'max_positions': self.max_positions,
-            'regime_code': self.regime_code,
+        if (switches.length === 0) {
+            container.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:var(--spacing-lg); color:var(--color-text-tertiary);">스위칭 내역이 없습니다</td></tr>`;
+            return;
         }
 
-        os.makedirs('results', exist_ok=True)
-        with open(self.portfolio_file, 'w', encoding='utf-8') as f:
-            json.dump(self.portfolio, f, indent=2, ensure_ascii=False)
+        let html = '';
+        switches.reverse().forEach(t => {
+            // exit_reason 예: "🔄 스위칭→BHE"
+            const target = (t.exit_reason || '').split('→')[1] || '?';
+            const pnl = t.profit_pct || 0;
+            html += `
+                <tr style="border-bottom:1px solid var(--color-border-light);">
+                    <td style="text-align:left; font-weight:600;">${t.ticker} <span style="font-size:0.7rem; color:${pnl >= 0 ? '#10b981' : '#ef4444'};">(${pnl >= 0 ? '+' : ''}${pnl.toFixed(1)}%)</span></td>
+                    <td style="text-align:center; color:var(--color-text-tertiary);">→</td>
+                    <td style="text-align:left; font-weight:600; color:#2563eb;">${target}</td>
+                    <td style="text-align:left; font-size:0.75rem;">${t.pattern || '–'}</td>
+                    <td style="text-align:right; color:#10b981; font-weight:600;">강신호 교체</td>
+                </tr>`;
+        });
+        container.innerHTML = html;
+    }
 
-        s = self.portfolio['statistics']
-        print(f"\n{'=' * 60}")
-        print(f"💰 NAV: ${self.portfolio['nav']:,.2f} (누적 {s['cumulative_return']:+.2f}%)")
-        print(f"📦 보유: {len(self.portfolio['holdings'])}개 / 청산: {s['total_trades']}건")
-        print(f"🎯 승률: {s['win_rate']}% | MDD: {s['mdd']}% | Sharpe: {s['sharpe']}")
-        print(f"💾 저장: {self.portfolio_file}")
-        print("=" * 60 + "\n")
-        return True
+    // ===== 5. 차순위 후보 (우선순위 다음 10개) =====
+    renderPositionCap() {
+        const container = document.getElementById('poscap-table-body');
+        const countEl = document.getElementById('poscap-count');
+        if (!container) return;
 
+        // renderEntrySignals에서 저장한 차순위(11~20위)
+        const nextTier = this._nextTier || [];
 
-if __name__ == '__main__':
-    try:
-        room = StrategyRoomV6()
-        room.run()
-        print("✅ 완료!")
-        sys.exit(0)
-    except Exception as e:
-        print(f"\n❌ 오류: {e}")
-        import traceback
-        traceback.print_exc()
-        sys.exit(0)  # 파이프라인 중단 방지
+        if (countEl) countEl.textContent = `${nextTier.length}건`;
+
+        if (nextTier.length === 0) {
+            container.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:var(--spacing-lg); color:var(--color-text-tertiary);">차순위 후보가 없습니다</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        nextTier.forEach(s => {
+            html += `
+                <tr style="border-bottom:1px solid var(--color-border-light);">
+                    <td style="text-align:left; font-weight:600;"><span class="ticker-link" style="color:#2563eb;" onclick="window.strategyRoomBinder.openModal('${s.ticker}')">${s.ticker}</span></td>
+                    <td style="text-align:left; font-size:0.75rem;">${s.top_pattern ? 'Top Pattern' : (s.breakout ? 'Breakout' : '–')}</td>
+                    <td style="text-align:right;">${(s.total_score || 0).toFixed(1)}</td>
+                    <td style="text-align:center; font-weight:600; color:#fbbf24;">${s.ibd_rs_rating || 0}</td>
+                </tr>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // ===== B. 요약 카드 (NAV 배수 표시) =====
+    renderSummary() {
+        if (!this.portfolio) return;
+        const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+
+        const initialCapital = 100000;
+        const nav = this.portfolio.nav || initialCapital;
+        const navRatio = nav / initialCapital;              // 1.0 기준 배수
+        const cumReturn = this.statistics.cumulative_return || (navRatio - 1) * 100;
+        const unrealizedPct = this.holdings.length > 0
+            ? this.holdings.reduce((sum, h) => sum + (h.profit_pct || 0), 0) / this.holdings.length
+            : 0;
+
+        // PORTFOLIO NAV (배수 + 수익률)
+        setText('strategy-nav', navRatio.toFixed(4));
+        const navReturnEl = document.getElementById('strategy-nav-return');
+        if (navReturnEl) {
+            navReturnEl.textContent = `${cumReturn >= 0 ? '+' : ''}${cumReturn.toFixed(2)}%`;
+            navReturnEl.style.color = cumReturn >= 0 ? '#10b981' : '#ef4444';
+        }
+
+        // ACTIVE HOLDINGS (n / 12 + 미실현 평균)
+        const posEl = document.getElementById('strategy-positions');
+        if (posEl) posEl.innerHTML = `${this.holdings.length} <span style="font-size:0.9rem; color:#9ca3af;">/ ${this.maxPositions}</span>`;
+        const unrealEl = document.getElementById('strategy-unrealized');
+        if (unrealEl) {
+            unrealEl.textContent = `미실현 ${unrealizedPct >= 0 ? '+' : ''}${unrealizedPct.toFixed(2)}%`;
+            unrealEl.style.color = unrealizedPct >= 0 ? '#10b981' : '#ef4444';
+        }
+
+        // CLOSED TRADES (건수 + Hit/Avg)
+        setText('strategy-stat-total-trades', `${this.statistics.total_trades || 0}`);
+        const closedSummaryEl = document.getElementById('strategy-closed-summary');
+        if (closedSummaryEl) {
+            const winRate = this.statistics.win_rate || 0;
+            const avgWinPct = this.closedTrades.length > 0
+                ? this.closedTrades.reduce((s, t) => s + (t.profit_pct || 0), 0) / this.closedTrades.length
+                : 0;
+            closedSummaryEl.textContent = `Hit ${winRate.toFixed(1)}% · Avg ${avgWinPct >= 0 ? '+' : ''}${avgWinPct.toFixed(1)}%`;
+        }
+
+        // LAST UPDATE
+        const ts = this.portfolio.timestamp || '';
+        setText('strategy-last-update', ts ? ts.split(' ')[0] : '—');
+    }
+
+    // ===== C. NAV 곡선 차트 =====
+    renderNavChart() {
+        const canvas = document.getElementById('strategy-nav-chart');
+        const emptyMsg = document.getElementById('strategy-nav-empty');
+        if (!canvas) return;
+
+        // 데이터 2포인트 미만이면 안내 메시지
+        if (this.navHistory.length < 2) {
+            canvas.style.display = 'none';
+            if (emptyMsg) emptyMsg.style.display = 'block';
+            return;
+        }
+        canvas.style.display = 'block';
+        if (emptyMsg) emptyMsg.style.display = 'none';
+
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js 미로드 — NAV 곡선 생략');
+            return;
+        }
+
+        const labels = this.navHistory.map(p => p.date);
+        const data = this.navHistory.map(p => ((p.nav - 1) * 100).toFixed(2));  // 누적수익률 %
+
+        if (this.navChart) this.navChart.destroy();
+
+        this.navChart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '전략실 누적수익률 (%)',
+                    data: data,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.25,
+                    pointRadius: this.navHistory.length > 30 ? 0 : 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { ticks: { callback: v => v + '%', font: { size: 10 } }, grid: { color: '#f3f4f6' } },
+                    x: { ticks: { font: { size: 9 }, maxTicksLimit: 8 }, grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // ===== A. 보유종목 고도화 표 =====
+    renderHoldingsTable() {
+        const container = document.getElementById('strategy-holdings-table');
+        const countEl = document.getElementById('strategy-holdings-count');
+        if (!container) return;
+        if (countEl) countEl.textContent = `(${this.holdings.length}개)`;
+
+        if (this.holdings.length === 0) {
+            container.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: var(--spacing-lg); color: var(--color-text-tertiary);">보유 종목이 없습니다</td></tr>`;
+            return;
+        }
+
+        // P&L 내림차순 정렬
+        const sorted = [...this.holdings].sort((a, b) => (b.profit_pct || 0) - (a.profit_pct || 0));
+
+        let html = '';
+        sorted.forEach(h => {
+            const pnl = h.profit_pct || 0;
+            const maxPct = h.max_pct || 0;
+            const pnlColor = pnl >= 0 ? '#10b981' : '#ef4444';
+            const phase = h.phase || 0;
+            const phaseColor = phase >= 5 ? '#10b981' : phase === 4 ? '#059669' : phase === 3 ? '#3b82f6' : phase >= 6 ? '#ef4444' : '#9ca3af';
+            const flags = h.flags || [];
+
+            const flagBadges = flags.map(f => {
+                let bg = '#e5e7eb', color = '#374151';
+                if (f === 'BE') { bg = '#dbeafe'; color = '#1e40af'; }
+                else if (f === 'Lock') { bg = '#dcfce7'; color = '#15803d'; }
+                else if (f === 'Bw') { bg = '#fee2e2'; color = '#b91c1c'; }
+                return `<span style="display:inline-block; padding:1px 5px; margin:0 1px; background:${bg}; color:${color}; border-radius:3px; font-size:0.6rem; font-weight:700;">${f}</span>`;
+            }).join('');
+
+            html += `
+                <tr style="border-bottom:1px solid var(--color-border-light);">
+                    <td style="text-align:left; font-weight:600;"><span class="ticker-link" style="color:#2563eb;" onclick="window.strategyRoomBinder.openModal('${h.ticker}')">${h.ticker}</span></td>
+                    <td style="text-align:left; font-size:0.7rem; color:var(--color-text-tertiary);">${h.entry_date || '-'}</td>
+                    <td style="text-align:right;">${h.days_held || 0}d</td>
+                    <td style="text-align:right;">$${(h.entry_price || 0).toFixed(2)}</td>
+                    <td style="text-align:right; font-weight:600;">$${(h.current_price || h.entry_price || 0).toFixed(2)}</td>
+                    <td style="text-align:right; font-weight:700; color:${pnlColor};">${pnl >= 0 ? '+' : ''}${pnl.toFixed(1)}%</td>
+                    <td style="text-align:right; color:#6b7280;">${maxPct >= 0 ? '+' : ''}${maxPct.toFixed(1)}%</td>
+                    <td style="text-align:right; font-size:0.7rem; color:#6b7280;">$${(h.stop_price || 0).toFixed(2)}<br><span style="font-size:0.65rem;">(${(h.stop_pct || 0).toFixed(1)}%)</span></td>
+                    <td style="text-align:center;"><span style="padding:2px 6px; background:${phaseColor}; color:white; border-radius:3px; font-size:0.65rem; font-weight:600;">P${phase}</span></td>
+                    <td style="text-align:center; font-weight:600; color:#fbbf24;">${h.rs_score || 0}</td>
+                    <td style="text-align:center;">${flagBadges || '<span style="color:#d1d5db;">–</span>'}</td>
+                </tr>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // 청산 이력
+    renderClosedTradesTable() {
+        const container = document.getElementById('strategy-closed-trades-table');
+        const countEl = document.getElementById('strategy-closed-count');
+        if (!container) return;
+        if (countEl) countEl.textContent = `(${this.closedTrades.length}건)`;
+
+        if (this.closedTrades.length === 0) {
+            container.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: var(--spacing-lg); color: var(--color-text-tertiary);">종료된 거래가 없습니다</td></tr>`;
+            return;
+        }
+
+        // 최신순 (배열 뒤가 최신)
+        const sorted = [...this.closedTrades].reverse();
+
+        let html = '';
+        sorted.forEach(t => {
+            const pnl = t.profit_pct || 0;
+            const pnlUsd = t.profit_usd || 0;
+            const color = pnl >= 0 ? '#10b981' : '#ef4444';
+            html += `
+                <tr style="border-bottom:1px solid var(--color-border-light);">
+                    <td style="text-align:left; font-weight:600; color:#2563eb;">${t.ticker}</td>
+                    <td style="text-align:left; font-size:0.7rem; color:var(--color-text-tertiary);">${t.entry_date || '-'}</td>
+                    <td style="text-align:left; font-size:0.7rem; color:var(--color-text-tertiary);">${t.exit_date || '-'}</td>
+                    <td style="text-align:right;">$${(t.entry_price || 0).toFixed(2)}</td>
+                    <td style="text-align:right;">$${(t.exit_price || 0).toFixed(2)}</td>
+                    <td style="text-align:right; font-weight:700; color:${color};">${pnl >= 0 ? '+' : ''}${pnl.toFixed(1)}%</td>
+                    <td style="text-align:right; color:${color};">${pnlUsd >= 0 ? '+' : ''}$${Math.abs(pnlUsd).toLocaleString('en-US', { maximumFractionDigits: 0 })}</td>
+                    <td style="text-align:left; font-size:0.75rem;">${t.exit_reason || '-'}</td>
+                </tr>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // ===== D. 위험지표 =====
+    renderRiskMetrics() {
+        const s = this.statistics;
+        const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+
+        const cum = s.cumulative_return || 0;
+        const cumEl = document.getElementById('strategy-stat-cumulative-return');
+        if (cumEl) {
+            cumEl.textContent = `${cum >= 0 ? '+' : ''}${cum.toFixed(2)}%`;
+            cumEl.style.color = cum >= 0 ? '#10b981' : '#ef4444';
+        }
+        setText('strategy-stat-mdd', `${(s.mdd || 0).toFixed(1)}%`);
+        setText('strategy-stat-sharpe', `${(s.sharpe || 0).toFixed(2)}`);
+        setText('strategy-stat-winrate', `${(s.win_rate || 0).toFixed(1)}%`);
+        setText('strategy-stat-avg-win', `$${(s.avg_win || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`);
+        setText('strategy-stat-avg-loss', `$${Math.abs(s.avg_loss || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`);
+
+        const bestEl = document.getElementById('strategy-stat-best');
+        if (bestEl) bestEl.textContent = `${(s.best_trade || 0) >= 0 ? '+' : ''}${(s.best_trade || 0).toFixed(1)}%`;
+        const worstEl = document.getElementById('strategy-stat-worst');
+        if (worstEl) worstEl.textContent = `${(s.worst_trade || 0).toFixed(1)}%`;
+    }
+
+    init() {
+        this.loadAndRender();
+    }
+
+    // ===== 종목 상세 모달 =====
+    openModal(ticker) {
+        // 보유종목/신호/스캔에서 해당 종목 데이터 찾기
+        const fromHolding = this.holdings.find(h => h.ticker === ticker);
+        const fromSignal = this.entrySignals.find(s => s.ticker === ticker);
+        const data = fromSignal || fromHolding || { ticker };
+
+        const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+        const setHTML = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+
+        const phase = data.phase || (fromHolding ? fromHolding.phase : 0) || 0;
+        const rs = data.ibd_rs_rating || (fromHolding ? fromHolding.rs_score : 0) || 0;
+        const close = data.close || (fromHolding ? fromHolding.current_price || fromHolding.entry_price : 0) || 0;
+        const pivot = data.dist_pivot_pct;
+        const chg6w = data.rs_6w_change;
+        // A그룹 지표
+        const comp = data.composite_rating || 0;
+        const accGrade = data.acc_dis_grade || '—';
+        const chartPattern = data.chart_pattern || null;
+        const patternScore = data.pattern_score || 0;
+        const supplyAbove = data.supply_above_pct;
+        const pattern = chartPattern || (data.top_pattern ? 'Top Pattern' : (data.breakout ? 'Breakout' : (fromHolding ? fromHolding.pattern : null)));
+
+        setText('modal-ticker', ticker);
+        setText('modal-price', `$${close.toFixed(2)}`);
+        setText('modal-rs', rs);
+        setText('modal-phase', `P${phase}`);
+        setText('modal-pivot', pivot != null ? `${pivot >= 0 ? '+' : ''}${pivot.toFixed(1)}%` : '—');
+        setText('modal-chg', chg6w != null ? `${chg6w >= 0 ? '+' : ''}${chg6w.toFixed(1)}%` : '—');
+        // A그룹 지표 표시
+        setText('modal-comp', comp || '—');
+        setText('modal-accdis', accGrade);
+        setText('modal-supply', supplyAbove != null ? `${supplyAbove.toFixed(0)}%` : '—');
+        // B그룹 재무 지표 표시
+        const epsRating = data.eps_rating;
+        const smrGrade = data.smr_grade;
+        const salesGrowth = data.sales_growth;
+        const instOwn = data.inst_ownership;
+        setText('modal-eps', epsRating != null ? epsRating : '—');
+        setText('modal-smr', smrGrade || '—');
+        setText('modal-sales', salesGrowth != null ? `${salesGrowth >= 0 ? '+' : ''}${salesGrowth.toFixed(0)}%` : '—');
+        setText('modal-inst', instOwn != null ? `${instOwn.toFixed(0)}%` : '—');
+
+        // Phase 뱃지 색
+        const phaseColor = phase >= 5 ? '#10b981' : phase === 4 ? '#059669' : phase === 3 ? '#3b82f6' : phase >= 6 ? '#ef4444' : '#9ca3af';
+        const badge = document.getElementById('modal-phase-badge');
+        if (badge) { badge.textContent = `P${phase}`; badge.style.background = phaseColor; }
+
+        // 패턴 뱃지 (실제 차트 패턴 + 점수)
+        setHTML('modal-pattern', pattern
+            ? `<span style="display:inline-block; padding:2px 8px; background:#fef3c7; color:#92400e; border-radius:4px; font-size:0.7rem; font-weight:600;">${pattern}${patternScore ? ` ${patternScore}점` : ''}</span>`
+            : '');
+
+        // 종목명 (있으면)
+        setText('modal-name', data.name || ticker);
+
+        // 선정 이유 생성 (A그룹 반영)
+        const reasons = [];
+        if (rs >= 90) reasons.push(`IBD RS ${rs} (상위 ${100 - rs}%)`);
+        else if (rs >= 80) reasons.push(`IBD RS ${rs} (강세)`);
+        if (comp >= 90) reasons.push(`Composite ${comp}`);
+        if (phase >= 5) reasons.push('Phase 5+ 완숙 리더 (강한 정배열)');
+        else if (phase === 4) reasons.push('Phase 4 돌파 임박');
+        if (chartPattern) reasons.push(`${chartPattern} 패턴 (${patternScore}점)`);
+        if (data.rs_new_high) reasons.push('RS 신고가');
+        if (data.rs_accelerating_strong) reasons.push('가속 추세');
+        if (data.breakout) reasons.push('피벗 돌파');
+        else if (pivot != null && pivot >= -3) reasons.push('피벗 근접 (3% 이내)');
+        if (accGrade && ['A+', 'A', 'B+'].includes(accGrade)) reasons.push(`기관 매집 ${accGrade}`);
+        if (supplyAbove != null && supplyAbove < 15) reasons.push(`위 매물 적음 (${supplyAbove.toFixed(0)}%)`);
+        // B그룹 재무 강점
+        if (epsRating != null && epsRating >= 80) reasons.push(`EPS Rating ${epsRating} (실적 강세)`);
+        if (smrGrade && ['A', 'B'].includes(smrGrade)) reasons.push(`SMR ${smrGrade} (매출·마진 우수)`);
+        if (salesGrowth != null && salesGrowth >= 25) reasons.push(`매출성장 +${salesGrowth.toFixed(0)}%`);
+        setText('modal-reason', reasons.length ? reasons.join(' · ') : '5-Gate Funnel 통과 종목');
+
+        // 모달 표시
+        const modal = document.getElementById('ticker-modal');
+        if (modal) modal.style.display = 'flex';
+
+        // TradingView 차트 로드
+        this.loadChart(ticker);
+    }
+
+    loadChart(ticker) {
+        const container = document.getElementById('modal-chart');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const render = () => {
+            try {
+                new TradingView.widget({
+                    container_id: 'modal-chart',
+                    symbol: ticker,
+                    interval: 'D',
+                    theme: 'light',
+                    style: '1',
+                    locale: 'kr',
+                    autosize: true,
+                    hide_side_toolbar: true,
+                    hide_top_toolbar: false,
+                    studies: ['MASimple@tv-basicstudies'],
+                });
+            } catch (e) {
+                container.innerHTML = `<div style="padding:40px; text-align:center; color:var(--color-text-tertiary); font-size:0.8rem;">차트를 불러올 수 없습니다 (${ticker})</div>`;
+            }
+        };
+
+        // TradingView 스크립트 동적 로드
+        if (typeof TradingView === 'undefined') {
+            const script = document.createElement('script');
+            script.src = 'https://s3.tradingview.com/tv.js';
+            script.onload = render;
+            script.onerror = () => {
+                container.innerHTML = `<div style="padding:40px; text-align:center; color:var(--color-text-tertiary); font-size:0.8rem;">차트 라이브러리 로드 실패</div>`;
+            };
+            document.head.appendChild(script);
+        } else {
+            render();
+        }
+    }
+
+    closeModal() {
+        const modal = document.getElementById('ticker-modal');
+        if (modal) modal.style.display = 'none';
+        const chart = document.getElementById('modal-chart');
+        if (chart) chart.innerHTML = '';  // 차트 정리
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const strategyRoom = new StrategyRoomBinder();
+    strategyRoom.init();
+    window.strategyRoomBinder = strategyRoom;
+
+    // 모달 배경 클릭 시 닫기
+    const modal = document.getElementById('ticker-modal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) strategyRoom.closeModal();
+        });
+    }
+    // ESC 키로 닫기
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') strategyRoom.closeModal();
+    });
+});
