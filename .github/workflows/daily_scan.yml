@@ -60,6 +60,13 @@ jobs:
           python generate_rsscan_daily.py
           echo "✅ 5-Gate 분석 완료"
 
+      # Step 6.3: 🏦 재무 보강 (B그룹: 통과 종목만 EPS/매출/마진)
+      - name: 🏦 Enrich Fundamentals
+        run: |
+          echo "🏦 5-Gate 통과 종목 재무 데이터 보강 중..."
+          python enrich_fundamentals.py
+          echo "✅ 재무 보강 완료"
+
       # Step 6.5: 📊 Market Pulse 분석 (지수/Regime/Breadth)
       - name: 📊 Run Market Pulse Analysis
         run: |
@@ -119,8 +126,21 @@ jobs:
             git commit -m "🔄 Auto-update: Daily analysis results [$TIMESTAMP]"
             
             echo "🚀 저장소에 푸시하는 중..."
-            git push origin main
-            echo "✅ 결과 푸시 완료"
+            # 원격에 다른 변경(웹 에디터 커밋 등)이 있어도 충돌 없이 push.
+            # 최대 3회 재시도: pull --rebase로 원격 변경을 먼저 당겨온 뒤 push.
+            PUSHED=0
+            for i in 1 2 3; do
+              if git push origin main; then
+                PUSHED=1
+                echo "✅ 결과 푸시 완료 (시도 $i)"
+                break
+              fi
+              echo "⚠️ push 거부됨 (시도 $i) — 원격 변경을 rebase로 통합 후 재시도..."
+              git pull --rebase origin main || true
+            done
+            if [ "$PUSHED" != "1" ]; then
+              echo "❌ 3회 시도 후에도 push 실패 — 다음 실행에서 재시도됩니다"
+            fi
           else
             echo "⚠️ 변경사항이 없거나 results 폴더가 없습니다"
           fi
