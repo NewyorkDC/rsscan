@@ -7,8 +7,8 @@
     
     <!-- 시스템 폰트 스택 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/dashboard.css">
-    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260619b">
+    <link rel="stylesheet" href="css/responsive.css?v=20260619b">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
@@ -377,56 +377,10 @@
                                 <th>3주 변화</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="sector-rs-line-table">
+                            <!-- briefing.js에서 실제 데이터로 동적 생성됨 -->
                             <tr>
-                                <td class="ticker-cell">NVMI</td>
-                                <td>$619.07</td>
-                                <td><span class="score-badge green">92</span></td>
-                                <td><span class="badge badge-green">4+</span></td>
-                                <td><span class="badge badge-gray">Ascending Base</span></td>
-                                <td><span class="score-badge gold">93</span></td>
-                                <td class="price-up">+2.10%</td>
-                                <td class="price-up">+1.70%</td>
-                            </tr>
-                            <tr>
-                                <td class="ticker-cell">STX</td>
-                                <td>$1,018.80</td>
-                                <td><span class="score-badge green">88</span></td>
-                                <td><span class="badge badge-green">4</span></td>
-                                <td><span class="badge badge-gray">HT Flag</span></td>
-                                <td><span class="score-badge gold">99</span></td>
-                                <td class="price-up">+1.80%</td>
-                                <td class="price-up">+1.30%</td>
-                            </tr>
-                            <tr>
-                                <td class="ticker-cell">BHE</td>
-                                <td>$91.31</td>
-                                <td><span class="score-badge green">86</span></td>
-                                <td><span class="badge badge-green">4</span></td>
-                                <td><span class="badge badge-gray">HT Flag</span></td>
-                                <td><span class="score-badge gold">96</span></td>
-                                <td class="price-up">+1.50%</td>
-                                <td class="price-up">+1.10%</td>
-                            </tr>
-                            <tr>
-                                <td class="ticker-cell">PRM</td>
-                                <td>$36.36</td>
-                                <td><span class="score-badge orange">84</span></td>
-                                <td><span class="badge badge-blue">3</span></td>
-                                <td><span class="badge badge-gray">HT Flag</span></td>
-                                <td><span class="score-badge gold">95</span></td>
-                                <td class="price-up">+1.20%</td>
-                                <td class="price-up">+0.90%</td>
-                            </tr>
-                            <tr>
-                                <td class="ticker-cell">TVTX</td>
-                                <td>$53.80</td>
-                                <td><span class="score-badge orange">82</span></td>
-                                <td><span class="badge badge-green">4</span></td>
-                                <td><span class="badge badge-gray">HT Flag</span></td>
-                                <td><span class="score-badge gold">95</span></td>
-                                <td class="price-up">+1.00%</td>
-                                <td class="price-up">+0.80%</td>
+                                <td colspan="8" style="text-align: center; padding: var(--spacing-lg); color: var(--color-text-tertiary);">데이터 로드 중...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -964,16 +918,16 @@
     </script>
 
     <!-- Daily Briefing 데이터 바인딩 -->
-    <script src="js/briefing.js"></script>
+    <script src="js/briefing.js?v=20260619b"></script>
 
     <!-- Market Pulse 데이터 바인딩 -->
-    <script src="js/market-pulse.js"></script>
+    <script src="js/market-pulse.js?v=20260619b"></script>
 
     <!-- Strategy Room v5 데이터 바인딩 -->
-    <script src="js/strategy-room.js"></script>
+    <script src="js/strategy-room.js?v=20260619b"></script>
 
     <!-- 섹터 ETF 스크리너 -->
-    <script src="js/sectors-etf.js"></script>
+    <script src="js/sectors-etf.js?v=20260619b"></script>
 
 </body>
 </html>
