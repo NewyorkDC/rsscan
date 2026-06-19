@@ -7,8 +7,8 @@
     
     <!-- 시스템 폰트 스택 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/dashboard.css?v=20260619e">
-    <link rel="stylesheet" href="css/responsive.css?v=20260619e">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260619f">
+    <link rel="stylesheet" href="css/responsive.css?v=20260619f">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
@@ -470,37 +470,27 @@
                     <div class="header-meta">5-Gate Funnel · Lock Ratchet Stop · 동시보유 12 · 매일 진입/스위칭/청산</div>
                 </div>
 
-                <!-- ===== B. 포트폴리오 요약 카드 (6개) ===== -->
-                <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--spacing-md); margin-bottom: var(--spacing-2xl);">
-                    <div class="stat-box">
-                        <div class="stat-label">NAV</div>
-                        <div id="strategy-nav" class="stat-value" style="color: #10b981;">$100,000</div>
-                        <div id="strategy-nav-return" class="stat-unit">+0.00%</div>
+                <!-- ===== B. 포트폴리오 요약 카드 (4개, 스크린샷 스타일) ===== -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-md); margin-bottom: var(--spacing-xl);">
+                    <div style="background: white; border: 1px solid var(--color-border-light); border-left: 3px solid #10b981; border-radius: 8px; padding: var(--spacing-lg);">
+                        <div style="font-size: 0.65rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.03em;">Portfolio NAV</div>
+                        <div id="strategy-nav" style="font-size: 1.6rem; font-weight: 700; color: var(--color-text-primary); margin-top: 4px;">1.0000</div>
+                        <div id="strategy-nav-return" style="font-size: 0.8rem; font-weight: 600; color: #10b981; margin-top: 2px;">+0.00%</div>
                     </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Cash</div>
-                        <div id="strategy-cash" class="stat-value">$100,000</div>
-                        <div class="stat-unit">현금</div>
+                    <div style="background: white; border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg);">
+                        <div style="font-size: 0.65rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.03em;">Active Holdings <span style="color:#9ca3af;">CAP 12</span></div>
+                        <div id="strategy-positions" style="font-size: 1.6rem; font-weight: 700; color: var(--color-text-primary); margin-top: 4px;">0 <span style="font-size:0.9rem; color:#9ca3af;">/ 12</span></div>
+                        <div id="strategy-unrealized" style="font-size: 0.8rem; font-weight: 600; color: var(--color-text-secondary); margin-top: 2px;">미실현 +0.00%</div>
                     </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Holdings</div>
-                        <div id="strategy-holdings-value" class="stat-value" style="color: #10b981;">$0</div>
-                        <div class="stat-unit">보유 자산</div>
+                    <div style="background: white; border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg);">
+                        <div style="font-size: 0.65rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.03em;">Closed Trades</div>
+                        <div id="strategy-stat-total-trades" style="font-size: 1.6rem; font-weight: 700; color: var(--color-text-primary); margin-top: 4px;">0</div>
+                        <div id="strategy-closed-summary" style="font-size: 0.8rem; font-weight: 600; color: var(--color-text-secondary); margin-top: 2px;">Hit 0.0% · Avg +0.0%</div>
                     </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Positions</div>
-                        <div id="strategy-positions" class="stat-value">0 / 12</div>
-                        <div class="stat-unit">포지션</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">미실현 손익</div>
-                        <div id="strategy-unrealized" class="stat-value">$0</div>
-                        <div class="stat-unit">Unrealized P&L</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">승률</div>
-                        <div id="strategy-winrate" class="stat-value" style="color: #10b981;">0.0%</div>
-                        <div id="strategy-trades-count" class="stat-unit">0건</div>
+                    <div style="background: white; border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg);">
+                        <div style="font-size: 0.65rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.03em;">Last Update</div>
+                        <div id="strategy-last-update" style="font-size: 1.1rem; font-weight: 700; color: var(--color-text-primary); margin-top: 8px;">—</div>
+                        <div style="font-size: 0.75rem; color: var(--color-text-tertiary); margin-top: 2px;">Track g3+g1+g2</div>
                     </div>
                 </div>
 
@@ -595,9 +585,9 @@
                             <div class="stat-unit">연율화</div>
                         </div>
                         <div class="stat-box">
-                            <div class="stat-label">총 거래</div>
-                            <div id="strategy-stat-total-trades" class="stat-value">0</div>
-                            <div class="stat-unit">건</div>
+                            <div class="stat-label">승률</div>
+                            <div id="strategy-stat-winrate" class="stat-value" style="color: #10b981;">0.0%</div>
+                            <div class="stat-unit">Win Rate</div>
                         </div>
                         <div class="stat-box">
                             <div class="stat-label">평균 수익</div>
@@ -974,16 +964,16 @@
     </script>
 
     <!-- Daily Briefing 데이터 바인딩 -->
-    <script src="js/briefing.js?v=20260619e"></script>
+    <script src="js/briefing.js?v=20260619f"></script>
 
     <!-- Market Pulse 데이터 바인딩 -->
-    <script src="js/market-pulse.js?v=20260619e"></script>
+    <script src="js/market-pulse.js?v=20260619f"></script>
 
     <!-- Strategy Room v5 데이터 바인딩 -->
-    <script src="js/strategy-room.js?v=20260619e"></script>
+    <script src="js/strategy-room.js?v=20260619f"></script>
 
     <!-- 섹터 ETF 스크리너 -->
-    <script src="js/sectors-etf.js?v=20260619e"></script>
+    <script src="js/sectors-etf.js?v=20260619f"></script>
 
 </body>
 </html>
