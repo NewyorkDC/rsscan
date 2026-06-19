@@ -146,6 +146,10 @@
                 <span class="tab-icon">🏛️</span>
                 <span class="tab-label">전략실</span>
             </button>
+            <button class="tab-btn" data-tab="guide" style="margin-left: auto;">
+                <span class="tab-icon">📖</span>
+                <span class="tab-label">가이드</span>
+            </button>
         </nav>
 
         <!-- ===== 메인 콘텐츠 영역 ===== -->
@@ -519,11 +523,92 @@
                 </div>
             </div>
 
+            <!-- TAB 8: 가이드 -->
+            <div id="guide-tab" class="tab-pane">
+                <div class="content-header">
+                    <h2>📖 가이드 & 설명서</h2>
+                    <div class="header-meta">RSSCAN v3 시스템 설명, 데이터 파이프라인, FAQ</div>
+                </div>
+
+                <div style="display: grid; gap: var(--spacing-2xl);">
+
+                    <!-- Investable Universe -->
+                    <div class="card">
+                        <div class="card-header" style="cursor: pointer;" onclick="toggleGuide(event)">
+                            <h3>📊 Investable Universe</h3>
+                            <span class="guide-toggle" style="float: right;">▼</span>
+                        </div>
+                        <div class="guide-content" style="display: none; padding-top: var(--spacing-lg);">
+                            <p style="font-size: 0.8rem; color: var(--color-text-secondary);">우량주 1,000~1,500개 유니버스 기반으로 기관자금 유입 가능 종목을 필터링합니다.</p>
+                            <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: var(--spacing-lg);"><strong>3가지 하드 룰:</strong> 현재가 ≥$10 | ADV ≥500K주 & 일평균거래대금 ≥$10M | 시가총액 ≥$1B</p>
+                        </div>
+                    </div>
+
+                    <!-- 5-Gate Funnel -->
+                    <div class="card">
+                        <div class="card-header" style="cursor: pointer;" onclick="toggleGuide(event)">
+                            <h3>🔍 5-Gate Funnel</h3>
+                            <span class="guide-toggle" style="float: right;">▼</span>
+                        </div>
+                        <div class="guide-content" style="display: none; padding-top: var(--spacing-lg);">
+                            <p style="font-size: 0.8rem; color: var(--color-text-secondary);">Gate 1: 테마/섹터 | Gate 2: 패턴/Pivot | Gate 3: Trigger | Gate 4: Guard | Gate 5: 추가 검증</p>
+                        </div>
+                    </div>
+
+                    <!-- Strategy Room -->
+                    <div class="card">
+                        <div class="card-header" style="cursor: pointer;" onclick="toggleGuide(event)">
+                            <h3>🏛️ Strategy Room</h3>
+                            <span class="guide-toggle" style="float: right;">▼</span>
+                        </div>
+                        <div class="guide-content" style="display: none; padding-top: var(--spacing-lg);">
+                            <p style="font-size: 0.8rem; color: var(--color-text-secondary);">초기자본 $100K | 최대 5포지션 | 손절 -7% | 익절 +20% / +50%</p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ -->
+                    <div class="card">
+                        <div class="card-header" style="cursor: pointer;" onclick="toggleGuide(event)">
+                            <h3>❓ FAQ</h3>
+                            <span class="guide-toggle" style="float: right;">▼</span>
+                        </div>
+                        <div class="guide-content" style="display: none; padding-top: var(--spacing-lg);">
+                            <p style="font-size: 0.8rem; color: var(--color-text-secondary);"><strong>실제 매매 가능?</strong> 교육/분석 도구입니다. 실제 매매 전 충분한 검증 필요.</p>
+                            <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: var(--spacing-sm);"><strong>이전 데이터?</strong> GitHub commits에서 과거 results/ 확인 가능.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
         </main>
     </div>
 
     <!-- 스크립트 -->
     <script>
+        // 📖 가이드 아코디언 토글
+        function toggleGuide(event) {
+            const header = event.currentTarget;
+            const content = header.nextElementSibling;
+            const toggle = header.querySelector('.guide-toggle');
+            
+            // 다른 항목 닫기
+            document.querySelectorAll('.guide-content').forEach(el => {
+                if (el !== content) {
+                    el.style.display = 'none';
+                    el.previousElementSibling.querySelector('.guide-toggle').textContent = '▼';
+                }
+            });
+            
+            // 현재 항목 토글
+            if (content.style.display === 'none' || !content.style.display) {
+                content.style.display = 'block';
+                toggle.textContent = '▲';
+            } else {
+                content.style.display = 'none';
+                toggle.textContent = '▼';
+            }
+        }
+
         // 🔄 수동 분석 실행 함수
         function triggerWorkflow() {
             const btn = document.getElementById('triggerAnalysisBtn');
