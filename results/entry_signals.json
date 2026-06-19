@@ -1,0 +1,97 @@
+{
+  "timestamp": "2026-06-19 01:19:00",
+  "total_scanned": 10,
+  "total_passed": 5,
+  "signals": [
+    {
+      "ticker": "PLTR",
+      "date": "2026-05-22",
+      "close": 25.5,
+      "phase": 4,
+      "momentum_score_v2": 85,
+      "ibd_rs_rating": 72,
+      "rs_6w_change": 2.3,
+      "rs_10w_change": 3.1,
+      "entry_weight": 1.0,
+      "entry_reason": "🎯 1순위: Phase 4+ 강세 (최고 가중치) + 갭전략(13p)",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "NVDA",
+      "date": "2026-05-22",
+      "close": 875.3,
+      "phase": 4,
+      "momentum_score_v2": 92,
+      "ibd_rs_rating": 88,
+      "rs_6w_change": 3.2,
+      "rs_10w_change": 4.1,
+      "entry_weight": 1.0,
+      "entry_reason": "🎯 1순위: Phase 4+ 강세 (최고 가중치)",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "MSFT",
+      "date": "2026-05-22",
+      "close": 412.5,
+      "phase": 4,
+      "momentum_score_v2": 88,
+      "ibd_rs_rating": 80,
+      "rs_6w_change": 2.8,
+      "rs_10w_change": 3.5,
+      "entry_weight": 1.0,
+      "entry_reason": "🎯 1순위: Phase 4+ 강세 (최고 가중치)",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "AMD",
+      "date": "2026-05-22",
+      "close": 168.9,
+      "phase": 4,
+      "momentum_score_v2": 82,
+      "ibd_rs_rating": 75,
+      "rs_6w_change": 2.1,
+      "rs_10w_change": 2.9,
+      "entry_weight": 1.0,
+      "entry_reason": "🎯 1순위: Phase 4+ 강세 (최고 가중치)",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    },
+    {
+      "ticker": "QCOM",
+      "date": "2026-05-22",
+      "close": 185.75,
+      "phase": 4,
+      "momentum_score_v2": 89,
+      "ibd_rs_rating": 81,
+      "rs_6w_change": 2.6,
+      "rs_10w_change": 3.3,
+      "entry_weight": 1.0,
+      "entry_reason": "🎯 1순위: Phase 4+ 강세 (최고 가중치)",
+      "gates_passed": {
+        "gate_1": true,
+        "gate_2": true,
+        "gate_3": true,
+        "gate_4": true
+      }
+    }
+  ]
+}
