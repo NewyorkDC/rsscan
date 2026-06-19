@@ -624,10 +624,12 @@
             <!-- TAB 5: 섹터 ETF -->
             <div id="etf-tab" class="tab-pane">
                 <div style="padding: var(--spacing-2xl);">
-                    <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--color-text-primary); margin: 0 0 var(--spacing-lg) 0;">🔷 섹터 ETF 스크리너</h2>
-                    <div style="font-size: 0.8rem; color: var(--color-text-tertiary); margin-bottom: var(--spacing-2xl);">IBD RS 강도, Phase 단계, 패턴별 필터링</div>
+                    
+                    <!-- 제목 -->
+                    <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--color-text-primary); margin: 0 0 var(--spacing-md) 0;">🔷 섹터 ETF 스크리너</h2>
+                    <div style="font-size: 0.85rem; color: var(--color-text-tertiary); margin-bottom: var(--spacing-2xl);">IBD RS 강도, Phase 단계, 패턴별 필터링 · ETF 36개</div>
 
-                    <!-- ===== 컨트롤 패널 (1줄: 정렬 + 필터) ===== -->
+                    <!-- 컨트롤 패널 1: 정렬 + 필터 -->
                     <div style="background: white; border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg); margin-bottom: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <div style="display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap;">
                             <span style="font-size: 0.75rem; font-weight: 600; color: var(--color-text-secondary); text-transform: uppercase;">정렬</span>
@@ -641,46 +643,42 @@
                         </div>
                     </div>
 
-                    <!-- ===== 컨트롤 패널 (2줄: Stage/Phase 필터) ===== -->
+                    <!-- 컨트롤 패널 2: Stage/Phase 필터 -->
                     <div style="background: white; border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg); margin-bottom: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <div style="display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap;">
                             <span style="font-size: 0.75rem; font-weight: 600; color: var(--color-text-secondary); text-transform: uppercase;">Stage</span>
-                            <button class="etf-phase-btn" data-phase="stage-2" style="padding: 4px 10px; font-size: 0.75rem; border: 1px solid #e5e7eb; border-radius: 16px; background: white; cursor: pointer; display: flex; align-items: center; gap: 4px;">[Stage 2]</button>
+                            <button class="etf-phase-btn" data-phase="stage-2" style="padding: 4px 10px; font-size: 0.75rem; border: 1px solid #e5e7eb; border-radius: 16px; background: white; cursor: pointer;">[Stage 2]</button>
 
                             <span style="margin-left: var(--spacing-lg); font-size: 0.75rem; font-weight: 600; color: var(--color-text-secondary); text-transform: uppercase;">Phase</span>
-                            <button class="etf-phase-btn" data-phase="phase-2" style="padding: 4px 10px; font-size: 0.75rem; border: 1px solid #e5e7eb; border-radius: 16px; background: white; cursor: pointer; display: flex; align-items: center; gap: 4px;">🟡 Phase 2</button>
-                            <button class="etf-phase-btn" data-phase="phase-3" style="padding: 4px 10px; font-size: 0.75rem; border: 1px solid #e5e7eb; border-radius: 16px; background: white; cursor: pointer; display: flex; align-items: center; gap: 4px;">🟢 Phase 3</button>
-                            <button class="etf-phase-btn" data-phase="phase-4" style="padding: 4px 10px; font-size: 0.75rem; border: 1px solid #e5e7eb; border-radius: 16px; background: white; cursor: pointer; display: flex; align-items: center; gap: 4px;">🎯 Phase 4</button>
-                            <button class="etf-phase-btn" data-phase="phase-5" style="padding: 4px 10px; font-size: 0.75rem; border: 1px solid #e5e7eb; border-radius: 16px; background: white; cursor: pointer; display: flex; align-items: center; gap: 4px;">🟢 Phase 5</button>
+                            <button class="etf-phase-btn" data-phase="phase-2" style="padding: 4px 10px; font-size: 0.75rem; border: 1px solid #e5e7eb; border-radius: 16px; background: white; cursor: pointer;">🟡 Phase 2</button>
+                            <button class="etf-phase-btn" data-phase="phase-3" style="padding: 4px 10px; font-size: 0.75rem; border: 1px solid #e5e7eb; border-radius: 16px; background: white; cursor: pointer;">🟢 Phase 3</button>
+                            <button class="etf-phase-btn" data-phase="phase-4" style="padding: 4px 10px; font-size: 0.75rem; border: 1px solid #e5e7eb; border-radius: 16px; background: white; cursor: pointer;">🎯 Phase 4</button>
+                            <button class="etf-phase-btn" data-phase="phase-5" style="padding: 4px 10px; font-size: 0.75rem; border: 1px solid #e5e7eb; border-radius: 16px; background: white; cursor: pointer;">🟢 Phase 5</button>
                         </div>
                     </div>
 
-                    <!-- ===== 컨트롤 패널 (3줄: 추천 조합) ===== -->
+                    <!-- 컨트롤 패널 3: 추천 조합 -->
                     <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; padding: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
                         <div style="display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap; font-size: 0.75rem;">
-                            <strong style="color: #92400e;">추천 조합 9선:</strong>
-                            <a href="#" class="preset-link" style="color: #d97706; text-decoration: none; cursor: pointer;">①가속+RS신고</a>
-                            <span style="color: #d97706;">•</span>
-                            <a href="#" class="preset-link" style="color: #d97706; text-decoration: none; cursor: pointer;">②트리플</a>
-                            <span style="color: #d97706;">•</span>
-                            <a href="#" class="preset-link" style="color: #d97706; text-decoration: none; cursor: pointer;">③S2축+S1~S2</a>
-                            <span style="color: #d97706;">•</span>
-                            <a href="#" class="preset-link" style="color: #d97706; text-decoration: none; cursor: pointer;">④RS신고</a>
-                            <span style="color: #d97706;">•</span>
+                            <strong style="color: #92400e;">추천 조합:</strong>
+                            <a href="#" class="preset-link" style="color: #d97706; text-decoration: none; cursor: pointer;">①가속+RS신고</a> • 
+                            <a href="#" class="preset-link" style="color: #d97706; text-decoration: none; cursor: pointer;">②트리플</a> • 
+                            <a href="#" class="preset-link" style="color: #d97706; text-decoration: none; cursor: pointer;">③S2축+S1~S2</a> • 
+                            <a href="#" class="preset-link" style="color: #d97706; text-decoration: none; cursor: pointer;">④RS신고</a> • 
                             <a href="#" class="preset-link" style="color: #d97706; text-decoration: none; cursor: pointer;">⑤Phase 4★</a>
                         </div>
                     </div>
 
-                    <!-- ===== 데이터 테이블 ===== -->
+                    <!-- 데이터 테이블 -->
                     <div style="overflow-x: auto; border: 1px solid var(--color-border-light); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem;">
-                            <thead style="position: sticky; top: 0; background: #f9fafb; border-bottom: 1px solid var(--color-border-light);">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem; background: white;">
+                            <thead style="position: sticky; top: 0; background: #f9fafb; border-bottom: 1px solid var(--color-border-light); z-index: 10;">
                                 <tr>
                                     <th style="padding: 8px 10px; text-align: center; font-weight: 600; color: var(--color-text-secondary); width: 40px;">⭐</th>
                                     <th style="padding: 8px 10px; text-align: left; font-weight: 600; color: var(--color-text-secondary); width: 60px;">티커</th>
                                     <th style="padding: 8px 10px; text-align: left; font-weight: 600; color: var(--color-text-secondary); width: 150px;">종목명</th>
                                     <th style="padding: 8px 10px; text-align: center; font-weight: 600; color: var(--color-text-secondary); width: 80px;">자산군</th>
-                                    <th style="padding: 8px 10px; text-align: center; font-weight: 600; color: var(--color-text-secondary); width: 90px;">패턴 셋업</th>
+                                    <th style="padding: 8px 10px; text-align: center; font-weight: 600; color: var(--color-text-secondary); width: 90px;">패턴</th>
                                     <th style="padding: 8px 10px; text-align: center; font-weight: 600; color: var(--color-text-secondary); width: 50px;">IBD RS</th>
                                     <th style="padding: 8px 10px; text-align: center; font-weight: 600; color: var(--color-text-secondary); width: 50px;">RS now</th>
                                     <th style="padding: 8px 10px; text-align: center; font-weight: 600; color: var(--color-text-secondary); width: 40px;">갭</th>
@@ -698,10 +696,16 @@
                                 </tr>
                             </thead>
                             <tbody id="etf-data-table">
-                                <!-- JS에서 동적 렌더링 -->
+                                <!-- JS에서 동적으로 렌더링됨 -->
+                                <tr>
+                                    <td colspan="19" style="padding: var(--spacing-lg); text-align: center; color: var(--color-text-tertiary);">
+                                        데이터 로드 중...
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
+
                 </div>
             </div>
 
@@ -908,20 +912,7 @@
             });
         }
 
-        // 탭 네비게이션 로직
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const tabName = this.getAttribute('data-tab');
-                
-                // 모든 탭 비활성화
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-                
-                // 선택된 탭 활성화
-                this.classList.add('active');
-                document.getElementById(`${tabName}-tab`).classList.add('active');
-            });
-        });
+        // 탭 네비게이션 로직은 여기에서 제거
 
         // 데이터 로드
         async function loadData() {
@@ -943,9 +934,32 @@
             }
         }
 
-        // DOM 로드 완료 시 데이터 로드
+        // DOM 로드 완료 시 데이터 로드 및 탭 네비게이션 초기화
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
+            
+            // 탭 네비게이션 로직 (DOMContentLoaded 내부)
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    console.log(`🔄 탭 전환: ${tabName}`);
+                    
+                    // 모든 탭 비활성화
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                    
+                    // 선택된 탭 활성화
+                    this.classList.add('active');
+                    const tabPane = document.getElementById(`${tabName}-tab`);
+                    if (tabPane) {
+                        tabPane.classList.add('active');
+                        console.log(`✅ 탭 표시: ${tabName}-tab`);
+                    } else {
+                        console.error(`❌ 탭을 찾을 수 없음: ${tabName}-tab`);
+                    }
+                });
+            });
+            console.log('✅ 탭 네비게이션 초기화 완료');
         });
     </script>
 
