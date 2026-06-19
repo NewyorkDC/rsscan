@@ -108,19 +108,25 @@ class StrategyRoomBinder {
         if (!container) return;
 
         if (dateEl && this.signalsDate) dateEl.textContent = `— ${this.signalsDate} 기준`;
-        if (countEl) countEl.textContent = `신규 시그널 ${this.entrySignals.length}건`;
 
         if (this.entrySignals.length === 0) {
+            if (countEl) countEl.textContent = `신규 시그널 0건`;
             container.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:var(--spacing-lg); color:var(--color-text-tertiary);">진입 신호가 없습니다</td></tr>`;
             return;
         }
 
-        // total_score 내림차순
-        const sorted = [...this.entrySignals].sort((a, b) =>
-            (b.total_score || 0) - (a.total_score || 0));
+        // 우선순위 정렬: total_score 우선, 없으면 RS Rating
+        const score = (s) => (s.total_score || 0) * 100 + (s.ibd_rs_rating || 0);
+        const sorted = [...this.entrySignals].sort((a, b) => score(b) - score(a));
+
+        // 우선순위 상위 10개만 진입 조건에 표시
+        const TOP_N = 10;
+        const topSignals = sorted.slice(0, TOP_N);
+
+        if (countEl) countEl.textContent = `전체 ${this.entrySignals.length}건 중 우선순위 ${topSignals.length}건`;
 
         let html = '';
-        sorted.forEach(s => {
+        topSignals.forEach(s => {
             const pivotPct = s.dist_pivot_pct != null ? s.dist_pivot_pct : null;
             const pivotStr = pivotPct != null
                 ? `<span style="color:${pivotPct <= 0 ? '#10b981' : '#6b7280'};">${pivotPct >= 0 ? '+' : ''}${pivotPct.toFixed(1)}%</span>`
@@ -138,6 +144,9 @@ class StrategyRoomBinder {
                 </tr>`;
         });
         container.innerHTML = html;
+
+        // 차순위(11~20위)를 Position Cap에 넘기기 위해 저장
+        this._nextTier = sorted.slice(TOP_N, TOP_N + 10);
     }
 
     // ===== 4. 종목 스위칭 =====
@@ -174,33 +183,28 @@ class StrategyRoomBinder {
         container.innerHTML = html;
     }
 
-    // ===== 5. Position Cap (초과 skip) =====
+    // ===== 5. 차순위 후보 (우선순위 다음 10개) =====
     renderPositionCap() {
         const container = document.getElementById('poscap-table-body');
         const countEl = document.getElementById('poscap-count');
         if (!container) return;
 
-        // 슬롯이 가득 찼을 때만 skip이 발생. 신호 중 미보유 종목 = skip 후보
-        const heldTickers = new Set(this.holdings.map(h => h.ticker));
-        const slotsFull = this.holdings.length >= this.maxPositions;
-        const skipped = slotsFull
-            ? this.entrySignals.filter(s => !heldTickers.has(s.ticker))
-                .sort((a, b) => (a.total_score || 0) - (b.total_score || 0))
-            : [];
+        // renderEntrySignals에서 저장한 차순위(11~20위)
+        const nextTier = this._nextTier || [];
 
-        if (countEl) countEl.textContent = `${skipped.length}건`;
+        if (countEl) countEl.textContent = `${nextTier.length}건`;
 
-        if (skipped.length === 0) {
-            container.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:var(--spacing-lg); color:var(--color-text-tertiary);">초과 skip 종목이 없습니다</td></tr>`;
+        if (nextTier.length === 0) {
+            container.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:var(--spacing-lg); color:var(--color-text-tertiary);">차순위 후보가 없습니다</td></tr>`;
             return;
         }
 
         let html = '';
-        skipped.forEach(s => {
+        nextTier.forEach(s => {
             html += `
                 <tr style="border-bottom:1px solid var(--color-border-light);">
                     <td style="text-align:left; font-weight:600; color:#2563eb;">${s.ticker}</td>
-                    <td style="text-align:left; font-size:0.75rem;">${s.top_pattern ? 'Top Pattern' : '–'}</td>
+                    <td style="text-align:left; font-size:0.75rem;">${s.top_pattern ? 'Top Pattern' : (s.breakout ? 'Breakout' : '–')}</td>
                     <td style="text-align:right;">${(s.total_score || 0).toFixed(1)}</td>
                     <td style="text-align:center; font-weight:600; color:#fbbf24;">${s.ibd_rs_rating || 0}</td>
                 </tr>`;
