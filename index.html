@@ -4,14 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RSSCAN v3 - IBD RS Line 스크리너 대시보드</title>
+    
+    <!-- 시스템 폰트 + Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
     <div class="dashboard-container">
         
-        <!-- ===== 좌측 사이드바 (고정) ===== -->
+        <!-- ===== 좌측 사이드바 ===== -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h2>RSSCAN v3</h2>
@@ -38,7 +42,7 @@
                 </div>
             </div>
 
-            <!-- Market Pulse 카운터 -->
+            <!-- Market Pulse 카드 -->
             <div class="card market-pulse-card">
                 <h3>Market Pulse</h3>
                 <div class="pulse-items">
@@ -58,1206 +62,329 @@
             </div>
 
             <!-- Phase 분포 -->
-            <div class="card phase-distribution-card">
+            <div class="card">
                 <h3>Phase 분포</h3>
                 <div class="phase-bars">
                     <div class="phase-bar">
                         <div class="bar-label">P4+</div>
                         <div class="bar-container">
-                            <div class="bar-fill" style="width: 8%; background: #00d084;"></div>
-                            <span class="bar-count">49</span>
+                            <div class="bar-fill" style="width: 8%; background: #10b981;"></div>
                         </div>
+                        <span class="bar-count">49</span>
                     </div>
                     <div class="phase-bar">
                         <div class="bar-label">P4</div>
                         <div class="bar-container">
-                            <div class="bar-fill" style="width: 12%; background: #4da6ff;"></div>
-                            <span class="bar-count">80</span>
+                            <div class="bar-fill" style="width: 12%; background: #3b82f6;"></div>
                         </div>
+                        <span class="bar-count">80</span>
                     </div>
                     <div class="phase-bar">
                         <div class="bar-label">P3</div>
                         <div class="bar-container">
-                            <div class="bar-fill" style="width: 20%; background: #66b3ff;"></div>
-                            <span class="bar-count">197</span>
+                            <div class="bar-fill" style="width: 20%; background: #8b5cf6;"></div>
                         </div>
+                        <span class="bar-count">197</span>
                     </div>
                     <div class="phase-bar">
                         <div class="bar-label">P6/7</div>
                         <div class="bar-container">
-                            <div class="bar-fill" style="width: 15%; background: #ff6b6b;"></div>
-                            <span class="bar-count">160</span>
+                            <div class="bar-fill" style="width: 15%; background: #ef4444;"></div>
                         </div>
+                        <span class="bar-count">160</span>
                     </div>
                 </div>
             </div>
 
             <!-- Watchlist -->
-            <div class="card watchlist-card">
+            <div class="card">
                 <h3>⭐ Watchlist</h3>
-                <div class="watchlist-count" id="watchlistCount">0</div>
-                <button class="btn btn-small" id="showWatchlistBtn">보기</button>
-            </div>
-
-            <!-- 🔄 수동 분석 실행 버튼 -->
-            <div class="card manual-trigger-card">
-                <h3>🔄 분석 실행</h3>
-                <p class="trigger-description">GitHub Actions 워크플로우를 수동으로 실행합니다.</p>
-                <button class="btn btn-primary" id="triggerAnalysisBtn" onclick="triggerWorkflow()">
-                    ▶️ 지금 실행
-                </button>
-                <div class="trigger-status" id="triggerStatus" style="display: none; margin-top: 12px;">
-                    <div class="status-message" id="statusMessage"></div>
-                    <a class="github-link" id="githubLink" href="https://github.com/NewyorkDC/rsscan/actions" target="_blank">
-                        GitHub Actions 확인 →
-                    </a>
+                <div style="text-align: center; padding: 20px 0;">
+                    <div style="font-size: 32px; font-weight: 700; color: #10b981;">0</div>
+                    <div style="font-size: 12px; color: #6b7280; margin-top: 8px;">종목</div>
                 </div>
             </div>
 
             <!-- 마지막 업데이트 -->
-            <div class="update-info">
-                <div class="update-time" id="updateTime">2026-06-16 기준</div>
-                <div class="update-version">v3.0</div>
+            <div style="padding: 16px; text-align: center; border-top: 1px solid #e5e7eb; margin-top: 20px;">
+                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;" id="updateTime">2026-06-19 기준</div>
+                <div style="font-size: 12px; font-weight: 600; color: #4b5563;">v3.0</div>
             </div>
         </aside>
 
-        <!-- ===== 메인 콘텐츠 (중앙+우측) ===== -->
-        <main class="main-content">
-            
-            <!-- 상단 탭 네비게이션 -->
-            <div class="tab-navigation">
-                <button class="tab-btn active" data-tab="briefing">📰 Daily Briefing</button>
-                <button class="tab-btn" data-tab="market-pulse">📊 Market Pulse</button>
-                <button class="tab-btn" data-tab="sector">🏭 섹터 분석</button>
-                <button class="tab-btn" data-tab="screener">🔍 스크리너</button>
-                <button class="tab-btn" data-tab="patterns">📈 패턴 감지</button>
-                <button class="tab-btn" data-tab="momentum">⚡ RS 모멘텀</button>
-                <button class="tab-btn" data-tab="strategy-room">🏛 전략실</button>
-            </div>
+        <!-- ===== 상단 탭 네비게이션 ===== -->
+        <nav class="tab-navigation">
+            <button class="tab-btn active" data-tab="briefing">📰 Daily Briefing</button>
+            <button class="tab-btn" data-tab="market-pulse">📊 Market Pulse</button>
+            <button class="tab-btn" data-tab="sector">🏭 섹터 분석</button>
+            <button class="tab-btn" data-tab="screener">🔍 스크리너</button>
+            <button class="tab-btn" data-tab="patterns">📈 패턴 감지</button>
+            <button class="tab-btn" data-tab="momentum">⚡ RS 모멘텀</button>
+            <button class="tab-btn" data-tab="strategy-room">🏛 전략실</button>
+        </nav>
 
-            <!-- 각 탭 콘텐츠 -->
+        <!-- ===== 메인 콘텐츠 ===== -->
+        <main class="main-content">
             <div class="tab-content">
 
-                <!-- ===== TAB 1: Daily Briefing (완전 리뉴얼) ===== -->
+                <!-- ===== TAB 1: Daily Briefing ===== -->
                 <div id="briefing-tab" class="tab-pane active">
-                    <div class="briefing-header">
-                        <h1>📰 Daily Briefing</h1>
-                        <div class="briefing-meta">2026.06.18 (목) · 다음날 장 시작 전 의사결정 보조</div>
+                    <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px;">📰 Daily Briefing</h2>
+
+                    <!-- 상태 알림 -->
+                    <div class="alert warning">
+                        <strong>⚠️ 주의:</strong> AI가 생성한 분석입니다. 투자 결정의 유일한 근거로 사용하지 마세요.
                     </div>
 
-                    <!-- ① 오늘의 시장 상태 -->
-                    <section class="briefing-section">
-                        <h2>① 오늘의 시장 상태</h2>
-                        <div class="market-status-card">
-                            <div class="regime-box">
-                                <div class="regime-icon">🟢 🟢</div>
-                                <div class="regime-title">Uptrend Resumed</div>
-                                <div class="regime-detail">권장 비중: 75~95%</div>
-                                <div class="regime-note">전략: FTD 직후 황금 구간 — 적극 진입</div>
+                    <!-- 시장 상태 카드 -->
+                    <div class="card">
+                        <h3>① 오늘의 시장 상태</h3>
+                        <div class="grid-3">
+                            <div class="stat-box">
+                                <div class="stat-label">마켓 레짐</div>
+                                <div style="margin: 12px 0;">
+                                    <span class="badge green">🟢 Uptrend</span>
+                                </div>
+                                <div class="stat-value" style="color: #10b981;">Ready</div>
                             </div>
-                            <div class="market-indices">
-                                <div class="index-item">
-                                    <div class="index-name">S&P 500</div>
-                                    <div class="index-value positive">+1.65%</div>
-                                </div>
-                                <div class="index-item">
-                                    <div class="index-name">NASDAQ</div>
-                                    <div class="index-value positive">+3.07%</div>
-                                </div>
-                                <div class="index-item">
-                                    <div class="index-name">Russell</div>
-                                    <div class="index-value positive">+0.72%</div>
-                                </div>
+                            <div class="stat-box">
+                                <div class="stat-label">S&P 500</div>
+                                <div class="stat-value price-up">+1.65%</div>
+                                <div class="stat-unit">상승률</div>
                             </div>
-                            <div class="market-conditions">
-                                <div class="condition">S&P DD: 3</div>
-                                <div class="condition">NASDAQ DD: 3</div>
-                                <div class="condition">Breadth (50MA 위): 68%</div>
+                            <div class="stat-box">
+                                <div class="stat-label">Breadth</div>
+                                <div class="stat-value">58%</div>
+                                <div class="stat-unit">양호</div>
                             </div>
                         </div>
-                    </section>
+                    </div>
 
-                    <!-- ② 시장 환경 평가 -->
-                    <section class="briefing-section">
-                        <h2>② 시장 환경 평가 (Universe Breadth)</h2>
-                        <div class="universe-breadth">
-                            <div class="breadth-status">🟢 정상 매매</div>
-                            <div class="breadth-note">진입 가능하나 천장/회피 종목 증가 — 추격 매수 자제, Stage 3 종목 점검</div>
-                            <div class="setup-grid">
-                                <div class="setup-item">
-                                    <div class="setup-name">8/8 통과 종목</div>
-                                    <div class="setup-value">620개</div>
-                                </div>
-                                <div class="setup-item">
-                                    <div class="setup-name">8/8 통과 비율</div>
-                                    <div class="setup-value">58.7%</div>
-                                </div>
-                                <div class="setup-item">
-                                    <div class="setup-name">RS 90+ 종목</div>
-                                    <div class="setup-value">494개</div>
-                                </div>
-                                <div class="setup-item">
-                                    <div class="setup-name">RS 80~89</div>
-                                    <div class="setup-value">328개</div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- ③ 진입/편출 흐름 -->
-                    <section class="briefing-section">
-                        <h2>③ 진입/편출 흐름 (1일 변화)</h2>
-                        <div class="flow-summary">
-                            <div class="flow-stat">🆕 신규 <strong>66</strong></div>
-                            <div class="flow-stat">📤 편출 <strong>62</strong></div>
-                        </div>
-                        <div class="flow-note">강세 셋업 (RS≥80 & 8조건 7+/8) · 어제 654 → 오늘 658 (+4) · 유지 592개</div>
-                    </section>
-
-                    <!-- ④ 진입 후보 추이 -->
-                    <section class="briefing-section">
-                        <h2>④ 진입 후보 추이 — 6-layer 검증</h2>
-                        <div class="verdict-distribution">
-                            <div class="verdict-card strong">
-                                <div class="verdict-label">STRONG</div>
-                                <div class="verdict-count">0</div>
-                                <div class="verdict-change">→ 0</div>
-                            </div>
-                            <div class="verdict-card cond">
-                                <div class="verdict-label">COND</div>
-                                <div class="verdict-count">0</div>
-                                <div class="verdict-change">→ 0</div>
-                            </div>
-                            <div class="verdict-card watch">
-                                <div class="verdict-label">WATCH</div>
-                                <div class="verdict-count">990</div>
-                                <div class="verdict-change">↑ 3</div>
-                            </div>
-                            <div class="verdict-card avoid">
-                                <div class="verdict-label">AVOID</div>
-                                <div class="verdict-count">64</div>
-                                <div class="verdict-change">→ 0</div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- ⑤ 섹터 강도 현황 -->
-                    <section class="briefing-section">
-                        <h2>⑤ 섹터 강도 현황</h2>
-                        <div class="sector-strength">
-                            <div class="sector-item">
-                                <div class="sector-rank">🥇</div>
-                                <div class="sector-name">Technology</div>
-                                <div class="sector-stat">RS Line <strong>93.7</strong></div>
-                                <div class="sector-detail">147개 종목 · 🆕18 · 🚀104</div>
-                            </div>
-                            <div class="sector-item">
-                                <div class="sector-rank">🥈</div>
-                                <div class="sector-name">Basic Materials</div>
-                                <div class="sector-stat">RS Line <strong>90.1</strong></div>
-                                <div class="sector-detail">73개 종목 · 🆕23 · 🚀50</div>
-                            </div>
-                            <div class="sector-item">
-                                <div class="sector-rank">🥉</div>
-                                <div class="sector-name">Healthcare</div>
-                                <div class="sector-stat">RS Line <strong>90.8</strong></div>
-                                <div class="sector-detail">72개 종목 · 🆕10 · 🚀40</div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- ⑥ 강세 세부 업종 -->
-                    <section class="briefing-section">
-                        <h2>⑥ 강세 세부 업종 Top 3</h2>
-                        <div class="industry-top">
-                            <div class="industry-card top1">
-                                <div class="industry-rank">🔥 #1</div>
-                                <div class="industry-name">Semiconductor Equipment</div>
-                                <div class="industry-score">종합 <strong>63.9</strong></div>
-                                <div class="industry-members">NVMI, COHU, CAMT, TER, AMKR, KLAC +14</div>
-                            </div>
-                            <div class="industry-card top2">
-                                <div class="industry-rank">🔥 #2</div>
-                                <div class="industry-name">Semiconductors</div>
-                                <div class="industry-score">종합 <strong>57.5</strong></div>
-                                <div class="industry-members">SMTC, UMC, AMD, ALGM, ASX +36</div>
-                            </div>
-                            <div class="industry-card top3">
-                                <div class="industry-rank">🔥 #3</div>
-                                <div class="industry-name">Marine Shipping</div>
-                                <div class="industry-score">종합 <strong>58.6</strong></div>
-                                <div class="industry-members">HSHP, SHIP, ESEA, GLBS +9</div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- ⑦ 오늘의 발화 테마 -->
-                    <section class="briefing-section">
-                        <h2>⑦ 오늘의 발화 테마 (Catalyst)</h2>
-                        <div class="theme-catalyst">
-                            <div class="catalyst-item top1">
-                                <div class="catalyst-rank">🥇</div>
-                                <div class="catalyst-name">Silver</div>
-                                <div class="catalyst-perf">평균 +7.44%</div>
-                                <div class="catalyst-leads">SVM +7.79% · AG +7.08%</div>
-                            </div>
-                            <div class="catalyst-item top2">
-                                <div class="catalyst-rank">🥈</div>
-                                <div class="catalyst-name">Gold</div>
-                                <div class="catalyst-perf">평균 +6.29%</div>
-                                <div class="catalyst-leads">ARIS +8.87% · AUGO +8.69%</div>
-                            </div>
-                            <div class="catalyst-item top3">
-                                <div class="catalyst-rank">🥉</div>
-                                <div class="catalyst-name">Computer Hardware</div>
-                                <div class="catalyst-perf">평균 +6.19%</div>
-                                <div class="catalyst-leads">WDC +16.09% · STX +9.43%</div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- ⑧ 진입 후보 (Top 5) -->
-                    <section class="briefing-section">
-                        <h2>⑧ 진입 후보 — 오늘 핵심 후보</h2>
-                        <div class="entry-candidates">
-                            <div class="candidate-card top1">
-                                <div class="candidate-rank">🥇</div>
-                                <div class="candidate-symbol">EZPW</div>
-                                <div class="candidate-industry">Credit Services</div>
-                                <div class="candidate-stats">
-                                    <span>RS 96</span>
-                                    <span>Phase 5</span>
-                                    <span>확신도 42</span>
-                                </div>
-                                <div class="candidate-reason">⚡ 트리플 전환 (가속+Phase 상향) — 강세 진입 신호</div>
-                            </div>
-                            <div class="candidate-card top2">
-                                <div class="candidate-rank">🥈</div>
-                                <div class="candidate-symbol">MXL</div>
-                                <div class="candidate-industry">Semiconductors</div>
-                                <div class="candidate-stats">
-                                    <span>RS 99</span>
-                                    <span>Phase 5</span>
-                                    <span>확신도 37</span>
-                                </div>
-                                <div class="candidate-reason">⚡ 신규 Phase 상향 + RS Line 80 (진행 중)</div>
-                            </div>
-                            <div class="candidate-card top3">
-                                <div class="candidate-rank">🥉</div>
-                                <div class="candidate-symbol">AXTI</div>
-                                <div class="candidate-industry">Semiconductor Equipment</div>
-                                <div class="candidate-stats">
-                                    <span>RS 99</span>
-                                    <span>Phase 5</span>
-                                    <span>확신도 42</span>
-                                </div>
-                                <div class="candidate-reason">🚀 신선 진입 (2일째) + 산업 강도 +56.8</div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- ⑨ 다음 리더 추적 -->
-                    <section class="briefing-section">
-                        <h2>⑨ 다음 리더 추적 (Stalking) — 336개 후보</h2>
-                        <div class="stalking-list">
-                            <div class="stalking-item">PKBK · RS 88 · Score 89.3 · Banks - Regional</div>
-                            <div class="stalking-item">VIK · RS 89 · Score 88.7 · Travel Services</div>
-                            <div class="stalking-item">RPRX · RS 87 · Score 87.5 · Biotechnology</div>
-                        </div>
-                    </section>
-
-                    <!-- ⑩ 워치리스트 변동 -->
-                    <section class="briefing-section">
-                        <h2>⑩ 워치리스트 변동</h2>
-                        <div class="watchlist-status">
-                            <div class="status-note">워치리스트 등록 종목 없음 — 관심 종목을 ⭐ 버튼으로 추가하면 변동 추적됩니다</div>
-                        </div>
-                    </section>
-
-                    <!-- ⑪ 보유 포지션 액션 -->
-                    <section class="briefing-section">
-                        <h2>⑪ 보유 포지션 액션 (🏛 전략실 동기화)</h2>
-                        <div class="holdings-action">
-                            <div class="holdings-summary-stat">
-                                <span>🏛 보유 13건</span>
-                                <span>NAV +43.1%</span>
-                                <span>🛡 보호 중 4</span>
-                                <span>🟢 순항 9</span>
-                            </div>
-                            <div class="holdings-list">
-                                <div class="holding-row protected">
-                                    <span>FLEX</span> · +90.5% · O'Neill 8주 · 63일차
-                                </div>
-                                <div class="holding-row protected">
-                                    <span>TTMI</span> · +67.3% · O'Neill 8주 · 63일차
-                                </div>
-                                <div class="holding-row normal">
-                                    <span>PEB</span> · +9.5% · 8일차
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- ⑫ 자금 흐름 분석 -->
-                    <section class="briefing-section">
-                        <h2>⑫ 자금 흐름 분석 — 거래대금 폭증</h2>
-                        <div class="money-flow">
-                            <div class="flow-type bullish">
-                                <div class="flow-title">📈 매수세 폭증 (57개)</div>
-                                <div class="flow-note">거래대금 폭증 + 주가 상승 = 진입 가속</div>
-                                <div class="flow-leads">AXTI +13.95% · MRAM +14.09% · WDC +16.09%</div>
-                            </div>
-                            <div class="flow-type bearish">
-                                <div class="flow-title">📉 매도세 폭증 (39개)</div>
-                                <div class="flow-note">거래대금 폭증 + 주가 하락 = 기관 분배</div>
-                                <div class="flow-leads">JVA -21.33% · ROKU -1.92% · BAND -19.15%</div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- 주의사항 -->
-                    <section class="briefing-footer">
-                        <div class="footer-principles">
-                            <h3>📌 Daily Briefing 사용 원칙</h3>
-                            <div class="principle-list">
-                                <div class="principle">1. 매일 같은 시간에 보세요 (한국 시간 새벽 6~7시 권장)</div>
-                                <div class="principle">2. AI 추천을 기계적으로 따르지 마세요 — 신호 근거를 읽고 본인 판단으로 결정</div>
-                                <div class="principle">3. 워치리스트를 적극 활용하세요 — 한 번에 너무 많은 종목은 의사결정 품질 저하</div>
-                                <div class="principle">4. 의심스러운 날은 거래하지 마세요 — Cash도 포지션입니다</div>
-                                <div class="principle">5. 의사결정 기록 — 매번 그 날의 판단 이유를 기록하면 6개월 후 학습 자산</div>
-                            </div>
-                        </div>
-                    </section>
+                    <!-- 섹터 강도 -->
+                    <div class="card">
+                        <h3>② 섹터별 상대강도 (RS Line)</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>섹터</th>
+                                    <th>RS Score</th>
+                                    <th>상태</th>
+                                    <th>추세</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="ticker-cell">Technology</td>
+                                    <td><span class="price-up">92</span></td>
+                                    <td><span class="badge green">Strong</span></td>
+                                    <td>📈 상승</td>
+                                </tr>
+                                <tr>
+                                    <td class="ticker-cell">Semiconductor</td>
+                                    <td><span class="price-up">88</span></td>
+                                    <td><span class="badge green">Strong</span></td>
+                                    <td>📈 상승</td>
+                                </tr>
+                                <tr>
+                                    <td class="ticker-cell">Energy</td>
+                                    <td><span class="price-down">45</span></td>
+                                    <td><span class="badge red">Weak</span></td>
+                                    <td>📉 하락</td>
+                                </tr>
+                                <tr>
+                                    <td class="ticker-cell">Healthcare</td>
+                                    <td>72</td>
+                                    <td><span class="badge blue">Neutral</span></td>
+                                    <td>➡️ 보합</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- ===== TAB 2: Market Pulse ===== -->
                 <div id="market-pulse-tab" class="tab-pane">
-                    <h1>📊 Market Pulse</h1>
+                    <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px;">📊 Market Pulse</h2>
                     
-                    <!-- 현재 시장 상태 -->
-                    <section class="briefing-section">
-                        <div class="market-pulse-header">
-                            <div class="pulse-regime-box">
-                                <div class="regime-icon-large">🟢</div>
-                                <div class="regime-title-large">Uptrend Resumed</div>
-                                <div class="regime-desc">FTD 직후 황금 구간. 저점 기반의 신규 진입 적극.</div>
-                            </div>
-                            <div class="pulse-investment">
-                                <div class="investment-ratio">투자 비중</div>
-                                <div class="investment-percentage">75~95%</div>
-                                <div class="investment-action">신규 진입: 제한 없음 (적극)</div>
-                                <div class="investment-stop">손절 기준: 7% 이격</div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- 포지션 사이징 계산기 -->
-                    <section class="briefing-section">
-                        <h2>📊 포지션 사이징 계산기</h2>
-                        <div class="sizing-calculator">
-                            <div class="sizing-input">
-                                <label>보유 자본</label>
-                                <input type="number" value="100000" placeholder="$">
-                            </div>
-                            <div class="sizing-results">
-                                <div class="sizing-item">
-                                    <div class="sizing-label">총 투자액</div>
-                                    <div class="sizing-value">$60K ~ $80K</div>
-                                    <div class="sizing-note">비중 60~80%</div>
+                    <div class="grid-2">
+                        <div class="card">
+                            <h3>Stage 분포</h3>
+                            <div class="grid-2">
+                                <div class="stat-box">
+                                    <div class="stat-label">Stage 2</div>
+                                    <div class="stat-value">113</div>
                                 </div>
-                                <div class="sizing-item">
-                                    <div class="sizing-label">개당 최대 진입</div>
-                                    <div class="sizing-value">$8.0K ~ $16K</div>
-                                    <div class="sizing-note">주당 3~5개 기준</div>
+                                <div class="stat-box">
+                                    <div class="stat-label">Stage 3</div>
+                                    <div class="stat-value">45</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-label">Stage 4</div>
+                                    <div class="stat-value" style="color: #10b981;">12</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-label">Stage 6/7</div>
+                                    <div class="stat-value" style="color: #ef4444;">28</div>
                                 </div>
                             </div>
                         </div>
-                    </section>
 
-                    <!-- 오늘 권장 액션 -->
-                    <section class="briefing-section">
-                        <h2>🎯 오늘 권장 액션</h2>
-                        <div class="action-list">
-                            <div class="action-item priority1">
-                                <div class="action-icon">●우선</div>
-                                <div class="action-text">🆕↑ Phase 4 신규 전환 종목 우선 진입</div>
+                        <div class="card">
+                            <h3>Breadth Index</h3>
+                            <div class="stat-box" style="margin-bottom: 16px;">
+                                <div class="stat-label">Advancing / Declining</div>
+                                <div class="stat-value">58.3%</div>
                             </div>
-                            <div class="action-item priority1">
-                                <div class="action-icon">●우선</div>
-                                <div class="action-text">📐 검증된 패턴 (점수 80+) 매수</div>
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 58.3%;"></div>
                             </div>
-                            <div class="action-item priority2">
-                                <div class="action-icon">⏳</div>
-                                <div class="action-text">Confirmed Uptrend 전환 대기</div>
+                            <div style="font-size: 12px; color: #6b7280; margin-top: 8px; text-align: center;">
+                                상승장 신호 강함 📈
                             </div>
                         </div>
-                    </section>
-
-                    <!-- 주요 지수 현황 -->
-                    <section class="briefing-section">
-                        <h2>📈 주요 지수 현황</h2>
-                        <div class="indices-grid">
-                            <div class="index-card">
-                                <div class="index-ticker">S&P 500</div>
-                                <div class="index-price">7,554.29</div>
-                                <div class="index-change positive">+1.65%</div>
-                                <div class="index-period">1주 +2.01% · 1개월 +0.71%</div>
-                                <div class="index-status">Stage: Stage 2 · 상승 추세 ✓ 21MA ✓ 50MA ✓ 200MA</div>
-                                <div class="index-dd">DD 25일: 3 / 가중 3.0</div>
-                                <div class="index-ftd">✅ FTD 활성 · 2026-06-11 · d27 · +1.75%</div>
-                            </div>
-                            <div class="index-card">
-                                <div class="index-ticker">NASDAQ</div>
-                                <div class="index-price">26,683.94</div>
-                                <div class="index-change positive">+3.07%</div>
-                                <div class="index-period">1주 +2.91% · 1개월 +0.18%</div>
-                                <div class="index-status">Stage: Stage 2 · 상승 추세 ✓ 21MA ✓ 50MA ✓ 200MA</div>
-                                <div class="index-dd">DD 25일: 3 / 가중 4.0</div>
-                                <div class="index-ftd">✅ FTD 활성 · 2026-05-08 · d4 · +1.71%</div>
-                            </div>
-                            <div class="index-card">
-                                <div class="index-ticker">Russell 2000</div>
-                                <div class="index-price">2,965.09</div>
-                                <div class="index-change positive">+0.72%</div>
-                                <div class="index-period">1주 +3.84% · 1개월 +3.56%</div>
-                                <div class="index-status">Stage: Stage 2 · 상승 추세 ✓ 21MA ✓ 50MA ✓ 200MA</div>
-                                <div class="index-dd">DD 25일: 2 / 가중 2.0</div>
-                                <div class="index-ftd">✅ FTD 활성 · 2026-05-26 · d4 · +1.79%</div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- FTD 상세 -->
-                    <section class="briefing-section">
-                        <h2>🚀 Follow-Through Day (FTD) 상세</h2>
-                        <div class="ftd-details">
-                            <div class="ftd-item">
-                                <div class="ftd-name">S&P 500 — ✅ FTD 활성 ⚠후발</div>
-                                <div class="ftd-info">
-                                    <span>반등 시작 저점: 2026-05-04 (7,200.75)</span>
-                                    <span>FTD 발생: 2026-06-11 · 반등 27일차(d27)</span>
-                                    <span>당일 +1.75% · 거래량 +7.8%</span>
-                                    <span>💡 d27 — 고전 d4~d7 창을 벗어난 후발 FTD</span>
-                                </div>
-                            </div>
-                            <div class="ftd-item">
-                                <div class="ftd-name">NASDAQ — ✅ FTD 활성</div>
-                                <div class="ftd-info">
-                                    <span>반등 시작 저점: 2026-05-04 (25,067.8)</span>
-                                    <span>FTD 발생: 2026-05-08 · 반등 4일차(d4)</span>
-                                    <span>당일 +1.71% · 거래량 +5%</span>
-                                    <span>💡 FTD 직후 30일 = 베이스 돌파 황금 구간</span>
-                                </div>
-                            </div>
-                            <div class="ftd-item">
-                                <div class="ftd-name">Russell 2000 — ✅ FTD 활성</div>
-                                <div class="ftd-info">
-                                    <span>반등 시작 저점: 2026-05-19 (2,747.07)</span>
-                                    <span>FTD 발생: 2026-05-26 · 반등 4일차(d4)</span>
-                                    <span>당일 +1.79% · 거래량 +11%</span>
-                                    <span>💡 FTD 직후 30일 = 베이스 돌파 황금 구간</span>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Market Breadth -->
-                    <section class="briefing-section">
-                        <h2>🌐 Market Breadth (시장 폭)</h2>
-                        <div class="breadth-metrics">
-                            <div class="breadth-item">
-                                <div class="breadth-label">가격 폭 — 50MA 상회 비율</div>
-                                <div class="breadth-value">67.5%</div>
-                                <div class="breadth-detail">713 / 1057개 · 건강 (정상 상승)</div>
-                            </div>
-                            <div class="breadth-item">
-                                <div class="breadth-label">RS 폭 — 강세 종목 비율 (RS ≥ 80)</div>
-                                <div class="breadth-value">77.8%</div>
-                                <div class="breadth-detail">822 / 1057개 · 광범위 강세 · 🟢 건강한 강세장</div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- 심리 지표 -->
-                    <section class="briefing-section">
-                        <h2>🧠 심리 지표</h2>
-                        <div class="sentiment-indicators">
-                            <div class="sentiment-item">
-                                <div class="sentiment-label">VIX (변동성 지수)</div>
-                                <div class="sentiment-value">16.2</div>
-                                <div class="sentiment-status">평온 · ✅ 평시</div>
-                            </div>
-                            <div class="sentiment-item">
-                                <div class="sentiment-label">Fear & Greed</div>
-                                <div class="sentiment-value">86.3</div>
-                                <div class="sentiment-status">극도의 탐욕 · 🔴 과열 — 수익 실현 고려</div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Distribution Day -->
-                    <section class="briefing-section">
-                        <h2>📉 Distribution Day 상세</h2>
-                        <div class="dd-list">
-                            <div class="dd-item">
-                                <div class="dd-index">S&P 500 · DD 3개 (25일 기준)</div>
-                                <table class="dd-table">
-                                    <thead>
-                                        <tr>
-                                            <th>날짜</th>
-                                            <th>하락%</th>
-                                            <th>거래량 증가</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>2026-05-15</td>
-                                            <td>-1.24%</td>
-                                            <td>+6%</td>
-                                        </tr>
-                                        <tr>
-                                            <td>2026-06-05</td>
-                                            <td>-2.64%</td>
-                                            <td>+3.6%</td>
-                                        </tr>
-                                        <tr>
-                                            <td>2026-06-09</td>
-                                            <td>-0.26%</td>
-                                            <td>+22.6%</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="dd-item">
-                                <div class="dd-index">NASDAQ · DD 3개 (25일 기준)</div>
-                                <table class="dd-table">
-                                    <thead>
-                                        <tr>
-                                            <th>날짜</th>
-                                            <th>하락%</th>
-                                            <th>거래량 증가</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>2026-05-18</td>
-                                            <td>-0.51%</td>
-                                            <td>+7.8%</td>
-                                        </tr>
-                                        <tr>
-                                            <td>2026-06-05</td>
-                                            <td>-4.18%</td>
-                                            <td>+28.3%</td>
-                                        </tr>
-                                        <tr>
-                                            <td>2026-06-09</td>
-                                            <td>-0.97%</td>
-                                            <td>+20.1%</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Regime 가이드 -->
-                    <section class="briefing-section">
-                        <h2>📖 5단계 Regime 가이드</h2>
-                        <div class="regime-guide">
-                            <div class="regime-row confirmed">
-                                <div class="regime-label">🟢 Confirmed Uptrend</div>
-                                <div class="regime-ratio">80~100%</div>
-                                <div class="regime-action">제한 없음</div>
-                                <div class="regime-strategy">최적 환경. Phase 4·4+ 공격 진입.</div>
-                            </div>
-                            <div class="regime-row resumed active">
-                                <div class="regime-label">🟢 Uptrend Resumed (현재)</div>
-                                <div class="regime-ratio">75~95%</div>
-                                <div class="regime-action">제한 없음 (적극)</div>
-                                <div class="regime-strategy">FTD 직후 황금 구간.</div>
-                            </div>
-                            <div class="regime-row pressure">
-                                <div class="regime-label">🟡 Under Pressure</div>
-                                <div class="regime-ratio">30~50%</div>
-                                <div class="regime-action">주당 1~2개</div>
-                                <div class="regime-strategy">경계 단계. 품질 점검.</div>
-                            </div>
-                            <div class="regime-row rally">
-                                <div class="regime-label">🟠 Rally Attempt</div>
-                                <div class="regime-ratio">20~30%</div>
-                                <div class="regime-action">0~1개</div>
-                                <div class="regime-strategy">반등 시도 중. FTD 대기.</div>
-                            </div>
-                            <div class="regime-row correction">
-                                <div class="regime-label">🔴 Correction</div>
-                                <div class="regime-ratio">0~25%</div>
-                                <div class="regime-action">0개</div>
-                                <div class="regime-strategy">방어 모드. 현금 확대.</div>
-                            </div>
-                        </div>
-                    </section>
+                    </div>
                 </div>
 
-                <!-- ===== TAB 3: 섹터 분석 ===== -->
-                <div id="sector-tab" class="tab-pane">
-                    <h1>🏭 섹터 분석</h1>
-                    
-                    <!-- 섹터 정렬 필터 -->
-                    <section class="briefing-section">
-                        <div class="sector-filter">
-                            <span class="filter-label">섹터 정렬:</span>
-                            <button class="filter-btn active">RS Line 점수</button>
-                            <button class="filter-btn">IBD RS 평균</button>
-                            <button class="filter-btn">RS now 평균</button>
-                            <button class="filter-btn">갭 (now-IBD)</button>
-                        </div>
-                    </section>
-
-                    <!-- 강세 섹터 -->
-                    <section class="briefing-section">
-                        <h2>🟢 강세 섹터 (RS Line 75+) — 진입 우선순위</h2>
-                        <div class="sector-cards">
-                            <div class="sector-card main-sector">
-                                <div class="sector-badge">🥇 RS Line 1위 · 최상위 강세 섹터</div>
-                                <div class="sector-title">Technology</div>
-                                <div class="sector-stats">
-                                    <div class="stat-item">
-                                        <span>RS Line 점수</span>
-                                        <strong>75</strong>
-                                    </div>
-                                    <div class="stat-item">
-                                        <span>IBD RS 평균</span>
-                                        <strong>93.7</strong>
-                                    </div>
-                                    <div class="stat-item">
-                                        <span>RS now 평균</span>
-                                        <strong>81</strong>
-                                    </div>
-                                </div>
-                                <div class="sector-industries">
-                                    <div class="industry-mini">
-                                        <span>#1 Electronics & Computer Distribution</span>
-                                        <div class="stocks">
-                                            <span class="stock-badge strong">ARW 100</span>
-                                            <span class="stock-badge strong">AVT 100</span>
-                                            <span class="stock-badge">SNX 85</span>
-                                        </div>
-                                    </div>
-                                    <div class="industry-mini">
-                                        <span>#2 Computer Hardware</span>
-                                        <div class="stocks">
-                                            <span class="stock-badge strong">STX 100</span>
-                                            <span class="stock-badge strong">WDC 100</span>
-                                            <span class="stock-badge strong">SNDK 100</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="sector-phase">
-                                    <span class="phase-new">🆕18</span>
-                                    <span class="phase-rocket">🚀104</span>
-                                    <span class="phase-up">📈19</span>
-                                    <span class="phase-buy">🎯+13</span>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- 중립 섹터 (상위 5개만 표시) -->
-                    <section class="briefing-section">
-                        <h2>🟡 중립 섹터 (RS Line 50~74) — 관찰 대상</h2>
-                        <div class="sector-neutral-grid">
-                            <div class="sector-card neutral">
-                                <div class="sector-rank">🥈</div>
-                                <div class="sector-title">Basic Materials</div>
-                                <div class="sector-stat-row">
-                                    <span>RS Line 70</span>
-                                    <span>73개</span>
-                                </div>
-                                <div class="sector-quick-stocks">
-                                    <span class="stock-small">AUGO 80</span>
-                                    <span class="stock-small">SVM 80</span>
-                                    <span class="stock-small">IDR 85</span>
-                                </div>
-                            </div>
-
-                            <div class="sector-card neutral">
-                                <div class="sector-rank">🥉</div>
-                                <div class="sector-title">Healthcare</div>
-                                <div class="sector-stat-row">
-                                    <span>RS Line 66</span>
-                                    <span>72개</span>
-                                </div>
-                                <div class="sector-quick-stocks">
-                                    <span class="stock-small">TVTX 100</span>
-                                    <span class="stock-small">BTSG 100</span>
-                                    <span class="stock-small">KNSA 80</span>
-                                </div>
-                            </div>
-
-                            <div class="sector-card neutral">
-                                <div class="sector-rank">#4</div>
-                                <div class="sector-title">Industrials</div>
-                                <div class="sector-stat-row">
-                                    <span>RS Line 66</span>
-                                    <span>130개</span>
-                                </div>
-                                <div class="sector-quick-stocks">
-                                    <span class="stock-small">FIX 100</span>
-                                    <span class="stock-small">NVT 86</span>
-                                    <span class="stock-small">BE 80</span>
-                                </div>
-                            </div>
-
-                            <div class="sector-card neutral">
-                                <div class="sector-rank">#5</div>
-                                <div class="sector-title">Consumer Cyclical</div>
-                                <div class="sector-stat-row">
-                                    <span>RS Line 67</span>
-                                    <span>43개</span>
-                                </div>
-                                <div class="sector-quick-stocks">
-                                    <span class="stock-small">MUSA 100</span>
-                                    <span class="stock-small">FIGS 85</span>
-                                    <span class="stock-small">ELA 80</span>
-                                </div>
-                            </div>
-
-                            <div class="sector-card neutral">
-                                <div class="sector-rank">#6</div>
-                                <div class="sector-title">Consumer Defensive</div>
-                                <div class="sector-stat-row">
-                                    <span>RS Line 60</span>
-                                    <span>20개</span>
-                                </div>
-                                <div class="sector-quick-stocks">
-                                    <span class="stock-small">CHEF 97</span>
-                                    <span class="stock-small">COCO 80</span>
-                                    <span class="stock-small">WILC 80</span>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- 섹터 로테이션 히트맵 -->
-                    <section class="briefing-section">
-                        <h2>🔥 섹터 로테이션 히트맵</h2>
-                        <div class="heatmap-note">다차원 지표 동시 비교 → 자금 이동·리더십 전환 조기 감지</div>
-                        <div class="heatmap-table-scroll">
-                            <table class="heatmap-table">
-                                <thead>
-                                    <tr>
-                                        <th>섹터</th>
-                                        <th>종목</th>
-                                        <th>RS Line</th>
-                                        <th>IBD RS</th>
-                                        <th>RS now</th>
-                                        <th>갭</th>
-                                        <th>가속%</th>
-                                        <th>주가신고%</th>
-                                        <th>RS신고%</th>
-                                        <th>P4%</th>
-                                        <th>P5%</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr class="heatmap-strong">
-                                        <td>Technology</td>
-                                        <td>147</td>
-                                        <td><strong>75</strong></td>
-                                        <td>93.7</td>
-                                        <td>81</td>
-                                        <td>-13</td>
-                                        <td>65%</td>
-                                        <td>31%</td>
-                                        <td>31%</td>
-                                        <td>9%</td>
-                                        <td>44%</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Basic Materials</td>
-                                        <td>73</td>
-                                        <td>70</td>
-                                        <td>90.1</td>
-                                        <td>55</td>
-                                        <td>-35</td>
-                                        <td>84%</td>
-                                        <td>14%</td>
-                                        <td>12%</td>
-                                        <td>3%</td>
-                                        <td>18%</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Healthcare</td>
-                                        <td>72</td>
-                                        <td>66</td>
-                                        <td>90.8</td>
-                                        <td>68</td>
-                                        <td>-23</td>
-                                        <td>56%</td>
-                                        <td>21%</td>
-                                        <td>17%</td>
-                                        <td>10%</td>
-                                        <td>18%</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Industrials</td>
-                                        <td>130</td>
-                                        <td>66</td>
-                                        <td>90.2</td>
-                                        <td>65</td>
-                                        <td>-25</td>
-                                        <td>50%</td>
-                                        <td>17%</td>
-                                        <td>13%</td>
-                                        <td>11%</td>
-                                        <td>15%</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Financial Services</td>
-                                        <td>172</td>
-                                        <td>53</td>
-                                        <td>81.8</td>
-                                        <td>71</td>
-                                        <td>-11</td>
-                                        <td>23%</td>
-                                        <td>69%</td>
-                                        <td>28%</td>
-                                        <td>6%</td>
-                                        <td>13%</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
-
-                    <!-- 로테이션 감지 시그널 -->
-                    <section class="briefing-section">
-                        <h2>🔍 로테이션 감지 시그널</h2>
-                        <div class="rotation-signals">
-                            <div class="signal">
-                                <span class="signal-icon">📈</span>
-                                <span class="signal-text"><strong>RS now > IBD RS (갭 양수)</strong>: 섹터 강화 중</span>
-                            </div>
-                            <div class="signal">
-                                <span class="signal-icon">📉</span>
-                                <span class="signal-text"><strong>RS now < IBD RS (갭 음수)</strong>: 섹터 약화 시작, 자금 이탈</span>
-                            </div>
-                            <div class="signal">
-                                <span class="signal-icon">🔥</span>
-                                <span class="signal-text"><strong>가속% 높음 + 갭 양수</strong>: 리더십 확산, 우선 편입</span>
-                            </div>
-                            <div class="signal">
-                                <span class="signal-icon">🎯</span>
-                                <span class="signal-text"><strong>P4% + RS신고% 동시 높음</strong>: 진입 타이밍 임박</span>
-                            </div>
-                        </div>
-                    </section>
-                </div>
-
-                <!-- ===== TAB 4: 스크리너 ===== -->
-                <div id="screener-tab" class="tab-pane">
-                    <h1>🔍 스크리너 — Phase 필터 + RS Line 정렬</h1>
-                    
-                    <!-- 필터 섹션 -->
-                    <section class="briefing-section">
-                        <h2>🎯 필터링</h2>
-                        
-                        <!-- 검색창 -->
-                        <div style="margin-bottom: 15px;">
-                            <input type="text" id="screener-search" placeholder="종목명 검색 (예: NVMI, STX)" 
-                                style="width: 100%; padding: 10px 12px; border: 1px solid #444; border-radius: 6px; 
-                                background: #222; color: #fff; font-size: 14px;">
-                        </div>
-                        
-                        <!-- Phase 필터 -->
-                        <div style="margin-bottom: 15px;">
-                            <h3 style="margin: 10px 0; font-size: 14px; color: #aaa;">Phase 필터</h3>
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                <button class="filter-btn" data-filter="phase" data-value="all" style="background: #4da6ff;">전체</button>
-                                <button class="filter-btn" data-filter="phase" data-value="4">🎯 Phase 4</button>
-                                <button class="filter-btn" data-filter="phase" data-value="4+" style="background: #00d084;">🎯+ Phase 4+</button>
-                                <button class="filter-btn" data-filter="phase" data-value="3">🟢 Phase 3</button>
-                                <button class="filter-btn" data-filter="phase" data-value="5">🟢 Phase 5</button>
-                                <button class="filter-btn" data-filter="phase" data-value="6">🟠 Phase 6</button>
-                                <button class="filter-btn" data-filter="phase" data-value="7">🔴 Phase 7</button>
-                            </div>
-                        </div>
-                        
-                        <!-- RS Score 필터 -->
-                        <div style="margin-bottom: 15px;">
-                            <h3 style="margin: 10px 0; font-size: 14px; color: #aaa;">RS Score 필터</h3>
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                <button class="filter-btn" data-filter="rs-score" data-value="all">전체</button>
-                                <button class="filter-btn" data-filter="rs-score" data-value="80" style="background: #00d084;">≥80 (최상)</button>
-                                <button class="filter-btn" data-filter="rs-score" data-value="70" style="background: #4da6ff;">≥70 (우수)</button>
-                                <button class="filter-btn" data-filter="rs-score" data-value="60">≥60 (양호)</button>
-                            </div>
-                        </div>
-                        
-                        <!-- 패턴 필터 -->
-                        <div style="margin-bottom: 15px;">
-                            <h3 style="margin: 10px 0; font-size: 14px; color: #aaa;">패턴 필터</h3>
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                <button class="filter-btn" data-filter="pattern" data-value="all">전체</button>
-                                <button class="filter-btn" data-filter="pattern" data-value="Ascending Base">Ascending Base</button>
-                                <button class="filter-btn" data-filter="pattern" data-value="HT Flag">HT Flag</button>
-                                <button class="filter-btn" data-filter="pattern" data-value="Correction">Correction</button>
-                            </div>
-                        </div>
-                        
-                        <!-- 정렬 옵션 -->
-                        <div style="margin-bottom: 15px;">
-                            <h3 style="margin: 10px 0; font-size: 14px; color: #aaa;">정렬</h3>
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                <button class="sort-btn" data-sort="rs-score" style="background: #4da6ff;">RS Score ↓</button>
-                                <button class="sort-btn" data-sort="phase">Phase (4→3→5)</button>
-                                <button class="sort-btn" data-sort="symbol">종목명 (A-Z)</button>
-                                <button class="sort-btn" data-sort="price">가격 ↓</button>
-                            </div>
-                        </div>
-                    </section>
-                    
-                    <!-- 결과 테이블 -->
-                    <section class="briefing-section">
-                        <h2 id="screener-result-count">📊 스크린 결과: 0개</h2>
-                        <div id="screener-table" style="overflow-x: auto; border-radius: 6px;">
-                            <p style="text-align: center; color: #888; padding: 20px;">
-                                ⏳ run_daily.bat 실행 후 데이터를 불러오세요
-                            </p>
-                        </div>
-                    </section>
-                </div>
-
-                <!-- ===== TAB 5: 패턴 감지 ===== -->
-                <div id="patterns-tab" class="tab-pane">
-                    <h1>패턴 감지</h1>
-                    <p>11종 차트 패턴 + RS Line 순</p>
-                    <div class="placeholder">구성 중...</div>
-                </div>
-
-                <!-- ===== TAB 6: RS 모멘텀 ===== -->
-                <div id="momentum-tab" class="tab-pane">
-                    <h1>RS 모멘텀</h1>
-                    <p>가속+RS신고 필터</p>
-                    <div class="placeholder">구성 중...</div>
-                </div>
-
-                <!-- ===== TAB 7: 전략실 (Paper Trade) ===== -->
+                <!-- ===== TAB 7: 전략실 ===== -->
                 <div id="strategy-room-tab" class="tab-pane">
-                    <h1>🏛 전략실 — g3+g1+g2 paper-trade</h1>
-                    
-                    <!-- 섹션 1: 검증 시작 -->
-                    <section class="briefing-section">
-                        <h2>🔬 전방향 검증 (OOS) 진행 중</h2>
-                        <div style="background: #e3f2fd; padding: 12px; border-radius: 6px; margin-bottom: 12px;">
-                            <div style="font-size: 12px; color: #0d47a1; margin-bottom: 8px;">🔵 검증 시작 · v6.17 · inception 2026-06-10 · 0.2개월</div>
-                            <div style="font-size: 11px; color: #1565c0;">표본 진행: 0/30건 | 기간 진행: 0.2/6개월</div>
-                            <div style="font-size: 10px; color: #2196f3; margin-top: 8px;">📌 seed (개발/in-sample): 24건 · 기대값 14.5% · PF 8.85</div>
-                        </div>
-                    </section>
+                    <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px;">🏛 전략실 — g3+g1+g2 paper-trade</h2>
 
-                    <!-- 섹션 2: 신규 진입 신호 (자동 로드) -->
-                    <section class="briefing-section">
-                        <h2>🎯 신규 진입 신호 (자동 생성)</h2>
-                        <div id="entry-signals-summary" style="padding: 10px 0; border-bottom: 1px solid #444; color: #888; font-size: 0.9em; margin-bottom: 10px;">
-                            📅 2026-06-16 | 🎯 Phase 4: 0 | 🎯+ Phase 4+: 0
-                        </div>
-                        <div id="entry-signals-table" style="overflow-x: auto; border-radius: 6px;">
-                            <p style="text-align: center; color: #888; padding: 20px;">
-                                ⏳ run_daily.bat 실행 후 새로고침하세요
-                            </p>
-                        </div>
-                    </section>
+                    <div class="alert info">
+                        <strong>ℹ️ 5-Gate Funnel:</strong> 여자 38 (혹은 hold 40 + earnings guard + sell signal)
+                    </div>
 
-                    <!-- 섹션 3: 포트폴리오 요약 -->
-                    <section class="briefing-section">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
-                            <div style="background: linear-gradient(135deg, #4caf50, #45a049); color: white; padding: 16px; border-radius: 8px;">
-                                <div style="font-size: 11px; opacity: 0.9;">Portfolio NAV</div>
-                                <div style="font-size: 24px; font-weight: bold; margin: 6px 0;">1.4307</div>
-                                <div style="font-size: 12px;">+43.07%</div>
-                            </div>
-                            <div style="background: linear-gradient(135deg, #2196f3, #1976d2); color: white; padding: 16px; border-radius: 8px;">
-                                <div style="font-size: 11px; opacity: 0.9;">Active Holdings</div>
-                                <div style="font-size: 24px; font-weight: bold; margin: 6px 0;">12 / 12</div>
-                                <div style="font-size: 12px;">미실현 +19.17%</div>
-                            </div>
-                            <div style="background: linear-gradient(135deg, #ff9800, #f57c00); color: white; padding: 16px; border-radius: 8px;">
-                                <div style="font-size: 11px; opacity: 0.9;">Closed Trades</div>
-                                <div style="font-size: 24px; font-weight: bold; margin: 6px 0;">24건</div>
-                                <div style="font-size: 12px;">Hit 54.2% | Avg +14.5%</div>
-                            </div>
-                            <div style="background: linear-gradient(135deg, #9c27b0, #7b1fa2); color: white; padding: 16px; border-radius: 8px;">
-                                <div style="font-size: 11px; opacity: 0.9;">Strategy</div>
-                                <div style="font-size: 24px; font-weight: bold; margin: 6px 0;">g3+g1+g2</div>
-                                <div style="font-size: 12px;">5-Gate Funnel</div>
-                            </div>
+                    <!-- 포트폴리오 통계 -->
+                    <div class="grid-4">
+                        <div class="stat-box">
+                            <div class="stat-label">NAV</div>
+                            <div class="stat-value" style="color: #10b981;">1.0000</div>
+                            <div class="stat-unit">시작가</div>
                         </div>
-                    </section>
+                        <div class="stat-box">
+                            <div class="stat-label">Active Positions</div>
+                            <div class="stat-value">5</div>
+                            <div class="stat-unit">포지션</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Win Rate</div>
+                            <div class="stat-value" style="color: #10b981;">48.4%</div>
+                            <div class="stat-unit">수익률</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Closed Trades</div>
+                            <div class="stat-value">62</div>
+                            <div class="stat-unit">거래</div>
+                        </div>
+                    </div>
 
-                    <!-- 섹션 4: 보유 종목 (주요) -->
-                    <section class="briefing-section">
-                        <h2>💼 보유 종목 TOP 5 (PnL 내림차순)</h2>
-                        <table class="compact-table">
+                    <!-- 진입 신호 테이블 -->
+                    <div class="card">
+                        <h3>📊 Entry Signals (5-Gate 통과)</h3>
+                        <table>
                             <thead>
-                                <tr><th>종목</th><th>진입일</th><th>보유일</th><th>진입가</th><th>현재가</th><th>PnL%</th><th>max%</th><th>패턴</th><th>RS</th></tr>
+                                <tr>
+                                    <th>Ticker</th>
+                                    <th>Price</th>
+                                    <th>RS Score</th>
+                                    <th>Phase</th>
+                                    <th>Pattern</th>
+                                    <th>Weight</th>
+                                    <th>Status</th>
+                                </tr>
                             </thead>
                             <tbody>
-                                <tr style="background: #e8f5e9;"><td><strong>FLEX</strong> ✂33% 🚀</td><td>2026-04-14</td><td>63d</td><td>78.31</td><td>149.22</td><td style="color: #2e7d32; font-weight: bold;">+47.96%</td><td>+106.8%</td><td>Ascending Base</td><td>94</td></tr>
-                                <tr style="background: #e8f5e9;"><td><strong>TTMI</strong> ✂33%</td><td>2026-04-14</td><td>63d</td><td>123.49</td><td>206.66</td><td style="color: #2e7d32; font-weight: bold;">+52.76%</td><td>+67.3%</td><td>Ascending Base</td><td>99</td></tr>
-                                <tr style="background: #e8f5e9;"><td><strong>STM</strong> 🔄</td><td>2026-04-29</td><td>48d</td><td>50.56</td><td>78.95</td><td style="color: #2e7d32; font-weight: bold;">+56.15%</td><td>+57.7%</td><td>Ascending Base</td><td>97</td></tr>
-                                <tr><td><strong>POWL</strong> ✂33%</td><td>2026-04-14</td><td>63d</td><td>228.99</td><td>293.60</td><td style="color: #2e7d32;">+13.03%</td><td>+40.6%</td><td>Ascending Base</td><td>98</td></tr>
-                                <tr><td><strong>PEB</strong> 🔄</td><td>2026-06-08</td><td>8d</td><td>16.89</td><td>18.50</td><td style="color: #2e7d32;">+9.53%</td><td>+9.5%</td><td>Pocket Pivot</td><td>91</td></tr>
+                                <tr>
+                                    <td class="ticker-cell">NVMI</td>
+                                    <td>$619.07</td>
+                                    <td><span class="price-up">92</span></td>
+                                    <td><span class="badge green">4</span></td>
+                                    <td><span class="badge gray">Ascending Base</span></td>
+                                    <td><strong>1.0</strong></td>
+                                    <td><span class="badge green">1순위</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="ticker-cell">STX</td>
+                                    <td>$1,018.80</td>
+                                    <td><span class="price-up">88</span></td>
+                                    <td><span class="badge green">4</span></td>
+                                    <td><span class="badge gray">HT Flag</span></td>
+                                    <td><strong>0.9</strong></td>
+                                    <td><span class="badge green">2순위</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="ticker-cell">BHE</td>
+                                    <td>$91.31</td>
+                                    <td><span class="price-up">86</span></td>
+                                    <td><span class="badge green">4</span></td>
+                                    <td><span class="badge gray">HT Flag</span></td>
+                                    <td><strong>0.9</strong></td>
+                                    <td><span class="badge blue">Hold</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="ticker-cell">PRM</td>
+                                    <td>$36.36</td>
+                                    <td><span class="price-up">84</span></td>
+                                    <td><span class="badge blue">3</span></td>
+                                    <td><span class="badge gray">HT Flag</span></td>
+                                    <td><strong>0.6</strong></td>
+                                    <td><span class="badge gray">Watch</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="ticker-cell">TVTX</td>
+                                    <td>$53.80</td>
+                                    <td><span class="price-up">82</span></td>
+                                    <td><span class="badge green">4</span></td>
+                                    <td><span class="badge gray">HT Flag</span></td>
+                                    <td><strong>0.9</strong></td>
+                                    <td><span class="badge green">Active</span></td>
+                                </tr>
                             </tbody>
                         </table>
-                    </section>
-
-                    <!-- 섹션 5: 청산 이력 -->
-                    <section class="briefing-section">
-                        <h2>📒 청산 이력 (24건) — Hit 54.2% | Avg +14.5% | Best +249.9%</h2>
-                        <table class="compact-table">
-                            <thead>
-                                <tr><th>티커</th><th>진입</th><th>청산</th><th>진입가</th><th>청산가</th><th>실현%</th><th>max%</th><th>청산 사유</th></tr>
-                            </thead>
-                            <tbody>
-                                <tr style="background: #f0f7ff;"><td><strong>MXL</strong></td><td>2026-04-16</td><td>2026-06-10</td><td>22.01</td><td>77.03</td><td style="color: #1976d2; font-weight: bold;">+249.90%</td><td>+364.7%</td><td>🚀 Lock청산</td></tr>
-                                <tr style="background: #f0f7ff;"><td><strong>INTC</strong></td><td>2026-04-28</td><td>2026-06-06</td><td>84.99</td><td>106.24</td><td style="color: #1976d2;">+24.90%</td><td>+52.3%</td><td>Lock청산8w</td></tr>
-                                <tr style="background: #f0f7ff;"><td><strong>JBL</strong></td><td>2026-04-14</td><td>2026-06-09</td><td>305.37</td><td>363.95</td><td style="color: #1976d2;">+19.08%</td><td>+24.5%</td><td>max hold</td></tr>
-                                <tr><td><strong>FLEX</strong></td><td>2026-04-14</td><td>2026-05-05</td><td>78.31</td><td>96.45</td><td style="color: #388e3c;">+23.06%</td><td>+23.2%</td><td>✂ 실적정리</td></tr>
-                                <tr><td><strong>POWL</strong></td><td>2026-04-14</td><td>2026-05-02</td><td>228.99</td><td>275.24</td><td style="color: #388e3c;">+20.10%</td><td>+21.0%</td><td>✂ 실적정리</td></tr>
-                            </tbody>
-                        </table>
-                    </section>
-
-                    <!-- 섹션 6: 5-Gate Funnel -->
-                    <section class="briefing-section">
-                        <h2>📋 5-Gate Funnel Rules</h2>
-                        <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <div style="background: #fffde7; padding: 10px; border-left: 4px solid #fbc02d; border-radius: 4px; font-size: 12px;">
-                                <strong>Gate 0:</strong> Market Health Phase ∈ {normal, accumulation, momentum, neutral}
-                            </div>
-                            <div style="background: #f1f8e9; padding: 10px; border-left: 4px solid #7cb342; border-radius: 4px; font-size: 12px;">
-                                <strong>Gate 1:</strong> Theme Score ≥ 48 · RS Line 상위 25%
-                            </div>
-                            <div style="background: #e0f2f1; padding: 10px; border-left: 4px solid #26a69a; border-radius: 4px; font-size: 12px;">
-                                <strong>Gate 2:</strong> 패턴 보유 AND (pivot ≤ 3% 또는 breakout=True) · 거래량 +40%↑
-                            </div>
-                            <div style="background: #e3f2fd; padding: 10px; border-left: 4px solid #1976d2; border-radius: 4px; font-size: 12px;">
-                                <strong>Gate 3:</strong> RS 가속 강화 AND RS 신고가 (진입 당일)
-                            </div>
-                            <div style="background: #f3e5f5; padding: 10px; border-left: 4px solid #7b1fa2; border-radius: 4px; font-size: 12px;">
-                                <strong>Gate 4:</strong> 종합 점수 ≥ 중간값 AND AD Score ≥ 45 AND 추세신호 ≥ 6개
-                            </div>
-                        </div>
-                    </section>
-
+                    </div>
                 </div>
-
 
             </div>
-
         </main>
     </div>
 
-    <!-- 🔄 GitHub Actions 워크플로우 트리거 함수 -->
+    <!-- 스크립트 -->
     <script>
-    /**
-     * GitHub Actions 워크플로우 수동 실행 함수
-     */
-    async function triggerWorkflow() {
-        const btn = document.getElementById('triggerAnalysisBtn');
-        const statusDiv = document.getElementById('triggerStatus');
-        const statusMsg = document.getElementById('statusMessage');
-        
-        // 버튼 비활성화
-        btn.disabled = true;
-        btn.textContent = '⏳ 실행 중...';
-        statusDiv.style.display = 'block';
-        statusMsg.innerHTML = '<span style="color: #ff6b00;">⏳ GitHub Actions에 요청 중...</span>';
-        
-        try {
-            // API 호출
-            const response = await fetch('/api/trigger-workflow', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                // 성공
-                statusMsg.innerHTML = `
-                    <span style="color: #00a651; font-weight: bold;">✅ ${data.message}</span><br>
-                    <span style="font-size: 12px; color: #666; margin-top: 4px;">
-                        ${data.details}<br>
-                        실행 시간: ${new Date(data.timestamp).toLocaleString('ko-KR')}
-                    </span>
-                `;
-                btn.textContent = '✅ 실행됨';
-                btn.style.background = '#00a651';
+        // 탭 네비게이션
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
                 
-                // 5초 후 버튼 복원
-                setTimeout(() => {
-                    btn.disabled = false;
-                    btn.textContent = '▶️ 지금 실행';
-                    btn.style.background = '';
-                }, 5000);
-            } else {
-                // 오류
-                statusMsg.innerHTML = `
-                    <span style="color: #d32f2f; font-weight: bold;">❌ 오류</span><br>
-                    <span style="font-size: 12px; color: #666;">
-                        ${data.error}: ${data.message}
-                    </span>
-                `;
-                btn.disabled = false;
-                btn.textContent = '❌ 오류 발생';
-            }
-        } catch (error) {
-            // 네트워크 오류
-            statusMsg.innerHTML = `
-                <span style="color: #d32f2f; font-weight: bold;">❌ 요청 실패</span><br>
-                <span style="font-size: 12px; color: #666;">
-                    ${error.message}
-                </span>
-            `;
-            btn.disabled = false;
-            btn.textContent = '❌ 다시 시도';
-        }
-    }
-    
-    // 페이지 로드 시 GitHub Actions 상태 확인 (선택사항)
-    async function checkWorkflowStatus() {
-        try {
-            const response = await fetch('https://api.github.com/repos/NewyorkDC/rsscan/actions/runs?per_page=1');
-            const data = await response.json();
-            
-            if (data.workflow_runs && data.workflow_runs.length > 0) {
-                const latestRun = data.workflow_runs[0];
-                const statusEl = document.getElementById('workflowStatus');
-                if (statusEl) {
-                    const status = latestRun.status === 'completed' 
-                        ? (latestRun.conclusion === 'success' ? '✅ 성공' : '❌ 실패')
-                        : '⏳ 실행 중';
-                    statusEl.textContent = `마지막 실행: ${status}`;
+                // 모든 탭 비활성화
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                
+                // 선택된 탭 활성화
+                this.classList.add('active');
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+            });
+        });
+
+        // 데이터 로드
+        async function loadData() {
+            try {
+                const signals = await fetch('results/entry_signals.json').then(r => r.json()).catch(() => null);
+                const portfolio = await fetch('results/strategy_room_portfolio.json').then(r => r.json()).catch(() => null);
+                
+                if (signals) {
+                    console.log('✅ Entry signals loaded:', signals.signals.length);
                 }
+                if (portfolio) {
+                    console.log('✅ Portfolio loaded:', portfolio.holdings.length);
+                }
+            } catch (err) {
+                console.error('Data load error:', err);
             }
-        } catch (error) {
-            console.log('Workflow status check failed:', error);
         }
-    }
-    
-    // 페이지 로드 시 상태 확인
-    document.addEventListener('DOMContentLoaded', () => {
-        // checkWorkflowStatus();
-    });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+        });
     </script>
 
-    <!-- 유틸리티 스크립트 -->
-    <script src="js/screener-functions.js"></script>
-    <script src="js/data-loader.js"></script>
-    <script src="js/app.js"></script>
 </body>
 </html>
