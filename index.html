@@ -7,8 +7,8 @@
     
     <!-- 시스템 폰트 스택 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/dashboard.css?v=20260619h">
-    <link rel="stylesheet" href="css/responsive.css?v=20260619h">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260619i">
+    <link rel="stylesheet" href="css/responsive.css?v=20260619i">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
@@ -749,6 +749,56 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- ===== 종목 상세 모달 ===== -->
+                <div id="ticker-modal" style="display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.45); align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto;">
+                    <div style="background:white; border-radius:12px; max-width:680px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden;">
+                        <!-- 헤더 -->
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; padding:16px 20px; border-bottom:1px solid var(--color-border-light);">
+                            <div>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span id="modal-ticker" style="font-size:1.5rem; font-weight:700; color:var(--color-text-primary);">—</span>
+                                    <span id="modal-phase-badge" style="padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:700; color:white; background:#10b981;">P5</span>
+                                </div>
+                                <div id="modal-name" style="font-size:0.78rem; color:var(--color-text-tertiary); margin-top:2px;">—</div>
+                                <div id="modal-pattern" style="margin-top:6px;"></div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div id="modal-price" style="font-size:1.3rem; font-weight:700; color:var(--color-text-primary);">$0.00</div>
+                                <button onclick="window.strategyRoomBinder.closeModal()" style="margin-top:8px; padding:4px 10px; background:var(--color-bg-main); border:1px solid var(--color-border-light); border-radius:6px; font-size:0.75rem; cursor:pointer; color:var(--color-text-secondary);">✕ 닫기</button>
+                            </div>
+                        </div>
+                        <!-- 선정 이유 -->
+                        <div style="padding:12px 20px; background:#f0fdf4; border-bottom:1px solid #dcfce7;">
+                            <div style="font-size:0.7rem; font-weight:700; color:#15803d; margin-bottom:4px;">💡 선정 이유</div>
+                            <div id="modal-reason" style="font-size:0.8rem; color:#166534; line-height:1.5;">—</div>
+                        </div>
+                        <!-- 지표 그리드 -->
+                        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:16px 20px;">
+                            <div style="text-align:center; padding:8px; background:var(--color-bg-main); border-radius:6px;">
+                                <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">IBD RS</div>
+                                <div id="modal-rs" style="font-size:1.2rem; font-weight:700; color:#fbbf24;">0</div>
+                            </div>
+                            <div style="text-align:center; padding:8px; background:var(--color-bg-main); border-radius:6px;">
+                                <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">Phase</div>
+                                <div id="modal-phase" style="font-size:1.2rem; font-weight:700; color:var(--color-text-primary);">0</div>
+                            </div>
+                            <div style="text-align:center; padding:8px; background:var(--color-bg-main); border-radius:6px;">
+                                <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">피벗까지</div>
+                                <div id="modal-pivot" style="font-size:1.2rem; font-weight:700; color:var(--color-text-primary);">0%</div>
+                            </div>
+                            <div style="text-align:center; padding:8px; background:var(--color-bg-main); border-radius:6px;">
+                                <div style="font-size:0.62rem; color:var(--color-text-tertiary); text-transform:uppercase;">1주 변화</div>
+                                <div id="modal-chg" style="font-size:1.2rem; font-weight:700; color:var(--color-text-primary);">0%</div>
+                            </div>
+                        </div>
+                        <!-- TradingView 차트 -->
+                        <div style="padding:0 20px 20px;">
+                            <div style="font-size:0.7rem; font-weight:700; color:var(--color-text-tertiary); margin-bottom:6px; text-transform:uppercase;">📈 차트</div>
+                            <div id="modal-chart" style="height:320px; border:1px solid var(--color-border-light); border-radius:8px; overflow:hidden;"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- TAB 4: 섹터 분석 -->
@@ -1106,16 +1156,16 @@
     </script>
 
     <!-- Daily Briefing 데이터 바인딩 -->
-    <script src="js/briefing.js?v=20260619h"></script>
+    <script src="js/briefing.js?v=20260619i"></script>
 
     <!-- Market Pulse 데이터 바인딩 -->
-    <script src="js/market-pulse.js?v=20260619h"></script>
+    <script src="js/market-pulse.js?v=20260619i"></script>
 
     <!-- Strategy Room v5 데이터 바인딩 -->
-    <script src="js/strategy-room.js?v=20260619h"></script>
+    <script src="js/strategy-room.js?v=20260619i"></script>
 
     <!-- 섹터 ETF 스크리너 -->
-    <script src="js/sectors-etf.js?v=20260619h"></script>
+    <script src="js/sectors-etf.js?v=20260619i"></script>
 
 </body>
 </html>
