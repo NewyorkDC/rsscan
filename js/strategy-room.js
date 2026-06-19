@@ -38,39 +38,50 @@ class StrategyRoomBinder {
         }
     }
 
-    // ===== B. 요약 카드 =====
+    // ===== B. 요약 카드 (NAV 배수 표시) =====
     renderSummary() {
         if (!this.portfolio) return;
         const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-        const setHTML = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
 
-        const nav = this.portfolio.nav || 100000;
-        const cash = this.portfolio.cash || 0;
-        const holdingsValue = this.holdings.reduce((sum, h) =>
-            sum + (h.current_price || h.entry_price) * h.shares, 0);
-        const cumReturn = this.statistics.cumulative_return || 0;
-        const unrealized = this.holdings.reduce((sum, h) => sum + (h.profit_usd || 0), 0);
+        const initialCapital = 100000;
+        const nav = this.portfolio.nav || initialCapital;
+        const navRatio = nav / initialCapital;              // 1.0 기준 배수
+        const cumReturn = this.statistics.cumulative_return || (navRatio - 1) * 100;
+        const unrealizedPct = this.holdings.length > 0
+            ? this.holdings.reduce((sum, h) => sum + (h.profit_pct || 0), 0) / this.holdings.length
+            : 0;
 
-        setText('strategy-nav', `$${nav.toLocaleString('en-US', { maximumFractionDigits: 0 })}`);
-
+        // PORTFOLIO NAV (배수 + 수익률)
+        setText('strategy-nav', navRatio.toFixed(4));
         const navReturnEl = document.getElementById('strategy-nav-return');
         if (navReturnEl) {
             navReturnEl.textContent = `${cumReturn >= 0 ? '+' : ''}${cumReturn.toFixed(2)}%`;
             navReturnEl.style.color = cumReturn >= 0 ? '#10b981' : '#ef4444';
         }
 
-        setText('strategy-cash', `$${cash.toLocaleString('en-US', { maximumFractionDigits: 0 })}`);
-        setText('strategy-holdings-value', `$${holdingsValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}`);
-        setText('strategy-positions', `${this.holdings.length} / ${this.maxPositions}`);
-
-        const unrealizedEl = document.getElementById('strategy-unrealized');
-        if (unrealizedEl) {
-            unrealizedEl.textContent = `${unrealized >= 0 ? '+' : ''}$${Math.abs(unrealized).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
-            unrealizedEl.style.color = unrealized >= 0 ? '#10b981' : '#ef4444';
+        // ACTIVE HOLDINGS (n / 12 + 미실현 평균)
+        const posEl = document.getElementById('strategy-positions');
+        if (posEl) posEl.innerHTML = `${this.holdings.length} <span style="font-size:0.9rem; color:#9ca3af;">/ ${this.maxPositions}</span>`;
+        const unrealEl = document.getElementById('strategy-unrealized');
+        if (unrealEl) {
+            unrealEl.textContent = `미실현 ${unrealizedPct >= 0 ? '+' : ''}${unrealizedPct.toFixed(2)}%`;
+            unrealEl.style.color = unrealizedPct >= 0 ? '#10b981' : '#ef4444';
         }
 
-        setText('strategy-winrate', `${(this.statistics.win_rate || 0).toFixed(1)}%`);
-        setText('strategy-trades-count', `${this.statistics.total_trades || 0}건`);
+        // CLOSED TRADES (건수 + Hit/Avg)
+        setText('strategy-stat-total-trades', `${this.statistics.total_trades || 0}`);
+        const closedSummaryEl = document.getElementById('strategy-closed-summary');
+        if (closedSummaryEl) {
+            const winRate = this.statistics.win_rate || 0;
+            const avgWinPct = this.closedTrades.length > 0
+                ? this.closedTrades.reduce((s, t) => s + (t.profit_pct || 0), 0) / this.closedTrades.length
+                : 0;
+            closedSummaryEl.textContent = `Hit ${winRate.toFixed(1)}% · Avg ${avgWinPct >= 0 ? '+' : ''}${avgWinPct.toFixed(1)}%`;
+        }
+
+        // LAST UPDATE
+        const ts = this.portfolio.timestamp || '';
+        setText('strategy-last-update', ts ? ts.split(' ')[0] : '—');
     }
 
     // ===== C. NAV 곡선 차트 =====
@@ -223,7 +234,7 @@ class StrategyRoomBinder {
         }
         setText('strategy-stat-mdd', `${(s.mdd || 0).toFixed(1)}%`);
         setText('strategy-stat-sharpe', `${(s.sharpe || 0).toFixed(2)}`);
-        setText('strategy-stat-total-trades', `${s.total_trades || 0}`);
+        setText('strategy-stat-winrate', `${(s.win_rate || 0).toFixed(1)}%`);
         setText('strategy-stat-avg-win', `$${(s.avg_win || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`);
         setText('strategy-stat-avg-loss', `$${Math.abs(s.avg_loss || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`);
 
