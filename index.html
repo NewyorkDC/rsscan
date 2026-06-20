@@ -7,8 +7,8 @@
     
     <!-- 시스템 폰트 스택 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/dashboard.css?v=20260619l">
-    <link rel="stylesheet" href="css/responsive.css?v=20260619l">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260620a">
+    <link rel="stylesheet" href="css/responsive.css?v=20260620a">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
@@ -475,6 +475,18 @@
                     <div id="strategy-exposure-banner" style="margin-top:8px; padding:8px 12px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; font-size:0.78rem; color:#166534; display:none;">
                         <strong>📊 IBD 시장 노출도:</strong> <span id="strategy-exposure-text">—</span>
                     </div>
+                </div>
+
+                <!-- ===== 점진적 노출 신호등 (미너비니) ===== -->
+                <div id="progressive-exposure-banner" style="display:none; margin-bottom:16px; padding:14px 18px; border-radius:10px; border:1px solid transparent;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span id="pe-icon" style="font-size:1.3rem;">🟢</span>
+                        <div>
+                            <div id="pe-title" style="font-weight:700; font-size:0.92rem; margin-bottom:2px;">정상 궤도</div>
+                            <div id="pe-desc" style="font-size:0.82rem; line-height:1.4;">—</div>
+                        </div>
+                    </div>
+                    <div id="pe-meta" style="margin-top:8px; font-size:0.7rem; opacity:0.75;">최근 청산 5건 기준</div>
                 </div>
 
                 <!-- ===== 1. 전방향 검증 (OOS) ===== -->
@@ -1199,16 +1211,16 @@
     </script>
 
     <!-- Daily Briefing 데이터 바인딩 -->
-    <script src="js/briefing.js?v=20260619l"></script>
+    <script src="js/briefing.js?v=20260620a"></script>
 
     <!-- Market Pulse 데이터 바인딩 -->
-    <script src="js/market-pulse.js?v=20260619l"></script>
+    <script src="js/market-pulse.js?v=20260620a"></script>
 
     <!-- Strategy Room v5 데이터 바인딩 -->
-    <script src="js/strategy-room.js?v=20260619l"></script>
+    <script src="js/strategy-room.js?v=20260620a"></script>
 
     <!-- 섹터 ETF 스크리너 -->
-    <script src="js/sectors-etf.js?v=20260619l"></script>
+    <script src="js/sectors-etf.js?v=20260620a"></script>
 
 </body>
 </html>
