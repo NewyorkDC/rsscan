@@ -263,9 +263,30 @@ def fetch_one(ticker, bench_perf):
         chg_6w = pct_change(30)
         chg_10w = pct_change(50)
 
-        # 252일 가격 모멘텀 (RS 계산용 raw)
-        lookback = min(len(close) - 1, 252)
-        perf_252 = (last / float(close.iloc[-lookback - 1]) - 1) if lookback > 0 else 0.0
+        # 252일 가격 모멘텀 (RS 백분위 계산용) — 시점별로 산출하여 RS 변화율 계산
+        # rs_now: 오늘 기준 / rs_1w: 5거래일 전 기준 / rs_3w: 15거래일 전 / rs_6w: 30거래일 전
+        def perf_252_at(offset):
+            """offset 거래일 전 시점 기준 252일 수익률"""
+            idx = -1 - offset
+            if len(close) <= 252 + offset:
+                # 데이터 부족 시 가능한 최대 lookback
+                lb = min(len(close) - 1 - offset, 252)
+                if lb <= 0:
+                    return None
+                try:
+                    return close.iloc[idx] / float(close.iloc[idx - lb]) - 1
+                except (IndexError, ZeroDivisionError):
+                    return None
+            try:
+                return close.iloc[idx] / float(close.iloc[idx - 252]) - 1
+            except (IndexError, ZeroDivisionError):
+                return None
+
+        perf_now = perf_252_at(0)
+        perf_1w = perf_252_at(5)
+        perf_3w = perf_252_at(15)
+        perf_6w = perf_252_at(30)
+        perf_252 = perf_now if perf_now is not None else 0.0
 
         # 신고가 여부 (최근 1년 고점 기준; 2년치 받아도 252일만)
         recent_252 = close.iloc[-252:] if len(close) >= 252 else close
@@ -306,6 +327,10 @@ def fetch_one(ticker, bench_perf):
             'rs_accelerating_strong': bool(accelerating),
             'dollar_vol': dollar_vol,
             '_perf_252': perf_252,      # RS 백분위 계산용 (임시)
+            '_perf_now': perf_now,      # RS 변화율용 시점별 수익률
+            '_perf_1w': perf_1w,
+            '_perf_3w': perf_3w,
+            '_perf_6w': perf_6w,
             # A그룹
             'acc_dis_grade': acc_grade,
             'acc_dis_score': acc_score,
@@ -362,20 +387,33 @@ def main():
     print(f"\n✅ 유효 데이터 {len(results)}개 수집 완료")
 
     # ===== RS Rating 계산: 252일 모멘텀의 종목 간 백분위 (1~99) =====
-    # NaN(모멘텀 계산 불가)은 최저값(-inf)으로 처리해 백분위 하위로
-    perfs = np.array([
-        r['_perf_252'] if (r.get('_perf_252') is not None
-                           and not np.isnan(r['_perf_252'])
-                           and not np.isinf(r['_perf_252']))
-        else -np.inf
-        for r in results
-    ])
-    ranks = perfs.argsort().argsort()  # 0(최저) ~ N-1(최고)
+    # rs_now(오늘) + 과거 시점(1주/3주/6주 전) RS Rating을 각각 백분위로 산출
+    # → RS 변화율(가속도) 계산에 사용
     n = len(results)
+
+    def rank_percentile(key):
+        """results의 key값으로 종목간 백분위(1~99) 배열 반환. None/NaN은 최하위."""
+        vals = np.array([
+            r[key] if (r.get(key) is not None
+                       and not (isinstance(r[key], float) and (np.isnan(r[key]) or np.isinf(r[key]))))
+            else -np.inf
+            for r in results
+        ])
+        ranks = vals.argsort().argsort()
+        return [int(round((ranks[i] / max(n - 1, 1)) * 98)) + 1 for i in range(n)]
+
+    rs_now_arr = rank_percentile('_perf_now')
+    rs_1w_arr = rank_percentile('_perf_1w')
+    rs_3w_arr = rank_percentile('_perf_3w')
+    rs_6w_arr = rank_percentile('_perf_6w')
+
     for i, r in enumerate(results):
-        percentile = int(round((ranks[i] / max(n - 1, 1)) * 98)) + 1  # 1~99
-        r['ibd_rs_rating'] = percentile
-        r['rs_line_bayes'] = percentile
+        r['ibd_rs_rating'] = rs_now_arr[i]   # 오늘 기준 RS Rating (rs_now)
+        r['rs_line_bayes'] = rs_now_arr[i]
+        r['rs_now'] = rs_now_arr[i]
+        r['rs_1w_ago'] = rs_1w_arr[i]
+        r['rs_3w_ago'] = rs_3w_arr[i]
+        r['rs_6w_ago'] = rs_6w_arr[i]
 
     # ===== Composite Rating: 여러 지표 가중 합성 후 종목 간 백분위 (1~99) =====
     # IBD Composite 근사: RS 35% + 추세(Phase) 25% + Acc/Dis 20% + 패턴 20%
@@ -414,11 +452,69 @@ def main():
             if fld in r:
                 r[fld] = safe_num(r[fld])
 
+    # ===== momentum_score_v2: RS Line 점수 계산식 (4항목, 총 105→100 캡) =====
+    # 1️⃣ RS 절대강도(40) + 2️⃣ 1주 RS변화율(25) + 3️⃣ 1~3주 RS변화율(20) + 4️⃣ 가속보너스(20)
+    def compute_momentum_v2(rs_now, rs_1w, rs_3w, rs_6w):
+        # --- 1️⃣ RS 절대 강도 (최대 40점) ---
+        if rs_now >= 90:
+            s_abs = 40
+        elif rs_now >= 85:
+            s_abs = 32
+        elif rs_now >= 80:
+            s_abs = 24
+        else:
+            s_abs = 12
+
+        # --- 2️⃣ 최근 1주 RS 변화율 (최대 25점): (rs_now - rs_1w) / rs_1w × 100 ---
+        c1 = ((rs_now - rs_1w) / rs_1w * 100) if rs_1w else 0.0
+        if c1 >= 2.0:
+            s_1w = 25
+        elif c1 >= 1.0:
+            s_1w = 18
+        elif c1 >= 0.3:
+            s_1w = 10
+        elif c1 >= -0.3:
+            s_1w = 5
+        else:
+            s_1w = 0
+
+        # --- 3️⃣ 1~3주 RS 변화율 (최대 20점): (rs_1w - rs_3w) / rs_3w × 100 ---
+        c3 = ((rs_1w - rs_3w) / rs_3w * 100) if rs_3w else 0.0
+        if c3 >= 1.5:
+            s_3w = 20
+        elif c3 >= 0.8:
+            s_3w = 14
+        elif c3 >= 0.2:
+            s_3w = 8
+        elif c3 >= -0.2:
+            s_3w = 3
+        else:
+            s_3w = 0
+
+        # --- 4️⃣ 가속 보너스 (최대 20점) ---
+        # 3~6주 변화율 (단조증가 판정용)
+        c6 = ((rs_3w - rs_6w) / rs_6w * 100) if rs_6w else 0.0
+        s_acc = 0
+        # 가속(+15): 최근 1주 변화율 > 1~3주 변화율
+        if c1 > c3:
+            s_acc += 15
+        # 가속추세(+5): 3구간 모두 양수 + 단조증가(c1>c3>c6) + 1주변화 ≥ +0.5%
+        if (c1 > 0 and c3 > 0 and c6 > 0) and (c1 > c3 > c6) and (c1 >= 0.5):
+            s_acc += 5
+
+        total = s_abs + s_1w + s_3w + s_acc
+        return min(total, 100)
+
     # total_score 중앙값 계산을 위해 먼저 raw 산출
     for r in results:
         rs = safe_num(r['ibd_rs_rating'])
-        # momentum_score_v2: RS와 단기 모멘텀 결합
-        mom = int(np.clip(rs * 0.7 + max(safe_num(r['rs_6w_change']), 0) * 1.5, 0, 100))
+        # momentum_score_v2: 정통 RS Line 점수 (4항목)
+        mom = compute_momentum_v2(
+            safe_num(r.get('rs_now', rs)),
+            safe_num(r.get('rs_1w_ago', rs)),
+            safe_num(r.get('rs_3w_ago', rs)),
+            safe_num(r.get('rs_6w_ago', rs)),
+        )
         r['momentum_score_v2'] = mom
         # theme_score: 신고가/가속이면 가산
         theme = 50
@@ -456,6 +552,10 @@ def main():
             'phase': r['phase'],
             'momentum_score_v2': r['momentum_score_v2'],
             'ibd_rs_rating': r['ibd_rs_rating'],
+            'rs_now': r.get('rs_now', r['ibd_rs_rating']),
+            'rs_1w_ago': r.get('rs_1w_ago', r['ibd_rs_rating']),
+            'rs_3w_ago': r.get('rs_3w_ago', r['ibd_rs_rating']),
+            'rs_6w_ago': r.get('rs_6w_ago', r['ibd_rs_rating']),
             'rs_6w_change': r['rs_6w_change'],
             'rs_10w_change': r['rs_10w_change'],
             'theme_score': r['theme_score'],
