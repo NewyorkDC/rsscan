@@ -48,6 +48,7 @@ class StrategyRoomBinder {
 
             // 상단 블록 (스크린샷 순서)
             this.renderExposureBanner(); // 0. IBD 노출도 배너
+            this.renderProgressiveExposure(); // 0.5 점진적 노출 신호등
             this.renderOOS();              // 1. 전방향 검증
             this.renderEntrySignals();     // 3. 진입 조건
             this.renderSwitching();        // 4. 종목 스위칭
@@ -86,6 +87,47 @@ class StrategyRoomBinder {
         banner.style.background = bg;
         banner.style.borderColor = border;
         banner.style.color = color;
+        banner.style.display = 'block';
+    }
+
+    renderProgressiveExposure() {
+        const banner = document.getElementById('progressive-exposure-banner');
+        if (!banner) return;
+
+        const pe = this.portfolio && this.portfolio.progressive_exposure;
+        // 데이터 없으면 정상(level 1)으로 처리
+        const level = pe && pe.level ? pe.level : 1;
+        const hardStops = pe && pe.hard_stops_recent5 != null ? pe.hard_stops_recent5 : 0;
+        const sample = pe && pe.sample_size != null ? pe.sample_size : 0;
+
+        const config = {
+            1: {
+                icon: '🟢', bg: '#f0fdf4', border: '#bbf7d0', color: '#166534',
+                title: '정상 궤도',
+                desc: '시스템 타격감 양호. 100% 정상 비중으로 진입하세요.',
+            },
+            2: {
+                icon: '🟡', bg: '#fffbeb', border: '#fde68a', color: '#92400e',
+                title: '점진적 노출 (경고)',
+                desc: '최근 연이은 손절 발생. 신규 진입 비중을 1/2로 줄이세요.',
+            },
+            3: {
+                icon: '🔴', bg: '#fef2f2', border: '#fecaca', color: '#991b1b',
+                title: '매매 최소화 (위험)',
+                desc: '연속 하드스탑! 시장이 맞지 않습니다. 신규 비중을 1/4로 줄이거나 매매를 쉬세요.',
+            },
+        };
+        const c = config[level] || config[1];
+
+        const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        setText('pe-icon', c.icon);
+        setText('pe-title', c.title);
+        setText('pe-desc', c.desc);
+        setText('pe-meta', `최근 청산 ${sample}건 중 하드스탑 ${hardStops}건 기준 (Level ${level})`);
+
+        banner.style.background = c.bg;
+        banner.style.borderColor = c.border;
+        banner.style.color = c.color;
         banner.style.display = 'block';
     }
 
@@ -488,6 +530,15 @@ class StrategyRoomBinder {
         setText('modal-comp', comp || '—');
         setText('modal-accdis', accGrade);
         setText('modal-supply', supplyAbove != null ? `${supplyAbove.toFixed(0)}%` : '—');
+        // B그룹 재무 지표 표시
+        const epsRating = data.eps_rating;
+        const smrGrade = data.smr_grade;
+        const salesGrowth = data.sales_growth;
+        const instOwn = data.inst_ownership;
+        setText('modal-eps', epsRating != null ? epsRating : '—');
+        setText('modal-smr', smrGrade || '—');
+        setText('modal-sales', salesGrowth != null ? `${salesGrowth >= 0 ? '+' : ''}${salesGrowth.toFixed(0)}%` : '—');
+        setText('modal-inst', instOwn != null ? `${instOwn.toFixed(0)}%` : '—');
 
         // Phase 뱃지 색
         const phaseColor = phase >= 5 ? '#10b981' : phase === 4 ? '#059669' : phase === 3 ? '#3b82f6' : phase >= 6 ? '#ef4444' : '#9ca3af';
@@ -516,6 +567,10 @@ class StrategyRoomBinder {
         else if (pivot != null && pivot >= -3) reasons.push('피벗 근접 (3% 이내)');
         if (accGrade && ['A+', 'A', 'B+'].includes(accGrade)) reasons.push(`기관 매집 ${accGrade}`);
         if (supplyAbove != null && supplyAbove < 15) reasons.push(`위 매물 적음 (${supplyAbove.toFixed(0)}%)`);
+        // B그룹 재무 강점
+        if (epsRating != null && epsRating >= 80) reasons.push(`EPS Rating ${epsRating} (실적 강세)`);
+        if (smrGrade && ['A', 'B'].includes(smrGrade)) reasons.push(`SMR ${smrGrade} (매출·마진 우수)`);
+        if (salesGrowth != null && salesGrowth >= 25) reasons.push(`매출성장 +${salesGrowth.toFixed(0)}%`);
         setText('modal-reason', reasons.length ? reasons.join(' · ') : '5-Gate Funnel 통과 종목');
 
         // 모달 표시
