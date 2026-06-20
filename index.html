@@ -7,8 +7,8 @@
     
     <!-- 시스템 폰트 스택 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/dashboard.css?v=20260620b">
-    <link rel="stylesheet" href="css/responsive.css?v=20260620b">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260620c">
+    <link rel="stylesheet" href="css/responsive.css?v=20260620c">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
@@ -431,11 +431,11 @@
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg);">
                         <div style="background: var(--color-bg-main); border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                             <div style="font-size: 0.7rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-md);">총 투자액</div>
-                            <div id="totalInvestmentResult" style="font-size: 1.5rem; font-weight: 700; color: var(--color-text-primary);">$60K ~ $80K</div>
+                            <div id="totalInvestmentResult" style="font-size: 1.5rem; font-weight: 700; color: var(--color-text-primary);">$50K ~ $100K</div>
                         </div>
                         <div style="background: var(--color-bg-main); border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                            <div style="font-size: 0.7rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-md);">개당 최대 진입</div>
-                            <div id="perTradeResult" style="font-size: 1.5rem; font-weight: 700; color: var(--color-text-primary);">$8K ~ $16K</div>
+                            <div style="font-size: 0.7rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-md);">개당 진입 (자본/12)</div>
+                            <div id="perTradeResult" style="font-size: 1.5rem; font-weight: 700; color: var(--color-text-primary);">$8.3K (자본/12)</div>
                         </div>
                         <div style="background: var(--color-bg-main); border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                             <div style="font-size: 0.7rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-md);">공격성·손절선</div>
@@ -1185,6 +1185,11 @@
         // DOM 로드 완료 시 데이터 로드 및 탭 네비게이션 초기화
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
+
+            // 포지션 사이징 계산기 초기 실행 (더미값 → 실제 계산값으로 교체)
+            if (typeof calculatePositionSizing === 'function') {
+                try { calculatePositionSizing(); } catch (e) { console.warn('계산기 초기화 스킵:', e); }
+            }
             
             // 탭 네비게이션 로직 (DOMContentLoaded 내부)
             document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1212,16 +1217,16 @@
     </script>
 
     <!-- Daily Briefing 데이터 바인딩 -->
-    <script src="js/briefing.js?v=20260620b"></script>
+    <script src="js/briefing.js?v=20260620c"></script>
 
     <!-- Market Pulse 데이터 바인딩 -->
-    <script src="js/market-pulse.js?v=20260620b"></script>
+    <script src="js/market-pulse.js?v=20260620c"></script>
 
     <!-- Strategy Room v5 데이터 바인딩 -->
-    <script src="js/strategy-room.js?v=20260620b"></script>
+    <script src="js/strategy-room.js?v=20260620c"></script>
 
     <!-- 섹터 ETF 스크리너 -->
-    <script src="js/sectors-etf.js?v=20260620b"></script>
+    <script src="js/sectors-etf.js?v=20260620c"></script>
 
 </body>
 </html>
