@@ -15,6 +15,7 @@ import json
 import os
 import sys
 import time
+import ssl
 from datetime import datetime
 
 import yfinance as yf
@@ -23,8 +24,15 @@ import numpy as np
 import warnings
 warnings.filterwarnings('ignore')
 
+# yfinance 봇 차단 완화: 미검증 SSL 컨텍스트 (fetch_sp500_data.py와 동일 정책)
+try:
+    ssl._create_default_https_context = ssl._create_unverified_context
+except Exception:
+    pass
+
 OUTPUT_DIR = 'results'
 SCAN_FILE = 'results/daily_ibd_scan.json'
+PULSE_FILE = 'results/market_pulse.json'   # 이전 유효 데이터 폴백용
 
 INDICES = {
     'SP500':   {'ticker': 'SPY', 'name': 'S&P 500'},
@@ -33,17 +41,43 @@ INDICES = {
 }
 
 
-def fetch_index(ticker):
-    """단일 지수 일봉 (rate limit 재시도 포함). 실패 시 None."""
-    for attempt in range(4):
+def load_previous_pulse():
+    """직전 실행의 market_pulse.json (지수 수집 최종 실패 시 폴백용)."""
+    try:
+        if os.path.exists(PULSE_FILE):
+            with open(PULSE_FILE, encoding='utf-8') as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return None
+
+
+
+def fetch_index(ticker, retries=5):
+    """단일 지수 일봉 (rate limit 재시도 강화). 실패 시 None.
+    1차: yf.Ticker().history(), 2차 폴백: yf.download(). 각 재시도 사이 대기.
+    """
+    for attempt in range(retries):
+        # 1차: Ticker.history
         try:
-            df = yf.Ticker(ticker).history(period='1y', auto_adjust=True)
+            df = yf.Ticker(ticker).history(period='1y', auto_adjust=True, timeout=15)
             if df is not None and len(df) >= 50:
                 return df
         except Exception as e:
-            print(f"⚠️ {ticker} 시도 {attempt+1}/4 실패: {e}")
+            print(f"⚠️ {ticker} history 시도 {attempt+1}/{retries} 실패: {e}")
+        # 2차 폴백: yf.download
+        try:
+            df = yf.download(ticker, period='1y', auto_adjust=True,
+                             progress=False, threads=False, timeout=15)
+            if df is not None and len(df) >= 50:
+                # download는 멀티컬럼일 수 있어 평탄화
+                if isinstance(df.columns, pd.MultiIndex):
+                    df.columns = df.columns.get_level_values(0)
+                return df
+        except Exception as e:
+            print(f"⚠️ {ticker} download 시도 {attempt+1}/{retries} 실패: {e}")
         time.sleep(3)
-    print(f"⚠️ {ticker} 다운로드 최종 실패")
+    print(f"⚠️ {ticker} 다운로드 최종 실패 ({retries}회)")
     return None
 
 
@@ -66,6 +100,8 @@ def analyze_index(df):
         'above_ma200': bool(not np.isnan(ma200) and last > ma200),
         'ma50': round(ma50, 2) if not np.isnan(ma50) else None,
         'ma200': round(ma200, 2) if not np.isnan(ma200) else None,
+        # 스파크라인용 최근 90일 종가 배열 (차트 렌더링)
+        'spark': [round(float(x), 2) for x in close.iloc[-90:].tolist()],
     }
 
 
@@ -215,6 +251,7 @@ def main():
     print("=" * 60 + "\n")
 
     # 1. 지수 데이터 수집
+    prev_pulse = load_previous_pulse()  # 최종 실패 시 폴백
     indices_out = {}
     spy_info = None
     spy_df = None
@@ -222,8 +259,19 @@ def main():
         print(f"📈 {meta['name']}({meta['ticker']}) 수집 중...")
         df = fetch_index(meta['ticker'])
         if df is None:
-            indices_out[key] = {'name': meta['name'], 'close': None, 'change_pct': 0.0,
-                                'above_ma21': False, 'above_ma50': False, 'above_ma200': False}
+            # 최종 실패: 직전 실행의 유효 데이터로 폴백 (stale 표시)
+            prev_idx = (prev_pulse or {}).get('indices', {}).get(key)
+            if prev_idx and prev_idx.get('close') is not None:
+                prev_idx = dict(prev_idx)
+                prev_idx['stale'] = True   # 과거 데이터임을 표시
+                indices_out[key] = prev_idx
+                print(f"   ↩️ {meta['name']} 이전 데이터로 폴백 (close={prev_idx.get('close')})")
+                if key == 'SP500':
+                    spy_info = prev_idx
+            else:
+                indices_out[key] = {'name': meta['name'], 'close': None, 'change_pct': 0.0,
+                                    'above_ma21': False, 'above_ma50': False, 'above_ma200': False,
+                                    'spark': []}
             continue
         info = analyze_index(df)
         info['name'] = meta['name']
@@ -278,6 +326,27 @@ def main():
         'total_stocks': breadth_stages['total'],
     }
 
+    # Breadth 추이 차트용: 지수 spark를 시작점=100 기준으로 정규화하여 겹쳐 그림
+    def normalize_spark(key):
+        idx = indices_out.get(key, {})
+        spark = idx.get('spark') or []
+        if len(spark) < 2 or not spark[0]:
+            return []
+        base = spark[0]
+        return [round(v / base * 100, 2) for v in spark]
+
+    # 시스템 전체(500+) 추이: breadth_pct 히스토리를 직전 pulse에서 이어받아 누적
+    prev_bh = (prev_pulse or {}).get('breadth_history', []) if prev_pulse else []
+    breadth_history = list(prev_bh)[-89:]  # 최근 89개 유지
+    breadth_history.append(breadth)        # 오늘치 추가 → 최대 90개
+
+    pulse['charts'] = {
+        'sp500_norm': normalize_spark('SP500'),
+        'nasdaq_norm': normalize_spark('NASDAQ'),
+        'system_breadth': breadth_history,  # 시스템 전체 breadth 추이 (매일 누적)
+    }
+    pulse['breadth_history'] = breadth_history  # 다음 실행이 이어받도록 저장
+
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     out_file = os.path.join(OUTPUT_DIR, 'market_pulse.json')
     with open(out_file, 'w', encoding='utf-8') as f:
@@ -305,4 +374,3 @@ if __name__ == '__main__':
         traceback.print_exc()
         # market_pulse 실패해도 전체 파이프라인은 중단하지 않음 (exit 0)
         sys.exit(0)
-    
