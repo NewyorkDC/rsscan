@@ -11,6 +11,64 @@ from datetime import datetime
 from statistics import median
 import sys
 
+
+def compute_momentum_v2(rs_now, rs_1w, rs_3w, rs_6w):
+    """RS Line 점수 계산식 (4항목, 총 105→100 캡).
+    1️⃣ RS 절대강도(40) + 2️⃣ 1주 RS변화율(25) + 3️⃣ 1~3주 RS변화율(20) + 4️⃣ 가속보너스(20)
+    rs_now: 일일 RS, 결측 시 rs_rating(주간) 사용.
+    """
+    rs_now = rs_now if rs_now else 0
+    rs_1w = rs_1w if rs_1w else rs_now
+    rs_3w = rs_3w if rs_3w else rs_1w
+    rs_6w = rs_6w if rs_6w else rs_3w
+
+    # 1️⃣ RS 절대 강도 (최대 40점)
+    if rs_now >= 90:
+        s_abs = 40
+    elif rs_now >= 85:
+        s_abs = 32
+    elif rs_now >= 80:
+        s_abs = 24
+    else:
+        s_abs = 12
+
+    # 2️⃣ 최근 1주 RS 변화율 (최대 25점)
+    c1 = ((rs_now - rs_1w) / rs_1w * 100) if rs_1w else 0.0
+    if c1 >= 2.0:
+        s_1w = 25
+    elif c1 >= 1.0:
+        s_1w = 18
+    elif c1 >= 0.3:
+        s_1w = 10
+    elif c1 >= -0.3:
+        s_1w = 5
+    else:
+        s_1w = 0
+
+    # 3️⃣ 1~3주 RS 변화율 (최대 20점)
+    c3 = ((rs_1w - rs_3w) / rs_3w * 100) if rs_3w else 0.0
+    if c3 >= 1.5:
+        s_3w = 20
+    elif c3 >= 0.8:
+        s_3w = 14
+    elif c3 >= 0.2:
+        s_3w = 8
+    elif c3 >= -0.2:
+        s_3w = 3
+    else:
+        s_3w = 0
+
+    # 4️⃣ 가속 보너스 (최대 20점)
+    c6 = ((rs_3w - rs_6w) / rs_6w * 100) if rs_6w else 0.0
+    s_acc = 0
+    if c1 > c3:                                  # 가속 +15
+        s_acc += 15
+    if (c1 > 0 and c3 > 0 and c6 > 0) and (c1 > c3 > c6) and (c1 >= 0.5):  # 가속추세 +5
+        s_acc += 5
+
+    return min(s_abs + s_1w + s_3w + s_acc, 100)
+
+
 class GateFunnelFilter:
     def __init__(self):
         self.input_file = 'results/daily_ibd_scan.json'
@@ -118,7 +176,17 @@ class GateFunnelFilter:
         if not self.data:
             print("❌ 데이터 없음")
             return False
-        
+
+        # momentum_score_v2 정통 RS Line 점수로 (재)계산
+        # rs_now 우선, 결측 시 ibd_rs_rating(주간) 사용
+        for s in self.data:
+            rs_now = s.get('rs_now', s.get('ibd_rs_rating', 0))
+            rs_1w = s.get('rs_1w_ago', rs_now)
+            rs_3w = s.get('rs_3w_ago', rs_1w)
+            rs_6w = s.get('rs_6w_ago', rs_3w)
+            s['momentum_score_v2'] = compute_momentum_v2(rs_now, rs_1w, rs_3w, rs_6w)
+        print("✅ momentum_score_v2 정통 RS Line 점수로 산출 완료")
+
         # Gate 4를 위한 median 계산
         total_scores = [s.get('total_score', 0) for s in self.data]
         median_score = median(total_scores) if total_scores else 50
