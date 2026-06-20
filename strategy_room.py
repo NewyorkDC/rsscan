@@ -221,6 +221,7 @@ class StrategyRoomV6:
                 pos['exit_date'] = self.today
                 pos['exit_price'] = round(exit_info['exit_price'], 2)
                 pos['exit_reason'] = exit_info['reason']
+                pos['exit_code'] = exit_info.get('code', 'unknown')
                 pos['profit_pct'] = round((exit_info['exit_price'] / entry - 1) * 100, 2)
                 pos['profit_usd'] = round((exit_info['exit_price'] - entry) * pos['shares'], 2)
                 self.portfolio['cash'] += exit_info['exit_price'] * pos['shares']
@@ -258,7 +259,9 @@ class StrategyRoomV6:
         return stop_price, flags
 
     def check_exit(self, pos, cur, profit_pct, held, stop_price):
-        """청산 조건 검사. 해당하면 dict, 아니면 None"""
+        """청산 조건 검사. 해당하면 dict, 아니면 None.
+        reason: 대시보드 표시용 / code: 머신 분석용(hard_stop, lock, trend_break, max_hold)
+        """
         entry = pos['entry_price']
 
         # 진입 당일(보유 0일)은 청산하지 않음 (진입가=현재가, 같은 날 손절 비현실적)
@@ -267,19 +270,22 @@ class StrategyRoomV6:
 
         # 1. 스탑 히트 (Lock Ratchet 포함)
         if cur <= stop_price:
-            reason = '🔴 손절' if stop_price <= entry else '🔒 Lock 청산'
-            return {'exit_price': stop_price, 'reason': reason}
+            # stop_price가 진입가 이하면 진짜 손절(hard_stop), 위면 이익 확정(lock)
+            if stop_price <= entry:
+                return {'exit_price': stop_price, 'reason': '🔴 손절', 'code': 'hard_stop'}
+            else:
+                return {'exit_price': stop_price, 'reason': '🔒 Lock 청산', 'code': 'lock'}
 
         # 2. 추세 이탈: Phase 7(분배의심)이면 청산
         if pos.get('phase', 0) >= 7:
-            return {'exit_price': cur, 'reason': '📉 추세이탈(P7)'}
+            return {'exit_price': cur, 'reason': '📉 추세이탈(P7)', 'code': 'trend_break'}
 
         # 3. Max Hold 도달
         # 기본 20영업일 만기. 단, 15일 내 +20% 달성한 종목은 40영업일로 연장.
         hold_limit = self.extend_hold_days if pos.get('qualified_extend', False) else self.max_hold_days
         if held >= hold_limit:
             label = 'Max Hold(8주연장)' if pos.get('qualified_extend', False) else 'Max Hold(20일)'
-            return {'exit_price': cur, 'reason': f'⏰ {label}'}
+            return {'exit_price': cur, 'reason': f'⏰ {label}', 'code': 'max_hold'}
 
         return None
 
@@ -316,6 +322,7 @@ class StrategyRoomV6:
                     pos['exit_date'] = self.today
                     pos['exit_price'] = round(cur, 2)
                     pos['exit_reason'] = f"🔄 스위칭→{cand['ticker']}"
+                    pos['exit_code'] = 'switch'
                     self.portfolio['cash'] += cur * pos['shares']
                     self.portfolio['closed_trades'].append(deepcopy(pos))
                     self.portfolio['holdings'].remove(pos)
@@ -475,6 +482,43 @@ class StrategyRoomV6:
 
         self.portfolio['statistics'] = stats
 
+    # ---------- 점진적 노출 진단 (미너비니 신호등) ----------
+    def diagnose_progressive_exposure(self):
+        """최근 종료된 5건 중 hard_stop 개수로 신호등 레벨 산출.
+        이 시스템은 비중을 직접 통제하지 않음 — 사용자가 대시보드를 보고
+        '지금이 점진적 노출(비중 축소)을 적용할 시기인지' 직관적으로 판단하도록 돕는 지표.
+          하드스탑 4건 이상 → level 3 (위험)
+          하드스탑 3건      → level 2 (경고)
+          하드스탑 2건 이하 → level 1 (정상)
+        """
+        closed = self.portfolio.get('closed_trades', [])
+        # 가장 최근 종료된 5건 (없으면 있는 만큼). exit_date 기준 정렬 후 마지막 5건.
+        recent = sorted(
+            closed,
+            key=lambda t: t.get('exit_date', '')
+        )[-5:]
+        # 구버전 데이터 호환: exit_code 없으면 exit_reason의 '손절' 문자열로 폴백 판정
+        hard_stops = 0
+        for t in recent:
+            code = t.get('exit_code')
+            if code == 'hard_stop':
+                hard_stops += 1
+            elif code is None and '손절' in str(t.get('exit_reason', '')):
+                hard_stops += 1
+
+        if hard_stops >= 4:
+            level = 3
+        elif hard_stops == 3:
+            level = 2
+        else:
+            level = 1
+
+        return {
+            'level': level,
+            'hard_stops_recent5': hard_stops,
+            'sample_size': len(recent),
+        }
+
     # ---------- 실행 ----------
     def run(self):
         print("\n🏛️  STRATEGY ROOM v6 — Stateful Paper-Trade")
@@ -502,6 +546,9 @@ class StrategyRoomV6:
             'max_positions': self.max_positions,
             'regime_code': self.regime_code,
         }
+
+        # 점진적 노출(미너비니) 진단: 최근 청산 5건 중 hard_stop 개수로 신호등 레벨 산출
+        self.portfolio['progressive_exposure'] = self.diagnose_progressive_exposure()
 
         os.makedirs('results', exist_ok=True)
         with open(self.portfolio_file, 'w', encoding='utf-8') as f:
