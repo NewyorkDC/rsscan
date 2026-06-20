@@ -30,17 +30,20 @@ class StrategyRoomV6:
         self.portfolio_file = 'results/strategy_room_portfolio.json'
         self.market_pulse_file = 'results/market_pulse.json'
 
-        # ===== 운용 파라미터 =====
+        # ===== 운용 파라미터 (v5 정통 룰) =====
         self.initial_capital = 100000.0
-        self.base_max_positions = 12     # 기본 동시 보유 한도 (노출도 100% 기준)
-        self.max_positions = 12          # 노출도에 따라 동적 조정됨
-        self.stop_loss_pct = -7.0        # 초기 손절 -7%
-        self.be_trigger_pct = 8.0        # +8% 도달 시 브레이크이븐(BE)으로 스탑 상향
-        self.lock_trigger_pct = 20.0     # +20% 도달 시 Lock 스탑 활성
-        self.lock_giveback = 0.5         # Lock 시 최고수익의 50% 반납하면 청산
-        self.max_hold_days = 56          # 최대 보유 8주(56일)
-        self.stale_days = 21             # 21일 이상 보유 + 저성과 → 스위칭 후보
-        self.stale_profit_pct = 3.0      # 보유 21일+ 인데 +3% 미만이면 정체로 간주
+        self.base_max_positions = 12     # 기본 동시 보유 한도
+        self.max_positions = 12
+        self.stop_loss_pct = -7.0        # Hard stop -7%
+        self.be_trigger_pct = 15.0       # 최대도달수익 +15% 이상 → 진입가(BE)로 상향
+        self.lock_trigger_pct = 25.0     # 최대도달수익 +25% 이상 → 진입가×1.10으로 상향
+        self.lock_target_mult = 1.10     # Lock 시 손절선 = 진입가 × 1.10
+        self.max_hold_days = 20          # Max Hold: 20영업일 도달 시 무조건 청산
+        self.extend_hold_days = 40       # 8주 연장: 조건 충족 시 40영업일
+        self.extend_trigger_days = 15    # 진입 후 15영업일(3주) 내
+        self.extend_trigger_pct = 20.0   # +20% 도달한 종목만 연장
+        self.stale_days = 21             # 21일+ 보유 + 저성과 → 스위칭 후보
+        self.stale_profit_pct = 3.0      # 보유 21일+ 인데 +3% 미만이면 정체
 
         # ===== IBD Market Exposure 연동 =====
         self.exposure_max_ratio = 1.0    # 시장 노출도 상한 (0~1), market_pulse에서 로드
@@ -65,8 +68,10 @@ class StrategyRoomV6:
         self.load_market_exposure()
 
     def load_market_exposure(self):
-        """market_pulse.json에서 IBD Exposure를 읽어 포지션 한도/비중 조정.
-        노출도가 낮으면(조정장) 최대 보유종목 수와 종목당 비중을 줄임."""
+        """market_pulse.json에서 IBD Exposure를 '표시용'으로만 읽음.
+        ※ 권고 트랙(g3+g1+g2) 순수성: 노출도(G0/Exposure)는 매매 결정에 반영하지 않음.
+          진입은 오직 5-Gate 통과 + total_score 정렬로만 처리. 노출도는 대시보드 참고지표.
+        """
         try:
             if os.path.exists(self.market_pulse_file):
                 with open(self.market_pulse_file, encoding='utf-8') as f:
@@ -75,15 +80,12 @@ class StrategyRoomV6:
                 self.exposure_count = int(mp.get('exposure_count', 5))
                 self.regime_code = mp.get('regime_code', 'unknown')
         except Exception as e:
-            print(f"⚠️ market_pulse 로드 실패 ({e}) — 노출도 100% 기본 적용")
-            self.exposure_max_ratio = 1.0
+            print(f"⚠️ market_pulse 로드 실패 ({e})")
 
-        # CANSLIM 권장 최대 7개 기준으로 노출도 적용 (기본 12 → 노출도 곱)
-        # 노출도 100%=12개, 80%=9~10개, 60%=7개, 40%=5개, 20%=2~3개, 0%=0개
-        adjusted = round(self.base_max_positions * self.exposure_max_ratio)
-        self.max_positions = max(0, min(self.base_max_positions, adjusted))
-        print(f"📊 IBD 노출도: {int(self.exposure_max_ratio*100)}% (Count {self.exposure_count}/5) "
-              f"→ 최대 보유 {self.max_positions}개")
+        # 권고 트랙은 노출도와 무관하게 최대 보유 한도 고정 (G0 배제)
+        self.max_positions = self.base_max_positions
+        print(f"📊 IBD 노출도(참고용): {int(self.exposure_max_ratio*100)}% "
+              f"(Count {self.exposure_count}/5) — 매매엔 미반영, 최대 보유 {self.max_positions}개 고정")
 
     # ---------- 데이터 로드 ----------
     def load_portfolio(self):
@@ -196,6 +198,12 @@ class StrategyRoomV6:
             held = self.days_held(pos)
             pos['days_held'] = held
 
+            # 8주 연장 자격: 진입 후 15영업일(3주) 이내에 +20% 도달한 적이 있으면
+            # max_hold를 40영업일로 연장 (한 번 자격 얻으면 유지)
+            if not pos.get('qualified_extend', False):
+                if held <= self.extend_trigger_days and pos['max_pct'] >= self.extend_trigger_pct:
+                    pos['qualified_extend'] = True
+
             # Phase/RS 최신화
             pos['phase'] = self.phase_map.get(ticker, pos.get('phase', 0))
             pos['rs_score'] = self.rs_map.get(ticker, pos.get('rs_score', 0))
@@ -224,25 +232,24 @@ class StrategyRoomV6:
         self.portfolio['holdings'] = still_holding
 
     def compute_stop_and_flags(self, pos):
-        """Lock Ratchet 스탑 가격 + 상태 플래그 산출"""
+        """Lock Ratchet 스탑 가격 + 상태 플래그 산출 (v5 정통 룰)"""
         entry = pos['entry_price']
         max_pct = pos.get('max_pct', 0.0)
         cur_phase = pos.get('phase', 0)
         flags = []
 
-        # 기본 스탑: -7%
+        # Hard stop: -7%
         stop_price = entry * (1 + self.stop_loss_pct / 100)
 
-        # BE: +8% 도달했었으면 손절선을 본전으로
+        # Break-Even: 최대 도달 수익 +15% 이상이면 손절선을 진입가(본전)로 상향
         if max_pct >= self.be_trigger_pct:
-            stop_price = max(stop_price, entry)  # 브레이크이븐
+            stop_price = max(stop_price, entry)
             flags.append('BE')
 
-        # Lock: +20% 도달했었으면 최고수익의 일부를 보호하는 스탑
+        # Lock-In: 최대 도달 수익 +25% 이상이면 손절선을 진입가 × 1.10으로 상향
         if max_pct >= self.lock_trigger_pct:
-            locked_pct = max_pct * self.lock_giveback   # 최고수익의 50% 지점
-            stop_price = max(stop_price, entry * (1 + locked_pct / 100))
-            flags.append(f'Lock')
+            stop_price = max(stop_price, entry * self.lock_target_mult)
+            flags.append('Lock')
 
         # Bw(Below weakness): Phase가 6/7로 떨어지면 추세이탈 경고
         if cur_phase >= 6:
@@ -268,8 +275,11 @@ class StrategyRoomV6:
             return {'exit_price': cur, 'reason': '📉 추세이탈(P7)'}
 
         # 3. Max Hold 도달
-        if held >= self.max_hold_days:
-            return {'exit_price': cur, 'reason': '⏰ Max Hold(8주)'}
+        # 기본 20영업일 만기. 단, 15일 내 +20% 달성한 종목은 40영업일로 연장.
+        hold_limit = self.extend_hold_days if pos.get('qualified_extend', False) else self.max_hold_days
+        if held >= hold_limit:
+            label = 'Max Hold(8주연장)' if pos.get('qualified_extend', False) else 'Max Hold(20일)'
+            return {'exit_price': cur, 'reason': f'⏰ {label}'}
 
         return None
 
@@ -280,10 +290,10 @@ class StrategyRoomV6:
             return
 
         held_tickers = {h['ticker'] for h in self.portfolio['holdings']}
-        # 보유 중이 아닌 강신호 후보 (total_score 높은 순)
+        # 보유 중이 아닌 강신호 후보 (G4 total_score 단독 정렬 — 권고 트랙 순수성)
         candidates = sorted(
             [s for s in self.signals if s.get('ticker') not in held_tickers],
-            key=lambda s: s.get('total_score', s.get('momentum_score_v2', 0)),
+            key=lambda s: s.get('total_score', 0),
             reverse=True
         )
         if not candidates:
@@ -297,7 +307,7 @@ class StrategyRoomV6:
                 if not candidates:
                     break
                 cand = candidates[0]
-                cand_score = cand.get('total_score', cand.get('momentum_score_v2', 0))
+                cand_score = cand.get('total_score', 0)
                 pos_score = pos.get('rs_score', 0)
                 if cand_score > pos_score + 5:  # 충분히 강해야 교체
                     # 정체 종목 청산
@@ -316,10 +326,9 @@ class StrategyRoomV6:
 
     # ---------- 신규 진입 ----------
     def enter_position(self, signal):
-        """빈 슬롯에 신규 진입"""
-        # Correction(노출도 0~20%)에서는 신규 진입 중단
-        if self.exposure_count <= 0:
-            return False
+        """빈 슬롯에 신규 진입.
+        ※ 권고 트랙(g3+g1+g2)은 G0(Market Phase)/Exposure 등 시장조건을 배제.
+          진입 후보는 오직 5-Gate(G3 AND G4 AND G1 AND G2) 통과 + total_score 정렬로만 결정."""
         if len(self.portfolio['holdings']) >= self.max_positions:
             return False
 
@@ -378,7 +387,9 @@ class StrategyRoomV6:
         return True
 
     def fill_empty_slots(self):
-        """빈 슬롯을 강신호 순으로 채움"""
+        """빈 슬롯을 강신호 순으로 채움.
+        ※ 권고 트랙: 정렬은 오직 G4의 total_score 내림차순(우선순위)으로만 처리.
+          (Exposure/G0/Market Phase 등 잡조건 배제)"""
         held_tickers = {h['ticker'] for h in self.portfolio['holdings']}
         # 오늘 청산된 종목은 같은 날 재진입 금지 (당일 진입→청산→재진입 루프 방지)
         closed_today = {t['ticker'] for t in self.portfolio['closed_trades']
@@ -386,7 +397,7 @@ class StrategyRoomV6:
         excluded = held_tickers | closed_today
         candidates = sorted(
             [s for s in self.signals if s.get('ticker') not in excluded],
-            key=lambda s: s.get('total_score', s.get('momentum_score_v2', 0)),
+            key=lambda s: s.get('total_score', 0),   # G4 total_score 단독 정렬
             reverse=True
         )
         for cand in candidates:
