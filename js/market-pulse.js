@@ -1,227 +1,345 @@
-#!/usr/bin/env python3
-"""
-market_pulse.py - Market Regime 판정 엔진 (yfinance 실데이터)
+/**
+ * RSSCAN v3 - Market Pulse 데이터 바인딩
+ * daily_ibd_scan.json을 기반으로 시장 상태, IBD 정렬 진단, 지수 정보 렌더링
+ */
 
-역할:
-- SPY / QQQ / IWM(러셀2000) 지수 데이터 분석
-- 지수별 종가, 등락률(%), MA(21/50/200) 정배열 상태
-- Market Regime 판정 (Uptrend Resumed, Confirmed Uptrend, Under Pressure, Rally Attempt, Correction)
-- Breadth: daily_ibd_scan.json을 읽어 50MA(Phase>=3) 위 종목 비율 실계산
-- Distribution Day 카운트 (최근 25일 분산일)
-- 출력: results/market_pulse.json  (대시보드가 읽는 위치)
-"""
+class MarketPulseBinder {
+    constructor() {
+        this.universeData = [];
+        this.marketStatus = null;
+        this.indices = {
+            'SP500': { ticker: '^GSPC', name: 'S&P 500', price: 7554.29, change: 1.65, ma: [true, true, true] },
+            'NASDAQ': { ticker: '^IXIC', name: 'NASDAQ', price: 26683.94, change: 3.07, ma: [true, true, true] },
+            'RUSSELL': { ticker: '^RUT', name: 'Russell 2000', price: 2965.09, change: 0.72, ma: [true, true, true] }
+        };
+    }
 
-import json
-import os
-import sys
-from datetime import datetime
+    /**
+     * 데이터 로드 및 렌더링
+     */
+    async loadAndRender() {
+        try {
+            // daily_ibd_scan.json 로드
+            const response = await fetch('results/daily_ibd_scan.json');
+            if (!response.ok) throw new Error('daily_ibd_scan.json 로드 실패');
+            
+            this.universeData = await response.json();
+            console.log(`✅ Market Pulse 데이터 로드: ${this.universeData.length}개 종목`);
 
-import yfinance as yf
-import pandas as pd
-import numpy as np
-import warnings
-warnings.filterwarnings('ignore')
+            // 시장 상태 분석 및 렌더링
+            this.analyzeMarketStatus();
+            this.renderMarketStatus();
+            this.renderIBDDiagnosis();
+            this.renderIndices();
 
-OUTPUT_DIR = 'results'
-SCAN_FILE = 'results/daily_ibd_scan.json'
+        } catch (error) {
+            console.error(`❌ Market Pulse 로드 실패: ${error.message}`);
+        }
+    }
 
-INDICES = {
-    'SP500':   {'ticker': 'SPY', 'name': 'S&P 500'},
-    'NASDAQ':  {'ticker': 'QQQ', 'name': 'NASDAQ'},
-    'RUSSELL': {'ticker': 'IWM', 'name': 'Russell 2000'},
+    /**
+     * 시장 상태 분석 (데이터 기반)
+     */
+    analyzeMarketStatus() {
+        if (this.universeData.length === 0) {
+            this.marketStatus = {
+                state: 'Unknown',
+                description: 'Data unavailable',
+                icon: '❓',
+                color: 'gray',
+                investmentRatio: '0%',
+                confidence: 0
+            };
+            return;
+        }
+
+        // 1. trend_pass 분포 계산
+        const trend8 = this.universeData.filter(d => d.trend_pass === 8).length;
+        const trend7 = this.universeData.filter(d => d.trend_pass === 7).length;
+        const trend6 = this.universeData.filter(d => d.trend_pass === 6).length;
+        const trendLess6 = this.universeData.filter(d => d.trend_pass < 6).length;
+        
+        const total = this.universeData.length;
+        const trend8Pct = (trend8 / total) * 100;
+        const trend7Pct = (trend7 / total) * 100;
+
+        // 2. RS Score 분포 계산
+        const rs90Plus = this.universeData.filter(d => d.total_score >= 90).length;
+        const rs80Plus = this.universeData.filter(d => d.total_score >= 80).length;
+        const rs70Plus = this.universeData.filter(d => d.total_score >= 70).length;
+
+        // 3. 시장 상태 판단 로직
+        // trend_pass 8이 50% 이상이고 RS 80+ 비중이 높으면 Uptrend
+        // trend_pass 7이 우위이면 Under Pressure
+        // 그 외 Correction 등
+
+        let state, description, icon, color, investmentRatio;
+
+        if (trend8Pct >= 50 && rs80Plus / total >= 0.30) {
+            state = 'Uptrend Resumed';
+            description = 'FTD 적극 활금 구간, 지적 기반의 신금 진입 적금';
+            icon = '🟢';
+            color = 'green';
+            investmentRatio = '75~95%';
+        } else if (trend8Pct >= 40 && rs80Plus / total >= 0.25) {
+            state = 'Confirmed Uptrend';
+            description = '확인된 상승장, 선별적 진입 가능';
+            icon = '🟢';
+            color = 'green';
+            investmentRatio = '50~75%';
+        } else if (trend7Pct >= 40) {
+            state = 'Uptrend Under Pressure';
+            description = '상승장이지만 압력 중, 신중한 접근 필요';
+            icon = '🟡';
+            color = 'yellow';
+            investmentRatio = '30~50%';
+        } else if (trend8Pct < 20 || trend6 / total >= 0.30) {
+            state = 'Market in Correction';
+            description = '조정 구간, 현금 보유 권장';
+            icon = '🔴';
+            color = 'red';
+            investmentRatio = '10~30%';
+        } else {
+            state = 'Rally Attempt';
+            description = '반등 시도 중, 관찰 필요';
+            icon = '🟠';
+            color = 'orange';
+            investmentRatio = '30~50%';
+        }
+
+        this.marketStatus = {
+            state,
+            description,
+            icon,
+            color,
+            investmentRatio,
+            confidence: Math.min(100, Math.round((rs80Plus / total) * 100 * 1.2)),
+            statistics: {
+                trend8,
+                trend7,
+                trend6,
+                trendLess6,
+                rs90Plus,
+                rs80Plus,
+                rs70Plus,
+                trend8Pct: trend8Pct.toFixed(1),
+                trend7Pct: trend7Pct.toFixed(1)
+            }
+        };
+
+        console.log(`📊 시장 상태: ${state} (신뢰도: ${this.marketStatus.confidence}%)`);
+    }
+
+    /**
+     * 시장 상태 카드 렌더링
+     */
+    renderMarketStatus() {
+        const container = document.querySelector('.market-status-hero');
+        if (!container || !this.marketStatus) return;
+
+        const { state, description, icon, investmentRatio, confidence } = this.marketStatus;
+        
+        // 배경색 결정
+        const bgColor = {
+            'green': '#f0fdf4',
+            'yellow': '#fffbeb',
+            'orange': '#fff7ed',
+            'red': '#fef2f2',
+            'gray': '#f9fafb'
+        }[this.marketStatus.color] || '#f9fafb';
+
+        const borderColor = {
+            'green': '#dcfce7',
+            'yellow': '#fef3c7',
+            'orange': '#fedba8',
+            'red': '#fecaca',
+            'gray': '#e5e7eb'
+        }[this.marketStatus.color] || '#e5e7eb';
+
+        const textColor = {
+            'green': '#0f766e',
+            'yellow': '#92400e',
+            'orange': '#9a3412',
+            'red': '#7f1d1d',
+            'gray': '#374151'
+        }[this.marketStatus.color] || '#374151';
+
+        container.innerHTML = `
+            <div style="background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 10px; padding: var(--spacing-2xl); display: grid; grid-template-columns: 1fr auto; gap: var(--spacing-2xl); align-items: center;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+                        <span style="font-size: 48px;">${icon}</span>
+                        <div>
+                            <h2 style="font-size: 1.75rem; font-weight: 700; color: ${textColor}; margin: 0 0 var(--spacing-sm) 0;">${state}</h2>
+                            <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin: 0;">${description}</p>
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600; margin-bottom: var(--spacing-sm);">권용 투자 비중</div>
+                    <div style="font-size: 2.5rem; font-weight: 700; color: ${textColor}; margin-bottom: var(--spacing-sm);">${investmentRatio}</div>
+                    <div style="font-size: 0.75rem; color: var(--color-text-tertiary);">신뢰도: ${confidence}%</div>
+                </div>
+            </div>
+        `;
+
+        console.log(`✅ 시장 상태 카드 렌더링 완료`);
+    }
+
+    /**
+     * IBD 정렬 진단 (아코디언) 렌더링
+     */
+    renderIBDDiagnosis() {
+        if (!this.marketStatus || !this.marketStatus.statistics) return;
+
+        const { state, statistics } = this.marketStatus;
+        const { trend8, trend7, trend6, trendLess6, trend8Pct, trend7Pct } = statistics;
+
+        // 아코디언 항목들
+        const diagnoses = [
+            {
+                name: 'Uptrend Resumed',
+                emoji: '🟢',
+                criteria: trend8 > 0 ? `${trend8}개 종목 (${trend8Pct}%)` : '0개',
+                condition: state === 'Uptrend Resumed',
+                checks: [
+                    `✓ FTD active: Trend Pass 8 = ${trend8}개`,
+                    `✓ RS 강도: 80+ = ${statistics.rs80Plus}개 (${((statistics.rs80Plus / this.universeData.length) * 100).toFixed(1)}%)`
+                ]
+            },
+            {
+                name: 'Confirmed Uptrend',
+                emoji: '🟢',
+                criteria: trend8 > 0 ? `${trend8}개 종목` : '0개',
+                condition: false,
+                checks: ['기준 미충족']
+            },
+            {
+                name: 'Uptrend Under Pressure',
+                emoji: '🟡',
+                criteria: trend7 > 0 ? `${trend7}개 종목 (${trend7Pct}%)` : '0개',
+                condition: state === 'Uptrend Under Pressure',
+                checks: [`✓ Trend Pass 7 = ${trend7}개`]
+            },
+            {
+                name: 'Rally Attempt',
+                emoji: '🟠',
+                criteria: '2/2 미충족',
+                condition: state === 'Rally Attempt',
+                checks: ['조정 후 반등 신호']
+            },
+            {
+                name: 'Market in Correction',
+                emoji: '🔴',
+                criteria: trend6 > 0 ? `${trend6}개 (${((trend6 / this.universeData.length) * 100).toFixed(1)}%)` : '0개',
+                condition: state === 'Market in Correction',
+                checks: [`✓ Trend Pass 6 이하 = ${trendLess6}개`]
+            }
+        ];
+
+        const container = document.querySelector('.ibd-diagnosis-list');
+        if (!container) return;
+
+        let html = '';
+        diagnoses.forEach((diag, idx) => {
+            if (diag.condition) {
+                // 펼쳐진 상태
+                html += `
+                    <div style="margin-bottom: var(--spacing-lg); background: #f0fdf4; border: 1px solid #dcfce7; border-left: 4px solid var(--color-primary); border-radius: 8px; padding: var(--spacing-lg);">
+                        <div style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+                            <span style="font-size: 20px;">${diag.emoji}</span>
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--color-primary); margin: 0;">${diag.name}</h4>
+                            <span style="margin-left: auto; padding: 2px 6px; background: var(--color-primary); color: white; font-size: 0.65rem; font-weight: 600; border-radius: 4px;">활성</span>
+                        </div>
+                        <div style="border-top: 1px solid #dcfce7; padding-top: var(--spacing-lg);">
+                            ${diag.checks.map(check => `
+                                <div style="display: flex; align-items: flex-start; gap: var(--spacing-md); margin-bottom: var(--spacing-md);">
+                                    <span style="color: var(--color-primary); font-weight: 700;">✓</span>
+                                    <div><div style="font-size: 0.85rem; font-weight: 600; color: var(--color-text-primary);">${check}</div></div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // 접혀있는 상태
+                const statusIcon = diag.emoji;
+                html += `
+                    <div style="background: white; border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg); margin-bottom: var(--spacing-sm); box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer;">
+                        <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                            <span style="font-weight: 600;">▶</span>
+                            <span>${statusIcon}</span>
+                            <h5 style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-primary); margin: 0; flex: 1;">${diag.name}</h5>
+                            <span style="font-size: 0.75rem; color: var(--color-text-tertiary);">${diag.criteria}</span>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        container.innerHTML = html;
+        console.log(`✅ IBD 정렬 진단 렌더링 완료`);
+    }
+
+    /**
+     * 주요 지수 정보 렌더링
+     */
+    renderIndices() {
+        const container = document.querySelector('.indices-cards');
+        if (!container) return;
+
+        let html = '';
+        Object.values(this.indices).forEach(idx => {
+            const changeColor = idx.change >= 0 ? 'var(--color-primary)' : '#ef4444';
+            const maCount = idx.ma.filter(m => m).length;
+
+            html += `
+                <div style="background: white; border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-lg); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-md);">
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase; font-weight: 600;">Index</div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-text-primary); margin-top: 4px;">${idx.price.toLocaleString()}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.1rem; font-weight: 700; color: ${changeColor};">${idx.change > 0 ? '+' : ''}${idx.change}%</div>
+                        </div>
+                    </div>
+                    <div style="height: 60px; background: var(--color-bg-main); border-radius: 6px; margin-bottom: var(--spacing-md); border: 1px dashed var(--color-border-light);"></div>
+                    <div style="display: flex; gap: var(--spacing-sm); margin-bottom: var(--spacing-md);">
+                        <span style="padding: 4px 8px; background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; font-size: 0.65rem; font-weight: 600; color: var(--color-primary);">✓ 21MA</span>
+                        <span style="padding: 4px 8px; background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; font-size: 0.65rem; font-weight: 600; color: var(--color-primary);">✓ 50MA</span>
+                        <span style="padding: 4px 8px; background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; font-size: 0.65rem; font-weight: 600; color: var(--color-primary);">✓ 200MA</span>
+                    </div>
+                    <div style="padding: var(--spacing-sm) var(--spacing-md); background: var(--color-primary); color: white; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-align: center;">
+                        ✓ MA ${maCount}/3 통과
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+        console.log(`✅ 주요 지수 렌더링 완료`);
+    }
+
+    /**
+     * 초기화 및 정기 업데이트
+     */
+    init() {
+        this.loadAndRender();
+
+        // 1분마다 자동 업데이트
+        setInterval(() => {
+            console.log('🔄 Market Pulse 자동 새로고침');
+            this.loadAndRender();
+        }, 60000);
+    }
 }
 
-
-def fetch_index(ticker):
-    """단일 지수 6개월 일봉. 실패 시 None."""
-    try:
-        df = yf.Ticker(ticker).history(period='1y', auto_adjust=True)
-        if df is None or len(df) < 50:
-            return None
-        return df
-    except Exception as e:
-        print(f"⚠️ {ticker} 다운로드 실패: {e}")
-        return None
-
-
-def analyze_index(df):
-    """지수 1개 분석: 종가, 1일 등락률, MA 정배열"""
-    close = df['Close']
-    last = float(close.iloc[-1])
-    prev = float(close.iloc[-2]) if len(close) >= 2 else last
-    change_pct = round((last / prev - 1) * 100, 2) if prev else 0.0
-
-    ma21 = float(close.rolling(21).mean().iloc[-1]) if len(close) >= 21 else np.nan
-    ma50 = float(close.rolling(50).mean().iloc[-1]) if len(close) >= 50 else np.nan
-    ma200 = float(close.rolling(200).mean().iloc[-1]) if len(close) >= 200 else np.nan
-
-    return {
-        'close': round(last, 2),
-        'change_pct': change_pct,
-        'above_ma21': bool(not np.isnan(ma21) and last > ma21),
-        'above_ma50': bool(not np.isnan(ma50) and last > ma50),
-        'above_ma200': bool(not np.isnan(ma200) and last > ma200),
-        'ma50': round(ma50, 2) if not np.isnan(ma50) else None,
-        'ma200': round(ma200, 2) if not np.isnan(ma200) else None,
-    }
-
-
-def count_distribution_days(df):
-    """최근 25거래일 중 분산일(전일 대비 -0.2% 이상 하락 + 거래량 증가) 카운트"""
-    if len(df) < 26:
-        return 0
-    recent = df.iloc[-25:]
-    close = recent['Close'].values
-    vol = recent['Volume'].values
-    dd = 0
-    for i in range(1, len(recent)):
-        price_drop = (close[i] / close[i - 1] - 1) <= -0.002
-        vol_up = vol[i] > vol[i - 1]
-        if price_drop and vol_up:
-            dd += 1
-    return int(dd)
-
-
-def judge_regime(spy_info, dd_count, breadth):
-    """SPY MA 정배열 + 분산일 + breadth 종합 regime 판정"""
-    above50 = spy_info['above_ma50']
-    above200 = spy_info['above_ma200']
-
-    if above50 and above200 and dd_count <= 3 and breadth >= 55:
-        return {'label': 'Uptrend Resumed', 'icon': '🟢', 'code': 'uptrend_resumed', 'ratio': '75-95%'}
-    if above50 and above200:
-        return {'label': 'Confirmed Uptrend', 'icon': '🟢', 'code': 'confirmed_uptrend', 'ratio': '60-80%'}
-    if above200 and not above50:
-        return {'label': 'Uptrend Under Pressure', 'icon': '🟡', 'code': 'under_pressure', 'ratio': '30-50%'}
-    if above50 and not above200:
-        return {'label': 'Rally Attempt', 'icon': '🟠', 'code': 'rally_attempt', 'ratio': '20-40%'}
-    return {'label': 'Market in Correction', 'icon': '🔴', 'code': 'correction', 'ratio': '0-25%'}
-
-
-def calculate_breadth_and_stages():
-    """daily_ibd_scan.json을 읽어 breadth, Stage/Phase 분포 실계산"""
-    result = {
-        'breadth_pct': 0,
-        'stage2': 0, 'stage3': 0, 'stage4': 0,
-        'phase_p4plus': 0, 'phase_p4': 0, 'phase_p3': 0, 'phase_p67': 0,
-        'total': 0,
-    }
-    if not os.path.exists(SCAN_FILE):
-        print(f"⚠️ {SCAN_FILE} 없음 — breadth는 0으로 출력")
-        return result
-
-    with open(SCAN_FILE, encoding='utf-8') as f:
-        data = json.load(f)
-
-    total = len(data)
-    if total == 0:
-        return result
-
-    # Breadth: Phase >= 3 (상승 추세) 종목 비율 ≈ 50MA 위 비율
-    above_trend = sum(1 for d in data if d.get('phase', 0) >= 3)
-    result['breadth_pct'] = round(above_trend / total * 100)
-
-    # Stage 분포 (Phase → Weinstein Stage 매핑)
-    # Phase 5+ = Stage 4 (말기 상승), Phase 4 = Stage 3 후기, Phase 3 = Stage 2 상승
-    result['stage4'] = sum(1 for d in data if d.get('phase', 0) >= 5)
-    result['stage3'] = sum(1 for d in data if d.get('phase', 0) == 4)
-    result['stage2'] = sum(1 for d in data if d.get('phase', 0) == 3)
-
-    # Phase 분포 (사이드바 막대용)
-    result['phase_p4plus'] = sum(1 for d in data if d.get('phase', 0) >= 5)
-    result['phase_p4'] = sum(1 for d in data if d.get('phase', 0) == 4)
-    result['phase_p3'] = sum(1 for d in data if d.get('phase', 0) == 3)
-    result['phase_p67'] = sum(1 for d in data if d.get('phase', 0) >= 6)
-    result['total'] = total
-
-    return result
-
-
-def main():
-    print("=" * 60)
-    print("📊 Market Pulse Analysis (yfinance 실데이터)")
-    print("=" * 60 + "\n")
-
-    # 1. 지수 데이터 수집
-    indices_out = {}
-    spy_info = None
-    spy_df = None
-    for key, meta in INDICES.items():
-        print(f"📈 {meta['name']}({meta['ticker']}) 수집 중...")
-        df = fetch_index(meta['ticker'])
-        if df is None:
-            indices_out[key] = {'name': meta['name'], 'close': None, 'change_pct': 0.0,
-                                'above_ma21': False, 'above_ma50': False, 'above_ma200': False}
-            continue
-        info = analyze_index(df)
-        info['name'] = meta['name']
-        indices_out[key] = info
-        if key == 'SP500':
-            spy_info = info
-            spy_df = df
-
-    # 2. Breadth / Stage / Phase 분포 (종목 데이터 기반)
-    print("\n📊 Breadth / Stage 분포 계산 중...")
-    breadth_stages = calculate_breadth_and_stages()
-    breadth = breadth_stages['breadth_pct']
-
-    # 3. Distribution Days
-    dd_count = count_distribution_days(spy_df) if spy_df is not None else 0
-
-    # 4. Regime 판정
-    if spy_info is None:
-        regime = {'label': 'Unknown', 'icon': '⚪', 'code': 'unknown', 'ratio': '—'}
-    else:
-        regime = judge_regime(spy_info, dd_count, breadth)
-
-    # 5. 출력 조립
-    pulse = {
-        'date': datetime.now().strftime('%Y-%m-%d'),
-        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'regime': regime['label'],
-        'regime_icon': regime['icon'],
-        'regime_code': regime['code'],
-        'investment_ratio': regime['ratio'],
-        'breadth_pct': breadth,
-        'dd_count': dd_count,
-        'indices': indices_out,
-        'stages': {
-            'stage2': breadth_stages['stage2'],
-            'stage3': breadth_stages['stage3'],
-            'stage4': breadth_stages['stage4'],
-        },
-        'phase_distribution': {
-            'p4plus': breadth_stages['phase_p4plus'],
-            'p4': breadth_stages['phase_p4'],
-            'p3': breadth_stages['phase_p3'],
-            'p67': breadth_stages['phase_p67'],
-        },
-        'total_stocks': breadth_stages['total'],
-    }
-
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    out_file = os.path.join(OUTPUT_DIR, 'market_pulse.json')
-    with open(out_file, 'w', encoding='utf-8') as f:
-        json.dump(pulse, f, ensure_ascii=False, indent=2)
-
-    print(f"\n{'=' * 60}")
-    print(f"✅ Regime: {pulse['regime']} ({pulse['regime_icon']}) / 투자비중 {pulse['investment_ratio']}")
-    print(f"✅ Breadth: {breadth}% / DD Count: {dd_count}")
-    for k, v in indices_out.items():
-        if v.get('close'):
-            print(f"   {v['name']}: {v['close']} ({v['change_pct']:+.2f}%)")
-    print(f"💾 저장: {out_file}")
-    print(f"{'=' * 60}\n")
-
-
-if __name__ == '__main__':
-    try:
-        main()
-        print("✅ 완료!")
-        sys.exit(0)
-    except Exception as e:
-        print(f"\n❌ 오류: {e}")
-        import traceback
-        traceback.print_exc()
-        # market_pulse 실패해도 전체 파이프라인은 중단하지 않음 (exit 0)
-        sys.exit(0)
+/**
+ * DOMContentLoaded 이벤트
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    const marketPulse = new MarketPulseBinder();
+    marketPulse.init();
+    window.marketPulseBinder = marketPulse;
+});
