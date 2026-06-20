@@ -7,8 +7,8 @@
     
     <!-- 시스템 폰트 스택 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/dashboard.css?v=20260620a">
-    <link rel="stylesheet" href="css/responsive.css?v=20260620a">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260620b">
+    <link rel="stylesheet" href="css/responsive.css?v=20260620b">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
@@ -1008,7 +1008,9 @@
                             <span class="guide-toggle" style="float: right;">▼</span>
                         </div>
                         <div class="guide-content" style="display: none; padding-top: var(--spacing-lg);">
-                            <p style="font-size: 0.8rem; color: var(--color-text-secondary);">초기자본 $100K | 최대 5포지션 | 손절 -7% | 익절 +20% / +50%</p>
+                            <p style="font-size: 0.8rem; color: var(--color-text-secondary);">초기자본 $100K · 최대 12포지션(NAV/12 균등) · Lock Ratchet Stop</p>
+                            <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: var(--spacing-sm);"><strong>손절선 룰:</strong> Hard −7% → 최대수익 +15% 시 본전(BE) → +25% 시 진입가×1.10 확정(Lock). Max Hold 20일(15일 내 +20% 달성 시 40일 연장).</p>
+                            <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: var(--spacing-sm);">※ 시스템은 시그널 생성·추적만 담당. 실제 비중은 점진적 노출 신호등을 참고해 직접 결정.</p>
                         </div>
                     </div>
 
@@ -1082,13 +1084,12 @@
             // 입력값 가져오기
             const capital = parseFloat(capitalInput.value) || 0;
             
-            // 계산
-            const minInvestment = capital * 0.60;  // 60%
-            const maxInvestment = capital * 0.80;  // 80%
-            
-            const maxPositions = 5;  // 최대 5개 포지션
-            const minPerTrade = minInvestment / maxPositions;
-            const maxPerTrade = maxInvestment / maxPositions;
+            // 정통룰: NAV/12 균등 배분 (종목당 비중 고정)
+            const maxPositions = 12;            // 최대 12포지션
+            const perTrade = capital / maxPositions;  // 종목당 = 자본/12
+            // 풀 노출 시 총 투자액 = 자본 전액 가정 (실제 비중은 신호등 참고해 직접 조절)
+            const fullInvestment = capital;
+            const halfInvestment = capital * 0.5;  // 신호등 경고 시 1/2
             
             // 포맷팅 함수
             function formatCurrency(value) {
@@ -1102,8 +1103,8 @@
             }
             
             // 결과값 업데이트
-            totalInvestmentDiv.textContent = formatCurrency(minInvestment) + ' ~ ' + formatCurrency(maxInvestment);
-            perTradeDiv.textContent = formatCurrency(minPerTrade) + ' ~ ' + formatCurrency(maxPerTrade);
+            totalInvestmentDiv.textContent = formatCurrency(halfInvestment) + ' ~ ' + formatCurrency(fullInvestment);
+            perTradeDiv.textContent = formatCurrency(perTrade) + ' (자본/12)';
             
             // 공격성·손절선 결정 로직
             let aggressionLevel = '중립 +';
@@ -1211,16 +1212,16 @@
     </script>
 
     <!-- Daily Briefing 데이터 바인딩 -->
-    <script src="js/briefing.js?v=20260620a"></script>
+    <script src="js/briefing.js?v=20260620b"></script>
 
     <!-- Market Pulse 데이터 바인딩 -->
-    <script src="js/market-pulse.js?v=20260620a"></script>
+    <script src="js/market-pulse.js?v=20260620b"></script>
 
     <!-- Strategy Room v5 데이터 바인딩 -->
-    <script src="js/strategy-room.js?v=20260620a"></script>
+    <script src="js/strategy-room.js?v=20260620b"></script>
 
     <!-- 섹터 ETF 스크리너 -->
-    <script src="js/sectors-etf.js?v=20260620a"></script>
+    <script src="js/sectors-etf.js?v=20260620b"></script>
 
 </body>
 </html>
