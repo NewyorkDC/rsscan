@@ -7,8 +7,8 @@
     
     <!-- 시스템 폰트 스택 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/dashboard.css?v=20260620c">
-    <link rel="stylesheet" href="css/responsive.css?v=20260620c">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260620d">
+    <link rel="stylesheet" href="css/responsive.css?v=20260620d">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
@@ -463,6 +463,18 @@
                 <div>
                     <h3 style="font-size: 1rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--spacing-lg);">📈 주요 지수 현황</h3>
                     <div class="indices-cards" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg);"></div>
+                </div>
+
+                <!-- ===== Breadth 추이 차트 (90일) ===== -->
+                <div style="margin-top: var(--spacing-2xl);">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--spacing-lg);">🌐 추이 (정규화 90일 · S&P · NASDAQ · 시스템 Breadth)</h3>
+                    <div style="background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 8px; padding: var(--spacing-xl); box-shadow: var(--shadow-sm);">
+                        <div style="width: 100%; height: 300px; position: relative;"><canvas id="chart-breadth"></canvas></div>
+                        <div id="chart-breadth-empty" style="display:none; text-align:center; padding:var(--spacing-2xl); color:var(--color-text-tertiary); font-size:0.82rem;">
+                            추이 데이터가 쌓이는 중입니다. 매일 워크플로우가 실행되며 누적됩니다.
+                        </div>
+                        <div style="font-size: 0.72rem; color: var(--color-text-tertiary); margin-top: var(--spacing-md); line-height: 1.6;">📌 S&P·NASDAQ는 90일 전을 100으로 정규화한 상대 추이. 시스템 Breadth는 50MA 위 종목 비율(%)을 매일 누적.</div>
+                    </div>
                 </div>
 
             </div>
@@ -1217,16 +1229,16 @@
     </script>
 
     <!-- Daily Briefing 데이터 바인딩 -->
-    <script src="js/briefing.js?v=20260620c"></script>
+    <script src="js/briefing.js?v=20260620d"></script>
 
     <!-- Market Pulse 데이터 바인딩 -->
-    <script src="js/market-pulse.js?v=20260620c"></script>
+    <script src="js/market-pulse.js?v=20260620d"></script>
 
     <!-- Strategy Room v5 데이터 바인딩 -->
-    <script src="js/strategy-room.js?v=20260620c"></script>
+    <script src="js/strategy-room.js?v=20260620d"></script>
 
     <!-- 섹터 ETF 스크리너 -->
-    <script src="js/sectors-etf.js?v=20260620c"></script>
+    <script src="js/sectors-etf.js?v=20260620d"></script>
 
 </body>
 </html>
