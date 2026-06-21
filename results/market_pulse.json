@@ -1,6 +1,6 @@
 {
-  "date": "2026-06-20",
-  "timestamp": "2026-06-20 21:23:07",
+  "date": "2026-06-21",
+  "timestamp": "2026-06-21 21:19:33",
   "regime": "Market in Correction",
   "regime_icon": "🔴",
   "regime_code": "correction",
@@ -320,17 +320,17 @@
     }
   },
   "stages": {
-    "stage2": 126,
-    "stage3": 618,
-    "stage4": 806
+    "stage2": 106,
+    "stage3": 488,
+    "stage4": 631
   },
   "phase_distribution": {
-    "p4plus": 806,
-    "p4": 618,
-    "p3": 126,
-    "p67": 397
+    "p4plus": 631,
+    "p4": 488,
+    "p3": 106,
+    "p67": 311
   },
-  "total_stocks": 1550,
+  "total_stocks": 1225,
   "charts": {
     "sp500_norm": [
       100.0,
@@ -517,10 +517,12 @@
       121.27
     ],
     "system_breadth": [
+      100,
       100
     ]
   },
   "breadth_history": [
+    100,
     100
   ]
 }
