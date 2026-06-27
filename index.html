@@ -285,6 +285,88 @@ th[data-tip]:hover::before{
 .dm-gpill{font-size:11px;padding:3px 10px;border-radius:99px;font-weight:600}
 .dm-gpill.on{background:#EAF3DE;color:#3B6D11}
 .dm-gpill.off{background:#FCEBEB;color:#A32D2D}
+
+/* ── 모바일 반응형 ── */
+@media(max-width:768px){
+  body{font-size:14px;overflow:auto;height:auto}
+  .body{overflow:visible;flex-direction:column}
+  /* 헤더 */
+  .hdr{height:48px;padding:0 12px}
+  .hdr-title{font-size:14px}
+  .hdr-meta{display:none}
+  /* 종목검증 바 숨김 */
+  .verify-bar{display:none}
+  /* 탭 가로 스크롤 */
+  .tab-nav{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 8px;gap:0;scrollbar-width:none}
+  .tab-nav::-webkit-scrollbar{display:none}
+  .tab-btn{padding:10px 12px;font-size:12px;white-space:nowrap;flex-shrink:0}
+  /* 사이드바 숨김 → 상단 요약바로 대체 */
+  .sidebar{display:none}
+  .center{width:100%;overflow-y:visible}
+  /* 자동운용 요약 탭 */
+  .sum-wrap{padding:12px 12px 80px}
+  /* Hero 카드 2열 */
+  .sum-hero{grid-template-columns:1fr 1fr;display:grid;gap:8px;margin-bottom:14px}
+  .sum-hero-card{min-width:0;padding:12px 14px;border-radius:10px}
+  .sum-hero-card .l{font-size:11px}
+  .sum-hero-card .v{font-size:22px}
+  /* 섹션 타이틀 */
+  .sum-section-title{font-size:14px;margin:16px 0 10px}
+  /* 보유종목 테이블 → 카드 리스트 */
+  .sum-tbl{display:none}
+  .sum-mobile-list{display:block}
+  /* 장분위기 박스 */
+  .moodbox{padding:14px}
+  .moodbox-grid{gap:6px}
+  .moodbox-stat{min-width:calc(33% - 6px);padding:8px 10px}
+  .moodbox-stat .sv{font-size:15px}
+  .moodbox-analysis{font-size:12px}
+  /* NAV 곡선 */
+  .sum-navbox{padding:10px 0}
+  /* SR 카드 */
+  .sr-card{margin:10px 10px}
+  .tbl-wrap{padding:0 10px 10px}
+  /* 섹터 그리드 1열 */
+  #sectors-container{grid-template-columns:1fr}
+  .sec-card.top{grid-column:auto}
+  /* Market Pulse */
+  .mp-sigs{grid-template-columns:repeat(3,1fr)}
+  .mp-gauges{grid-template-columns:1fr}
+  /* 이탈종목 테이블 */
+  .sum-exit-tbl{display:none}
+  .sum-mobile-exit{display:block}
+  /* 모바일 상단 시장 요약 바 */
+  .mob-regime-bar{display:flex}
+}
+@media(min-width:769px){
+  .sum-mobile-list{display:none}
+  .sum-mobile-exit{display:none}
+  .mob-regime-bar{display:none}
+}
+
+/* 모바일 보유종목 카드 */
+.sum-mobile-list,.sum-mobile-exit{padding:0}
+.mob-sector-head{display:flex;align-items:center;gap:8px;padding:10px 0 6px;border-bottom:1px solid #f0ede6;margin-bottom:4px}
+.mob-sector-dot{width:8px;height:8px;border-radius:50%;background:#A32D2D;flex-shrink:0}
+.mob-sector-name{font-size:13px;font-weight:700;color:#1a1a18}
+.mob-sector-rs{font-size:12px;font-weight:700;color:#A32D2D;margin-left:4px}
+.mob-pos-card{display:flex;align-items:center;padding:11px 0;border-bottom:0.5px solid #f5f4ef}
+.mob-pos-left{flex:1}
+.mob-pos-ticker{font-size:16px;font-weight:700;color:#185FA5}
+.mob-pos-sub{font-size:11px;color:#73726c;margin-top:2px}
+.mob-pos-right{text-align:right}
+.mob-pos-gain{font-size:16px;font-weight:700}
+.mob-pos-prices{font-size:11px;color:#73726c;margin-top:2px}
+.mob-pos-gain.pos{color:#C0392B}
+.mob-pos-gain.neg{color:#1565C0}
+.mob-pos-gain.zero{color:#73726c}
+.mob-new-badge{display:inline-block;font-size:9px;font-weight:800;color:#fff;background:#A32D2D;padding:1px 5px;border-radius:4px;margin-left:5px;vertical-align:middle}
+/* 모바일 상단 시장 국면 바 */
+.mob-regime-bar{background:#fff;border-bottom:1px solid #e0dfd8;padding:8px 12px;flex-shrink:0;align-items:center;gap:10px;font-size:12px}
+.mob-regime-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.mob-regime-label{font-weight:700;font-size:13px}
+.mob-regime-stats{display:flex;gap:12px;margin-left:auto;font-size:11px;color:#73726c}
+.mob-regime-stats b{color:#1a1a18;font-weight:700}
 </style>
 </head>
 <body>
@@ -504,13 +586,16 @@ th[data-tip]:hover::before{
     </div>
 
     <div id="tab-summary" style="display:none">
+      <div id="mob-regime-bar" class="mob-regime-bar" style="display:none"></div>
       <div class="sum-wrap">
         <div class="sum-hero" id="sum-hero"></div>
         <div id="sum-moodbox"></div>
         <div class="sum-section-title">💼 보유 종목 <span id="sum-hold-cnt" style="color:#73726c;font-weight:400"></span> <span id="sum-updated" style="margin-left:auto;font-size:11px;color:#999;font-weight:400"></span></div>
         <div id="sum-holdings"></div>
+        <div id="sum-mobile-holdings" class="sum-mobile-list"></div>
         <div class="sum-section-title">🚪 이탈 종목 <span id="sum-exit-cnt" style="color:#73726c;font-weight:400"></span></div>
         <div id="sum-exits"></div>
+        <div id="sum-mobile-exits" class="sum-mobile-exit"></div>
         <div class="sum-section-title">📈 누적 수익률 추이</div>
         <div class="sum-navbox">
           <svg id="sum-nav-svg" viewBox="0 0 800 240" style="width:100%;height:240px"></svg>
@@ -1147,6 +1232,19 @@ function renderMoodbox(sr, pulse, sectorsData){
       <p style="margin:8px 0 0;padding:8px 10px;background:#faf9f6;border-radius:6px;border-left:3px solid ${regimeCol}"><b>📌 운용 제언:</b> ${advice}</p>
     </div>
   </div>`;
+
+  // 모바일 상단 국면 바
+  var mob=document.getElementById('mob-regime-bar');
+  if(mob){
+    mob.style.display='flex';
+    mob.innerHTML=`<span class="mob-regime-dot" style="background:${regimeCol}"></span>
+      <span class="mob-regime-label" style="color:${regimeCol}">${regime}</span>
+      <div class="mob-regime-stats">
+        <span>Stage2 <b>${stage2.toFixed(0)}%</b></span>
+        <span>RS80+ <b>${rs80.toFixed(0)}%</b></span>
+        <span>평균RS <b>${avgPosRs!==null?avgPosRs:'—'}</b></span>
+      </div>`;
+  }
 }
 
 function renderSummary(){
@@ -1217,8 +1315,33 @@ function renderSummary(){
     holdBox.innerHTML=`<table class="sum-tbl">
       <thead><tr><th>종목명</th><th>매수가</th><th>현재가</th><th>편입일</th><th>수익률</th></tr></thead>
       <tbody>${rowsHtml}</tbody></table>`;
+    // 모바일 카드 리스트
+    var mobHtml='';
+    gnames.forEach(g=>{
+      var members=groups[g];
+      var avgRs=Math.round(members.reduce((s,p)=>s+(p.cur_rs||p.rs_rating||0),0)/members.length);
+      mobHtml+=`<div class="mob-sector-head"><span class="mob-sector-dot"></span><span class="mob-sector-name">${g}</span><span class="mob-sector-rs">RS ${avgRs}</span></div>`;
+      members.sort((a,b)=>(b.cur_gain_pct||0)-(a.cur_gain_pct||0));
+      members.forEach(p=>{
+        var g2=p.cur_gain_pct||0;
+        var gainCls=g2>0?'pos':g2<0?'neg':'zero';
+        var isNew=(p.entry_date===d.date);
+        mobHtml+=`<div class="mob-pos-card">
+          <div class="mob-pos-left">
+            <div class="mob-pos-ticker">${p.ticker}${isNew?'<span class="mob-new-badge">NEW</span>':''}</div>
+            <div class="mob-pos-sub">편입일 ${p.entry_date||'—'} · RS ${p.cur_rs||'—'}</div>
+          </div>
+          <div class="mob-pos-right">
+            <div class="mob-pos-gain ${gainCls}">${g2>=0?'+':''}${g2.toFixed(2)}%</div>
+            <div class="mob-pos-prices">매수 $${(p.entry_px||0).toFixed(2)} → $${(p.cur_price||p.entry_px||0).toFixed(2)}</div>
+          </div>
+        </div>`;
+      });
+    });
+    document.getElementById('sum-mobile-holdings').innerHTML=mobHtml;
   }else{
     holdBox.innerHTML='<div class="sum-empty">보유 종목이 없습니다. 다음 스캔에서 자동 매수됩니다.</div>';
+    document.getElementById('sum-mobile-holdings').innerHTML='<div class="sum-empty">보유 종목이 없습니다.</div>';
   }
 
   // 이탈 종목 — 최근 청산 (당일 또는 전체)
@@ -1240,8 +1363,24 @@ function renderSummary(){
     exitBox.innerHTML=`<table class="sum-tbl">
       <thead><tr><th>종목명</th><th>매수가</th><th>매도가</th><th>청산일</th><th>수익률</th></tr></thead>
       <tbody>${er}</tbody></table>`;
+    var mobExit=closed.slice(0,15).map(c=>{
+      var rp=c.realized_pct||0;
+      var gainCls=rp>0?'pos':rp<0?'neg':'zero';
+      return `<div class="mob-pos-card">
+        <div class="mob-pos-left">
+          <div class="mob-pos-ticker">${c.ticker}</div>
+          <div class="mob-pos-sub">청산일 ${c.exit_date||'—'} · ${c.exit_reason||''}</div>
+        </div>
+        <div class="mob-pos-right">
+          <div class="mob-pos-gain ${gainCls}">${rp>=0?'+':''}${rp.toFixed(2)}%</div>
+          <div class="mob-pos-prices">매수 $${(c.entry_px||0).toFixed(2)} → $${(c.exit_px||0).toFixed(2)}</div>
+        </div>
+      </div>`;
+    }).join('');
+    document.getElementById('sum-mobile-exits').innerHTML=mobExit;
   }else{
     exitBox.innerHTML='<div class="sum-empty">아직 청산한 종목이 없습니다.</div>';
+    document.getElementById('sum-mobile-exits').innerHTML='';
   }
 
   // 누적 수익률 곡선
