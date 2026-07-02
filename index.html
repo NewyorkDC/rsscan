@@ -1503,6 +1503,14 @@ function renderNavCurve(d){
   ].map(s=>`<div class="nav-stat"><div class="l">${s[0]}</div><div class="v" style="color:${s[2]}">${s[1]}</div></div>`).join('');
 }
 
+function togglePool(){
+  var rows=document.querySelectorAll('.sr-pool-row');
+  var t=document.getElementById('sr-pool-toggle');
+  var show=rows.length&&rows[0].style.display==='none';
+  rows.forEach(function(r){r.style.display=show?'':'none';});
+  if(t)t.textContent=show?'▲ 관찰 풀 접기':'▼ 관찰 풀 '+rows.length+'건 펼치기 (게이트 통과 상태 · 시그널 미발화)';
+}
+
 function renderSR(){
   var d=STATE.sr,entryTb=document.getElementById('sr-entry-tbody'),posBox=document.getElementById('sr-positions');
   var skipTb=document.getElementById('sr-skip-tbody'),skipCard=document.getElementById('sr-skip-card');
@@ -1510,10 +1518,12 @@ function renderSR(){
   renderRegimeBanner(d);
   renderNavCurve(d);
   var cands=d.candidates||[];
+  var sigs=cands.filter(r=>r.is_signal);
+  var pool=cands.filter(r=>!r.is_signal);
   var newCnt=cands.filter(r=>r.is_new).length;
   var conCnt=cands.filter(r=>r.is_con).length;
   var metaExtra=(newCnt?' · NEW '+newCnt:'')+(conCnt?' · CON '+conCnt:'');
-  document.getElementById('sr-entry-meta').textContent='신규 시그널 '+cands.length+'건'+metaExtra+' · '+(d.date||'');
+  document.getElementById('sr-entry-meta').textContent='🎯 시그널 '+sigs.length+'건 · 관찰풀 '+pool.length+'건'+metaExtra+' · '+(d.date||'');
 
   // 피벗 범위 이탈 종목 안내 (원본 스타일)
   var pout=d.pivot_out||[];
@@ -1524,7 +1534,14 @@ function renderSR(){
       poNote.style.display='block';
       poNote.innerHTML=`<b>⊘ 피벗 범위 이탈 ${pout.length}개 숨김</b> (매수구간 -10%~+5% 벗어남): ${items}${pout.length>8?' 외':''}`;
     }else{poNote.style.display='none';}
-  }  entryTb.innerHTML=cands.length?cands.map(r=>entryRow(r)).join(''):'<tr><td colspan="10"><div class="empty">진입 조건 통과 종목 없음</div></td></tr>';
+  }  var sigHtml=sigs.length?sigs.map(r=>entryRow(r)).join('')
+    :'<tr><td colspan="10"><div class="empty">오늘 발화한 시그널 없음 (G3 트리거 + G4 가드 통과 0건)</div></td></tr>';
+  var poolHtml='';
+  if(pool.length){
+    poolHtml='<tr><td colspan="10" id="sr-pool-toggle" style="text-align:center;padding:9px;cursor:pointer;color:#185FA5;font-weight:600;background:#fafaf7;font-size:12px" onclick="togglePool()">▼ 관찰 풀 '+pool.length+'건 펼치기 (게이트 통과 상태 · 시그널 미발화)</td></tr>'
+      +pool.map(r=>entryRow(r).replace('<tr','<tr class="sr-pool-row" style="display:none"')).join('');
+  }
+  entryTb.innerHTML=sigHtml+poolHtml;
 
   // Position Cap 차순위
   var skips=d.skip_candidates||[];
