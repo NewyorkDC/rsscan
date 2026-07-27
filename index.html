@@ -175,9 +175,10 @@ async function jget(name){
 }
 
 (async function(){
-  const [mp, dd, sec, rv, bh, dl] = await Promise.all([
+  const [mp, dd, sec, rv, bh, dl, tw] = await Promise.all([
     jget("market_pulse.json"), jget("dashboard_data.json"), jget("sectors.json"),
-    jget("reversal_state.json"), jget("breadth_history.json"), jget("regime_duel.json")
+    jget("reversal_state.json"), jget("breadth_history.json"), jget("regime_duel.json"),
+    jget("twin_duel.json")
   ]);
   $("gen-time").textContent = new Date().toLocaleString("ko-KR",{hour12:false});
 
@@ -264,18 +265,27 @@ async function jget(name){
     if (ep) stat = `<b style="color:var(--warn)">⚔ 갈림 진행 중 — D+${ep.days}</b> (${esc(ep.start)} 시작 · 지수 “${esc(ep.idx0)}” vs 폭 “${esc(ep.br0)}”)`;
     else stat = dl.diverged ? "갈림 감지 — 다음 갱신부터 에피소드 추적" : "현재 두 엔진 판정 일치";
     stat += ` &nbsp;·&nbsp; 전적: 폭 엔진 <b>${w.breadth||0}</b>승 · 지수 엔진 <b>${w.index||0}</b>승 · 무 <b>${w.draw||0}</b>`;
+    if (tw && tw.twins){
+      const b = tw.twins.breadth, i = tw.twins.index;
+      const pp = v => `<b style="color:${v>=0?"var(--up)":"var(--dn)"}">${v>=0?"+":""}${v.toFixed(1)}%</b>`;
+      const hold = t => t.holdings && t.holdings.length ? ` · ${t.holdings.join(" ")}` : " · 현금 대기";
+      stat += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--n200)">
+        <span class="microlabel">쌍둥이 가상봇 — 실전 규칙 그대로, G0만 다름 (${esc(tw.start)} 시작 · 각 $4,000)</span><br>
+        <b>폭 G0</b> $${b.total.toLocaleString()} ${pp(b.ret_pct)} (보유 ${b.open}${hold(b)})<br>
+        <b>지수 G0</b> $${i.total.toLocaleString()} ${pp(i.ret_pct)} (보유 ${i.open}${hold(i)})</div>`;
+    }
     const nv = dl.nav;
     if (nv && nv.series && nv.series.length > 1){
       const pc = v => { const p=(v-1)*100; return `<b style="color:${p>=0?"var(--up)":"var(--dn)"}">${p>=0?"+":""}${p.toFixed(1)}%</b>`; };
       stat += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--n200)">
-        <span class="microlabel">장기 수익률 채점 (${esc(nv.start)} = 1.0 · 판정→SPY 노출 조절)</span><br>
+        <span class="microlabel">보조 지표: SPY 노출 조절 NAV (${esc(nv.start)} = 1.0)</span><br>
         폭 엔진 ${pc(nv.breadth)} &nbsp;vs&nbsp; 지수 엔진 ${pc(nv.index)} &nbsp;·&nbsp; SPY 보유 ${pc(nv.spy)}</div>`;
     }
     $("duelstatus").innerHTML = stat;
-    $("interpduel").innerHTML = `판정 규칙: 두 판정이 재수렴할 때 — 폭이 뒤따라 무너지면 <b>지수 엔진 승</b>(분배일 경보가 옳았음),
-      지수가 상승으로 복귀하면 <b>폭 엔진 승</b>(경보는 해프닝). 20거래일 무해소면 무승부.
-      장기 수익률: 각 엔진 판정대로 SPY 노출(상승 100% · 압력 50% · 조정 0%)을 다음 거래일부터 적용한 가상 NAV —
-      시간이 쌓일수록 "어느 렌즈가 돈을 버는 렌즈인가"가 숫자로 판명됩니다. 매일 아침 스캔이 자동 기록.`;
+    $("interpduel").innerHTML = `<b>쌍둥이봇이 본 심판</b>: 같은 스캔·같은 G3/G4 후보·같은 사다리 청산에 G0만 다르게 운용하는
+      가상봇 2대 — NAV 차이가 곧 "폭 엔진 유지 vs 지수 엔진 채택"의 답. 실제 봇은 그대로 폭 G0로 운용 중.
+      에피소드 판정(보조): 재수렴 시 폭이 무너지면 지수 승, 지수가 복귀하면 폭 승, 20거래일 무해소 무승부.
+      매일 아침 스캔이 자동 기록합니다.`;
   } else {
     $("duelgrid").innerHTML = "";
     $("duelstatus").textContent = "";
