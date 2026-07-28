@@ -258,8 +258,9 @@ async function jget(name){
         <div><div class="name">폭 엔진 (우리 G0) — <span style="color:${col(bR)}">${esc(be.label||"—")}</span></div>
         <div class="det">유니버스 1,500종목 · (Stage2% + 50일선위%)÷2 = 너비점수 <b>${be.score ?? "—"}</b></div></div></div>
       <div class="ck"><div class="mark" style="color:${col(iR)};font-size:15px;min-width:auto;padding-top:2px">지수</div>
-        <div><div class="name">지수 엔진 (선생님식 근사) — <span style="color:${col(iR)}">${esc(ie.label||"—")}</span></div>
-        <div class="det">SPY 분배일 모델 · 25일 분배 <b>${ie.dist25 ?? "—"}회</b> · 고점比 <b>${ie.spy_dd ?? "—"}%</b></div></div></div>`;
+        <div><div class="name">지수 엔진 (여정30 근사) — <span style="color:${col(iR)}">${esc(ie.label||"—")}</span></div>
+        <div class="det">가중 DD: S&P <b>${ie.w_spy ?? ie.dist25 ?? "—"}</b>${ie.w_qqq!=null?` · NDX <b>${ie.w_qqq}</b>`:""}
+        · 고점比 <b>${ie.spy_dd ?? "—"}%</b> <span style="color:var(--n500)">(해소: 25일 or +6% 반등 · 조정은 가격붕괴만)</span></div></div></div>`;
     const ep = dl.current_episode, w = dl.wins || {};
     let stat = "";
     if (ep) stat = `<b style="color:var(--warn)">⚔ 갈림 진행 중 — D+${ep.days}</b> (${esc(ep.start)} 시작 · 지수 “${esc(ep.idx0)}” vs 폭 “${esc(ep.br0)}”)`;
