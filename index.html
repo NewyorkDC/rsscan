@@ -267,13 +267,23 @@ async function jget(name){
     else stat = dl.diverged ? "갈림 감지 — 다음 갱신부터 에피소드 추적" : "현재 두 엔진 판정 일치";
     stat += ` &nbsp;·&nbsp; 전적: 폭 엔진 <b>${w.breadth||0}</b>승 · 지수 엔진 <b>${w.index||0}</b>승 · 무 <b>${w.draw||0}</b>`;
     if (tw && tw.twins){
-      const b = tw.twins.breadth, i = tw.twins.index;
       const pp = v => `<b style="color:${v>=0?"var(--up)":"var(--dn)"}">${v>=0?"+":""}${v.toFixed(1)}%</b>`;
       const hold = t => t.holdings && t.holdings.length ? ` · ${t.holdings.join(" ")}` : " · 현금 대기";
+      const names = {breadth:"폭 G0 (현행)", index:"지수 G0 (선생님)", overheat:"과열차단 (신규)"};
+      let rows = "";
+      for (const k of ["breadth","index","overheat"]){
+        const t = tw.twins[k];
+        if (!t) continue;
+        rows += `<b>${names[k]}</b> $${t.total.toLocaleString()} ${pp(t.ret_pct)} (보유 ${t.open}${hold(t)})<br>`;
+      }
+      const oh = tw.overheat || {};
+      const ohLine = oh.median != null
+        ? `<br><span style="color:${oh.rich?"var(--dn)":"var(--n600)"}">시그널 5일합 ${oh.d5} vs 중앙값 ${oh.median}
+           ${oh.rich?"→ <b>🔥 풍년 = 과열차단 트윈 매수 정지</b>":"→ 평시"}</span>`
+        : `<br><span style="color:var(--n500)">과열 판정 이력 축적 중 (${oh.n||0}/20일)</span>`;
       stat += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--n200)">
-        <span class="microlabel">쌍둥이 가상봇 — 실전 규칙 그대로, G0만 다름 (${esc(tw.start)} 시작 · 각 $4,000)</span><br>
-        <b>폭 G0</b> $${b.total.toLocaleString()} ${pp(b.ret_pct)} (보유 ${b.open}${hold(b)})<br>
-        <b>지수 G0</b> $${i.total.toLocaleString()} ${pp(i.ret_pct)} (보유 ${i.open}${hold(i)})</div>`;
+        <span class="microlabel">쌍둥이 가상봇 — 실전 규칙 그대로, 매수 게이트만 다름 (${esc(tw.start)} 시작 · 각 $4,000)</span><br>
+        ${rows}${ohLine}</div>`;
     }
     const nv = dl.nav;
     if (nv && nv.series && nv.series.length > 1){
