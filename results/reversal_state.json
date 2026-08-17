@@ -1,13 +1,13 @@
 {
- "date": "2026-08-14",
+ "date": "2026-08-17",
  "trend150": true,
  "ftd_recent": false,
  "ftd_date": "2026-04-08",
  "ftd_state": "NORMAL",
- "spy_dd": -0.2,
+ "spy_dd": -0.7,
  "breadth_escape": false,
- "breadth_pct": 65.23,
- "breadth_sm20": 64.86,
+ "breadth_pct": 60.82,
+ "breadth_sm20": 64.67,
  "breadth_min60": 51.94,
  "count": 1
 }
