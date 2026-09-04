@@ -45,6 +45,7 @@ a:hover{color:var(--a900)}
 .microlabel{font-size:10.5px;color:var(--n600);letter-spacing:.06em;text-transform:uppercase}
 .wbtn{font-size:11px;padding:3px 12px;border:1px solid var(--n300);background:transparent;color:var(--n600);cursor:pointer;font-family:inherit;white-space:nowrap}
 .wbtn:hover{background:var(--a100);color:var(--a800)}
+.wbtn.on{background:var(--a100);color:var(--a800);border-color:var(--a400);font-weight:700}
 
 /* ── 헤더 ── */
 header{border-bottom:2px solid var(--text);padding-bottom:14px;margin-bottom:30px}
@@ -155,6 +156,16 @@ td.r,th.r{text-align:right}
   <div class="shead"><span class="snum">06</span><h2 class="stitle">섹터 로테이션</h2><span class="ssub">Sector Health — 자금은 어디로 흐르나</span></div>
   <div id="sectors"></div>
   <div class="interp" id="interp5"></div>
+</section>
+
+<!-- 07 로테이션 맵 -->
+<section class="blueprint" id="sec7">
+  <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+  <div class="shead"><span class="snum">07</span><h2 class="stitle">로테이션 맵</h2><span class="ssub">Relative Rotation — 사분면 시계방향 회전: 개선 → 주도 → 약화 → 후행</span>
+    <span style="margin-left:auto;display:flex;gap:6px"><button class="wbtn rotbtn on" data-set="etf">ETF 팩터 페어</button><button class="wbtn rotbtn" data-set="ours">우리 유니버스</button></span></div>
+  <div class="microlabel" id="rot-note">x = 200일선 이탈의 1년 z(추세 대비 위치) · y = 이탈 20일 변화의 1년 z(모멘텀) · 꼬리 = 최근 8주</div>
+  <div style="overflow-x:auto;margin-top:8px"><svg id="rotsvg" viewBox="0 0 1000 620" style="width:100%;min-width:640px;height:auto;display:block;font-family:var(--fb)"></svg></div>
+  <div class="interp" id="interp7"></div>
 </section>
 
 <div class="footer">
@@ -383,6 +394,53 @@ async function jget(name){
     }).join(" / ");
     $("interp5").innerHTML = `주도: ${picks || "—"}. 하위: ${ss.slice(-2).map(s=>esc(s.sector)).join(" · ")}.`;
   }
+
+  /* ── 07 로테이션 맵 ── */
+  const rot = await jget("rotation_map.json");
+  const QUAD = {lead:["주도","var(--up)"], weak:["약화","var(--warn)"], lag:["후행","var(--dn)"], imp:["개선","var(--a600)"]};
+  const quadOf = ([x,y]) => x>=0&&y>=0 ? "lead" : x>=0 ? "weak" : y<0 ? "lag" : "imp";
+  function drawRot(setKey){
+    const items = rot?.sets?.[setKey] || [];
+    const W=1000, H=620, LIM=2.6, PAD=34;
+    const sx = v => W/2 + Math.max(-LIM,Math.min(LIM,v))/LIM*(W/2-PAD);
+    const sy = v => H/2 - Math.max(-LIM,Math.min(LIM,v))/LIM*(H/2-PAD);
+    let s = `<rect x="0" y="0" width="${W/2}" height="${H/2}" fill="#eef3fa"/>
+      <rect x="${W/2}" y="0" width="${W/2}" height="${H/2}" fill="#ebf1ec"/>
+      <rect x="${W/2}" y="${H/2}" width="${W/2}" height="${H/2}" fill="#f6f1e7"/>
+      <rect x="0" y="${H/2}" width="${W/2}" height="${H/2}" fill="#f5ebeb"/>
+      <line x1="${W/2}" y1="0" x2="${W/2}" y2="${H}" stroke="#b7b7ba"/><line x1="0" y1="${H/2}" x2="${W}" y2="${H/2}" stroke="#b7b7ba"/>
+      <text x="12" y="22" font-size="14" font-weight="700" fill="var(--a600)">개선 Improving</text>
+      <text x="${W-12}" y="22" font-size="14" font-weight="700" fill="var(--up)" text-anchor="end">주도 Leading</text>
+      <text x="${W-12}" y="${H-10}" font-size="14" font-weight="700" fill="var(--warn)" text-anchor="end">약화 Weakening</text>
+      <text x="12" y="${H-10}" font-size="14" font-weight="700" fill="var(--dn)">후행 Lagging</text>
+      <text x="${W/2+8}" y="38" font-size="11" fill="var(--n600)">↑ 모멘텀</text>
+      <text x="${W-12}" y="${H/2-8}" font-size="11" fill="var(--n600)" text-anchor="end">→ 추세 대비 위치</text>`;
+    const counts = {lead:[],weak:[],lag:[],imp:[]}; let mover=null;
+    for (const it of items){
+      const p = it.pts; if(!p||p.length<2) continue;
+      const head = p[p.length-1], q = quadOf(head), col = QUAD[q][1];
+      counts[q].push(it.name);
+      const d = Math.hypot(head[0]-p[0][0], head[1]-p[0][1]);
+      if (!mover || d > mover.d) mover = {d, name:it.name, q};
+      const dash = it.kind==="pair"||it.kind==="theme" ? ' stroke-dasharray="4 3"' : "";
+      s += `<polyline points="${p.map(([x,y])=>`${sx(x).toFixed(0)},${sy(y).toFixed(0)}`).join(" ")}" fill="none" stroke="${col}" stroke-width="1.2" opacity=".42"${dash}/>`;
+      const hx=sx(head[0]), hy=sy(head[1]), right = hx < W-130;
+      s += `<circle cx="${hx.toFixed(0)}" cy="${hy.toFixed(0)}" r="4.5" fill="${col}"><title>${esc(it.name)} ${esc(it.code)} — ${esc(it.note||"")}</title></circle>
+            <text x="${(hx+(right?8:-8)).toFixed(0)}" y="${(hy+4).toFixed(0)}" font-size="12" font-weight="700" fill="${col}" text-anchor="${right?"start":"end"}">${esc(it.name)}</text>`;
+    }
+    $("rotsvg").innerHTML = s;
+    const line = k => counts[k].length ? `<b>${QUAD[k][0]}</b> ${counts[k].map(esc).join(" · ")}` : `<b>${QUAD[k][0]}</b> —`;
+    $("interp7").innerHTML = items.length
+      ? `${line("lead")}<br>${line("imp")}<br>${line("weak")}<br>${line("lag")}` +
+        (mover ? `<br><span style="color:var(--n600)">최근 8주 가장 크게 이동: <b>${esc(mover.name)}</b> (현재 ${QUAD[mover.q][0]})</span>` : "") +
+        (rot?.asof ? ` <span class="co">· 기준 ${esc(rot.asof)}</span>` : "")
+      : "로테이션 데이터 없음 — 다음 스캔 후 표시됩니다.";
+  }
+  document.querySelectorAll(".rotbtn").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll(".rotbtn").forEach(x => x.classList.remove("on"));
+    b.classList.add("on"); drawRot(b.dataset.set);
+  }));
+  drawRot("etf");
 })();
 </script>
 </body>
