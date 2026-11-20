@@ -1,13 +1,13 @@
 {
- "date": "2026-11-19",
+ "date": "2026-11-20",
  "trend150": false,
  "ftd_recent": false,
  "ftd_date": "2026-04-08",
  "ftd_state": "CORRECTION",
- "spy_dd": -8.1,
+ "spy_dd": -11.3,
  "breadth_escape": true,
- "breadth_pct": 41.92,
- "breadth_sm20": 56.27,
+ "breadth_pct": 36.13,
+ "breadth_sm20": 55.59,
  "breadth_min60": 19.07,
  "count": 1
 }
